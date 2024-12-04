@@ -37,6 +37,8 @@ for template in export_yaml['zabbix_export']['templates']:
     with open(f"./cache/{template['name']}.yaml", "w") as file:
         yaml.dump(template, file)
 
+git.switch_branch("development")
+
 if not git.has_changes:
     logger.info("No changes detected")
     exit()
