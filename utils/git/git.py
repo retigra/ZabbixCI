@@ -1,4 +1,5 @@
 import pygit2
+from pygit2.enums import MergeAnalysis
 import logging
 import os
 
@@ -31,6 +32,25 @@ class Git:
         Check if the repository has changes, returns True if there are changes, False otherwise
         """
         return len(self.repository.status()) > 0
+
+    @property
+    def current_branch(self):
+        """
+        Get the current branch
+        """
+        return self.repository.head.shorthand
+
+    def get_current_revision(self):
+        """
+        Get the current revision
+        """
+        return self.repository.head.target
+
+    def diff(self, old_revision: str):
+        """
+        Get the diff of the changes
+        """
+        return self.repository.diff(old_revision)
 
     def switch_branch(self, branch: str):
         """
@@ -94,3 +114,44 @@ class Git:
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
         remote.push([f"refs/heads/{branch}"], callbacks=callbacks)
+
+    def pull(self, remote_url: str, credentials, branch: str = None):
+        """
+        Pull the changes from the remote repository, merge them with the local repository
+        """
+        remote = self.repository.remotes['origin']
+
+        if not branch:
+            branch = self.repository.head.shorthand
+
+        if not remote:
+            remote = self.repository.remotes.create('origin', remote_url)
+
+        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
+
+        remote.fetch(callbacks=callbacks)
+
+        remote_id = self.repository.lookup_reference(
+            f"refs/remotes/origin/{branch}").target
+
+        merge_result, _ = self.repository.merge_analysis(remote_id)
+
+        if merge_result & MergeAnalysis.UP_TO_DATE:
+            logger.info("Already up to date")
+            return
+
+        if merge_result & MergeAnalysis.FASTFORWARD:
+            self.repository.checkout_tree(self.repository.get(remote_id))
+            self.repository.head.set_target(remote_id)
+            self.repository.head.set_target(remote_id)
+            return
+
+        if merge_result & MergeAnalysis.NORMAL:
+            self.repository.merge(remote_id)
+
+            if self.repository.index.conflicts:
+                logger.error("Conflicts detected")
+                return
+
+        self.repository.state_cleanup()
+        self.commit("Merge changes")
