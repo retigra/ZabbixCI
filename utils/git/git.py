@@ -56,7 +56,7 @@ class Git:
         """
         Switch to a branch, if the branch does not exist, create it
         """
-        if branch not in self.repository.branches.local:
+        if not self.repository.branches.local.get(branch):
             self.create_branch(branch)
 
         local_branch = self.repository.branches.local[branch]
