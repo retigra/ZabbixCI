@@ -10,7 +10,7 @@ P = ParamSpec('P')
 
 
 class Git:
-    repository: pygit2.Repository = None
+    _repository: pygit2.Repository = None
     author = pygit2.Signature("Zabbix Configuration", "zabbix@example.com")
 
     def __init__(self, path: str):
@@ -23,54 +23,55 @@ class Git:
             os.makedirs(path)
 
         if not os.path.exists(f"{path}/.git"):
-            self.repository = pygit2.init_repository(path, initial_head="main")
+            self._repository = pygit2.init_repository(
+                path, initial_head="main")
         else:
-            self.repository = pygit2.Repository(path)
+            self._repository = pygit2.Repository(path)
 
     @property
     def has_changes(self):
         """
         Check if the repository has changes, returns True if there are changes, False otherwise
         """
-        return len(self.repository.status()) > 0
+        return len(self._repository.status()) > 0
 
     @property
     def current_branch(self):
         """
         Get the current branch
         """
-        return self.repository.head.shorthand
+        return self._repository.head.shorthand
 
     def get_current_revision(self):
         """
         Get the current revision
         """
-        return self.repository.head.target
+        return self._repository.head.target
 
     def diff(self, old_revision: str):
         """
         Get the diff of the changes
         """
-        return self.repository.diff(old_revision)
+        return self._repository.diff(old_revision)
 
     def switch_branch(self, branch: str):
         """
         Switch to a branch, if the branch does not exist, create it
         """
-        if not self.repository.branches.local.get(branch):
+        if not self._repository.branches.local.get(branch):
             self.create_branch(branch)
 
-        local_branch = self.repository.branches.local[branch]
+        local_branch = self._repository.branches.local[branch]
 
-        self.repository.checkout(local_branch)
+        self._repository.checkout(local_branch)
 
     def create_branch(self, branch: str):
         """
         Create a branch
         """
         try:
-            self.repository.branches.local.create(
-                branch, self.repository.head.peel())
+            self._repository.branches.local.create(
+                branch, self._repository.head.peel())
         except Exception as e:
             logger.error(f"Failed to create branch: {e}")
 
@@ -78,7 +79,7 @@ class Git:
         """
         Add all changes to the index
         """
-        index = self.repository.index
+        index = self._repository.index
         index.add_all()
         index.write()
 
@@ -86,37 +87,37 @@ class Git:
         """
         Reset the repository
         """
-        self.repository.reset(*args, **kwargs)
+        self._repository.reset(*args, **kwargs)
 
     def commit(self, message: str):
         """
         Commit current index to the repository
         """
-        index = self.repository.index
+        index = self._repository.index
         index.write()
 
         tree = index.write_tree()
 
-        self.repository.create_commit(
+        self._repository.create_commit(
             "HEAD",
             self.author,
             self.author,
             message,
             tree,
-            [self.repository.head.target] if not self.repository.head_is_unborn else []
+            [self._repository.head.target] if not self._repository.head_is_unborn else []
         )
 
     def push(self, remote_url: str, credentials, branch: str = None):
         """
         Push the changes to the remote repository
         """
-        remote = self.repository.remotes['origin']
+        remote = self._repository.remotes['origin']
 
         if not branch:
-            branch = self.repository.head.shorthand
+            branch = self._repository.head.shorthand
 
         if not remote:
-            remote = self.repository.remotes.create('origin', remote_url)
+            remote = self._repository.remotes.create('origin', remote_url)
 
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
@@ -126,40 +127,40 @@ class Git:
         """
         Pull the changes from the remote repository, merge them with the local repository
         """
-        remote = self.repository.remotes['origin']
+        remote = self._repository.remotes['origin']
 
         if not branch:
-            branch = self.repository.head.shorthand
+            branch = self._repository.head.shorthand
 
         if not remote:
-            remote = self.repository.remotes.create('origin', remote_url)
+            remote = self._repository.remotes.create('origin', remote_url)
 
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
         remote.fetch(callbacks=callbacks)
 
-        remote_id = self.repository.lookup_reference(
+        remote_id = self._repository.lookup_reference(
             f"refs/remotes/origin/{branch}").target
 
-        merge_result, _ = self.repository.merge_analysis(remote_id)
+        merge_result, _ = self._repository.merge_analysis(remote_id)
 
         if merge_result & MergeAnalysis.UP_TO_DATE:
             logger.info("Already up to date")
             return
 
         if merge_result & MergeAnalysis.FASTFORWARD:
-            self.repository.checkout_tree(self.repository.get(remote_id))
-            self.repository.head.set_target(remote_id)
-            self.repository.head.set_target(remote_id)
+            self._repository.checkout_tree(self._repository.get(remote_id))
+            self._repository.head.set_target(remote_id)
+            self._repository.head.set_target(remote_id)
             logger.info("Fast-forward merge")
             return
 
         if merge_result & MergeAnalysis.NORMAL:
-            self.repository.merge(remote_id)
+            self._repository.merge(remote_id)
 
-            if self.repository.index.conflicts:
+            if self._repository.index.conflicts:
                 logger.error("Conflicts detected")
                 return
 
-        self.repository.state_cleanup()
+        self._repository.state_cleanup()
         self.commit("Merge changes")
