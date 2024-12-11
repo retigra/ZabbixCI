@@ -1,3 +1,4 @@
+from typing import ParamSpec
 import pygit2
 from pygit2.enums import MergeAnalysis
 import logging
@@ -5,18 +6,18 @@ import os
 
 logger = logging.getLogger(__name__)
 
+P = ParamSpec('P')
+
 
 class Git:
     repository: pygit2.Repository = None
     author = pygit2.Signature("Zabbix Configuration", "zabbix@example.com")
 
-    def __init__(self, path: str = None):
+    def __init__(self, path: str):
         """
         Initialize git repository
         :param path: Path to the git repository, defaults to ./cache
         """
-        if not path:
-            path = "./cache"
 
         if not os.path.exists(path):
             os.makedirs(path)
@@ -81,6 +82,12 @@ class Git:
         index.add_all()
         index.write()
 
+    def reset(self, *args: P.args, **kwargs: P.kwargs):
+        """
+        Reset the repository
+        """
+        self.repository.reset(*args, **kwargs)
+
     def commit(self, message: str):
         """
         Commit current index to the repository
@@ -144,6 +151,7 @@ class Git:
             self.repository.checkout_tree(self.repository.get(remote_id))
             self.repository.head.set_target(remote_id)
             self.repository.head.set_target(remote_id)
+            logger.info("Fast-forward merge")
             return
 
         if merge_result & MergeAnalysis.NORMAL:
