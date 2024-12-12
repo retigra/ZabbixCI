@@ -7,6 +7,7 @@ from pygit2.enums import ResetMode
 import os
 from ruamel.yaml import YAML
 from io import StringIO
+from regex import search
 
 
 REMOTE = os.getenv("GIT_REMOTE")
@@ -85,7 +86,12 @@ def push():
 
     # Commit and push the changes
     git.add_all()
-    git.commit("Update templates")
+
+    host = os.getenv("ZABBIX_HOST", search(
+        "https?://([^/]+)", zabbix.zapi.url).group(1))
+
+    # Generate commit message
+    git.commit(f"Merged Zabbix state from {host}")
     git.push(REMOTE, pygit2.KeypairFromAgent("git"))
 
     logger.info("Changes pushed to git")
