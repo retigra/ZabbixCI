@@ -55,27 +55,35 @@ def zabbix_to_file(cache_path=CACHE_PATH):
 
     # Write the templates to the cache
     for template in export_yaml['zabbix_export']['templates']:
-        with open(f"{cache_path}/{template['name']}.yaml", "w") as file:
+        template = Template.from_zabbix(
+            template,
+            export_yaml['zabbix_export']['template_groups'],
+            export_yaml['zabbix_export']['version'],
+        )
 
-            template = Template.from_zabbix(
-                template,
-                export_yaml['zabbix_export']['template_groups'],
-                export_yaml['zabbix_export']['version'],
-            )
-
-            template.save()
+        template.save()
 
 
 def push():
     """
     Fetch Zabbix state and commit changes to git remote
     """
+    git.fetch(REMOTE, pygit2.KeypairFromAgent("git"))
     git.switch_branch(PUSH_BRANCH)
 
     # Reflect current Zabbix state in the cache
-    for file in os.listdir(f"{CACHE_PATH}/"):
-        if file.endswith(".yaml"):
-            os.remove(f"{CACHE_PATH}/{file}")
+    for root, dirs, files in os.walk(CACHE_PATH, topdown=False):
+        if './cache/.git' in root:
+            continue
+
+        for name in files:
+            os.remove(os.path.join(root, name))
+
+        for name in dirs:
+            if name == '.git':
+                continue
+
+            os.rmdir(os.path.join(root, name))
 
     zabbix_to_file()
 
