@@ -21,9 +21,7 @@ if not REMOTE:
 
 logger = logging.getLogger(__name__)
 
-zabbix = Zabbix(
-    "https://zabbix.intra.hedium.nl",
-)
+zabbix = Zabbix()
 
 # Initialize the git repository
 git = Git(CACHE_PATH)
