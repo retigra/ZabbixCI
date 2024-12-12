@@ -95,7 +95,7 @@ def pull():
     """
     Pull current state from git remote and update Zabbix
     """
-    git.switch_branch("development")
+    git.switch_branch("main")
 
     # Reflect current Zabbix state in the cache
     for file in os.listdir(CACHE_PATH):
