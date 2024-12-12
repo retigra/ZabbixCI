@@ -1,5 +1,7 @@
 from utils.zabbix import Zabbix
 from utils.git import Git
+from utils.template import Template
+
 import logging
 
 import pygit2
@@ -54,10 +56,14 @@ def zabbix_to_file(cache_path=CACHE_PATH):
     # Write the templates to the cache
     for template in export_yaml['zabbix_export']['templates']:
         with open(f"{cache_path}/{template['name']}.yaml", "w") as file:
-            yaml.dump({
-                **template,
-                "synchronization_zabbix_version": export_yaml['zabbix_export']['version'],
-            }, file)
+
+            template = Template.from_zabbix(
+                template,
+                export_yaml['zabbix_export']['template_groups'],
+                export_yaml['zabbix_export']['version'],
+            )
+
+            template.save()
 
 
 def push():
