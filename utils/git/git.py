@@ -89,6 +89,19 @@ class Git:
         """
         self._repository.reset(*args, **kwargs)
 
+    def fetch(self, remote_url: str, credentials):
+        """
+        Fetch the changes from the remote repository
+        """
+        if not 'origin' in self._repository.remotes.names():
+            self._repository.remotes.create('origin', remote_url)
+
+        remote = self._repository.remotes['origin']
+
+        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
+
+        remote.fetch(callbacks=callbacks)
+
     def commit(self, message: str):
         """
         Commit current index to the repository
