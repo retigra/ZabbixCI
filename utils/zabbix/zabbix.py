@@ -67,3 +67,6 @@ class Zabbix():
                 "source": reconstructed_export.getvalue()
             }
         )['result']
+
+    def get_server_version(self):
+        return self.zapi.send_api_request("apiinfo.version")['result']
