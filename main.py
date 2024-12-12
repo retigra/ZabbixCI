@@ -9,12 +9,7 @@ from ruamel.yaml import YAML
 from io import StringIO
 from regex import search
 
-
-REMOTE = os.getenv("GIT_REMOTE")
-CACHE_PATH = os.getenv("CACHE_PATH", "./cache")
-
-PUSH_BRANCH = os.getenv("PUSH_BRANCH", "development")
-PULL_BRANCH = os.getenv("PULL_BRANCH", "main")
+from settings import REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH
 
 if not REMOTE:
     raise ValueError("GIT_REMOTE is not set")
