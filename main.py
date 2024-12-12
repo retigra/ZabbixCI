@@ -13,6 +13,9 @@ from regex import search
 REMOTE = os.getenv("GIT_REMOTE")
 CACHE_PATH = os.getenv("CACHE_PATH", "./cache")
 
+PUSH_BRANCH = os.getenv("PUSH_BRANCH", "development")
+PULL_BRANCH = os.getenv("PULL_BRANCH", "main")
+
 if not REMOTE:
     raise ValueError("GIT_REMOTE is not set")
 
@@ -68,7 +71,7 @@ def push():
     """
     Fetch Zabbix state and commit changes to git remote
     """
-    git.switch_branch("development")
+    git.switch_branch(PUSH_BRANCH)
 
     # Reflect current Zabbix state in the cache
     for file in os.listdir(f"{CACHE_PATH}/"):
@@ -101,7 +104,7 @@ def pull():
     """
     Pull current state from git remote and update Zabbix
     """
-    git.switch_branch("main")
+    git.switch_branch(PULL_BRANCH)
 
     # Reflect current Zabbix state in the cache
     for file in os.listdir(CACHE_PATH):
