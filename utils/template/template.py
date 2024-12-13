@@ -1,3 +1,5 @@
+from io import StringIO
+from typing import TextIO
 from ruamel.yaml import YAML
 from settings import CACHE_PATH, PARENT_GROUP
 import regex
@@ -59,6 +61,14 @@ class Template:
     def __str__(self):
         return self._template['name']
 
+    def _yaml_dump(self, stream: TextIO):
+        """
+        Dump Zabbix importable template to stream
+        """
+        yaml.dump({
+            "zabbix_export": self._export
+        }, stream)
+
     def save(self):
         """
         Save the template to the cache
@@ -66,22 +76,22 @@ class Template:
         os.makedirs(f"{CACHE_PATH}/{self.truncated_groups}", exist_ok=True)
 
         with open(f"{CACHE_PATH}/{self.truncated_groups}/{self._template['name']}.yaml", "w") as file:
-            yaml.dump(self.export(), file)
+            self._yaml_dump(file)
 
     def export(self):
         """
         Export the template as Zabbix importable YAML
         """
-        return yaml.dump({
-            "zabbix_export": self._export
-        })
+        stream = StringIO()
+        self._yaml_dump(stream)
+        return stream.getvalue()
 
     @staticmethod
-    def open(name: str):
+    def open(path: str):
         """
         Open a template from the cache
         """
-        with open(f"{CACHE_PATH}/{name}.yaml", "r") as file:
+        with open(f"{CACHE_PATH}/{path}", "r") as file:
             return Template(yaml.load(file)['zabbix_export'])
 
     @staticmethod
