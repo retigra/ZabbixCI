@@ -1,5 +1,5 @@
 from ruamel.yaml import YAML
-from settings import CACHE_PATH
+from settings import CACHE_PATH, PARENT_GROUP
 import regex
 import os
 
@@ -25,12 +25,14 @@ class Template:
         """
         The most specific group of the template, the lowest child in the hierarchy
         """
-        selected_group = ""
+        selected_group = self._template['groups'][0]['name']
         selected_length = 0
 
         # Most specific group is based on the group with the most slashes, specifying the lowest child in the hierarchy
         for group in self._template['groups']:
             name: str = group['name']
+            if not PARENT_GROUP in name:
+                continue
 
             split = regex.split(r'\/+', name)
 
@@ -39,6 +41,17 @@ class Template:
                 selected_length = len(split)
 
         return selected_group
+
+    @property
+    def truncated_groups(self):
+        """
+        The primary group of the template, without the root group
+        """
+        # split = regex.split(fr'{PARENT_GROUP}\/+', self.primary_group)
+        match_group = regex.match(
+            fr'{PARENT_GROUP}\/+(.+)', self.primary_group)
+
+        return match_group.group(1) if match_group else self.primary_group
 
     def __init__(self, export: dict):
         self._export = export
@@ -50,9 +63,9 @@ class Template:
         """
         Save the template to the cache
         """
-        os.makedirs(f"{CACHE_PATH}/{self.primary_group}", exist_ok=True)
+        os.makedirs(f"{CACHE_PATH}/{self.truncated_groups}", exist_ok=True)
 
-        with open(f"{CACHE_PATH}/{self.primary_group}/{self._template['name']}.yaml", "w") as file:
+        with open(f"{CACHE_PATH}/{self.truncated_groups}/{self._template['name']}.yaml", "w") as file:
             yaml.dump(self._export, file)
 
     def export(self):
