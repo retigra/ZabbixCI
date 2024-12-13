@@ -43,6 +43,13 @@ class Git:
         """
         return self._repository.head.shorthand
 
+    @property
+    def is_empty(self):
+        """
+        Check if the repository is empty
+        """
+        return self._repository.is_empty
+
     def get_current_revision(self):
         """
         Get the current revision
