@@ -14,18 +14,20 @@ class Git:
     _repository: pygit2.Repository = None
     author = pygit2.Signature(GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL)
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, credentials):
         """
-        Initialize git repository
-        :param path: Path to the git repository, defaults to ./cache
+        Initialize the git repository
         """
 
         if not os.path.exists(path):
             os.makedirs(path)
 
-        if not os.path.exists(f"{path}/.git"):
-            self._repository = pygit2.init_repository(
-                path, initial_head="main")
+            self._repository = pygit2.clone_repository(
+                REMOTE,
+                path,
+                callbacks=pygit2.RemoteCallbacks(credentials=credentials)
+            )
+
         else:
             self._repository = pygit2.Repository(path)
 
