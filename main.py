@@ -16,13 +16,30 @@ from settings import REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH
 if not REMOTE:
     raise ValueError("GIT_REMOTE is not set")
 
+CREDENTIALS = pygit2.KeypairFromAgent("git")
+
 logger = logging.getLogger(__name__)
 
 zabbix = Zabbix()
 
 # Initialize the git repository
-git = Git(CACHE_PATH)
+git = Git(CACHE_PATH, CREDENTIALS)
 yaml = YAML()
+
+
+def clear_cache():
+    for root, dirs, files in os.walk(CACHE_PATH, topdown=False):
+        if './cache/.git' in root:
+            continue
+
+        for name in files:
+            os.remove(os.path.join(root, name))
+
+        for name in dirs:
+            if name == '.git':
+                continue
+
+            os.rmdir(os.path.join(root, name))
 
 
 def zabbix_to_file(cache_path=CACHE_PATH):
@@ -68,22 +85,14 @@ def push():
     """
     Fetch Zabbix state and commit changes to git remote
     """
-    git.fetch(REMOTE, pygit2.KeypairFromAgent("git"))
-    git.switch_branch(PUSH_BRANCH)
+    git.fetch(REMOTE, CREDENTIALS)
+
+    if not git.is_empty:
+        # If the repository is empty, new branches can't be created. But it is safe to push to the default branch
+        git.switch_branch(PUSH_BRANCH)
 
     # Reflect current Zabbix state in the cache
-    for root, dirs, files in os.walk(CACHE_PATH, topdown=False):
-        if './cache/.git' in root:
-            continue
-
-        for name in files:
-            os.remove(os.path.join(root, name))
-
-        for name in dirs:
-            if name == '.git':
-                continue
-
-            os.rmdir(os.path.join(root, name))
+    clear_cache()
 
     zabbix_to_file()
 
@@ -102,7 +111,7 @@ def push():
 
     # Generate commit message
     git.commit(f"Merged Zabbix state from {host}")
-    git.push(REMOTE, pygit2.KeypairFromAgent("git"))
+    git.push(REMOTE, CREDENTIALS)
 
     logger.info("Changes pushed to git")
 
@@ -114,15 +123,14 @@ def pull():
     git.switch_branch(PULL_BRANCH)
 
     # Reflect current Zabbix state in the cache
-    for file in os.listdir(CACHE_PATH):
-        if file.endswith(".yaml"):
-            os.remove(f"{CACHE_PATH}/{file}")
+    clear_cache()
 
     zabbix_to_file()
+    exit()
 
     # Pull the latest remote state, untracked changes are preserved
     current_revision = git.get_current_revision()
-    git.pull(REMOTE, pygit2.KeypairFromAgent("git"))
+    git.pull(REMOTE, CREDENTIALS)
 
     # Check for untracked changes, if there are any, we know Zabbix is out of sync
     if git.has_changes:
@@ -140,14 +148,13 @@ def pull():
     for file in files:
         logger.info(f"Detected change in {file}")
 
-        with open(f"{CACHE_PATH}/{file}", "r") as f:
-            template = yaml.load(f)
+        template = Template.open(file)
 
-            if not template:
-                continue
+        if not template:
+            continue
 
-            zabbix.import_template(template)
-            logger.info(f"Template {template['name']} updated in Zabbix")
+        zabbix.import_template(template._export)
+        logger.info(f"Template {template['name']} updated in Zabbix")
 
 
 if __name__ == "__main__":
