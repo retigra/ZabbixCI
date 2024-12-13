@@ -2,6 +2,7 @@ from zabbix_utils import ZabbixAPI
 from typing import ParamSpec
 from ruamel.yaml import YAML
 from io import StringIO
+from utils.template import Template
 
 yaml = YAML()
 
@@ -26,7 +27,7 @@ class Zabbix():
         return self.zapi.send_api_request(
             "template.get",
             {
-                "tags": tags
+                "tags": tags,
             }
         )['result']
 
@@ -41,18 +42,8 @@ class Zabbix():
             }
         )['result']
 
-    def import_template(self, template: dict):
-        reconstructed_export = StringIO()
-
-        yaml.dump({
-            "zabbix_export": {
-                "templates": [template],
-                "version": template.pop('synchronization_zabbix_version')
-            }
-        }, reconstructed_export)
-
-        with open("./tests/export.yaml", "w") as file:
-            file.write(reconstructed_export.getvalue())
+    def import_template(self, template: Template):
+        export = template.export()
 
         return self.zapi.send_api_request(
             "configuration.import",
@@ -64,7 +55,7 @@ class Zabbix():
                         "updateExisting": True
                     }
                 },
-                "source": reconstructed_export.getvalue()
+                "source": export
             }
         )['result']
 
