@@ -3,6 +3,7 @@ import pygit2
 from pygit2.enums import MergeAnalysis
 import logging
 import os
+from settings import REMOTE, GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +12,7 @@ P = ParamSpec('P')
 
 class Git:
     _repository: pygit2.Repository = None
-    author = pygit2.Signature("Zabbix Configuration", "zabbix@example.com")
+    author = pygit2.Signature(GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL)
 
     def __init__(self, path: str):
         """
