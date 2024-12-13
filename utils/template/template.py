@@ -66,13 +66,15 @@ class Template:
         os.makedirs(f"{CACHE_PATH}/{self.truncated_groups}", exist_ok=True)
 
         with open(f"{CACHE_PATH}/{self.truncated_groups}/{self._template['name']}.yaml", "w") as file:
-            yaml.dump(self._export, file)
+            yaml.dump(self.export(), file)
 
     def export(self):
         """
         Export the template as Zabbix importable YAML
         """
-        return yaml.dump(self._template)
+        return yaml.dump({
+            "zabbix_export": self._export
+        })
 
     @staticmethod
     def open(name: str):
@@ -80,7 +82,7 @@ class Template:
         Open a template from the cache
         """
         with open(f"{CACHE_PATH}/{name}.yaml", "r") as file:
-            return Template(yaml.load(file))
+            return Template(yaml.load(file)['zabbix_export'])
 
     @staticmethod
     def from_zabbix(template: dict, template_groups: dict, zabbix_version: str):
