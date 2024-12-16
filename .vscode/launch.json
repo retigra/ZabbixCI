@@ -8,7 +8,7 @@
             "name": "Python Debugger: Pull",
             "type": "debugpy",
             "request": "launch",
-            "program": "main.py",
+            "program": "cli.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env",
             "args": ["pull"]
@@ -17,7 +17,7 @@
             "name": "Python Debugger: Push",
             "type": "debugpy",
             "request": "launch",
-            "program": "main.py",
+            "program": "cli.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env",
             "args": ["push"]
