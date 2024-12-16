@@ -30,7 +30,8 @@ class Template:
         selected_group = self._template['groups'][0]['name']
         selected_length = 0
 
-        # Most specific group is based on the group with the most slashes, specifying the lowest child in the hierarchy
+        # Most specific group is based on the group with the most slashes,
+        # specifying the lowest child in the hierarchy
         for group in self._template['groups']:
             name: str = group['name']
             if not PARENT_GROUP in name:
@@ -95,7 +96,8 @@ class Template:
             return Template(yaml.load(file)['zabbix_export'])
 
     @staticmethod
-    def from_zabbix(template: dict, template_groups: dict, zabbix_version: str):
+    def from_zabbix(template: dict, template_groups: dict,
+                    zabbix_version: str):
         """
         Create a individual template from a bulk Zabbix export
         """

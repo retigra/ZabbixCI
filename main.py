@@ -88,7 +88,8 @@ def push():
     git.fetch(REMOTE, CREDENTIALS)
 
     if not git.is_empty:
-        # If the repository is empty, new branches can't be created. But it is safe to push to the default branch
+        # If the repository is empty, new branches can't be created. But it is
+        # safe to push to the default branch
         git.switch_branch(PUSH_BRANCH)
 
     # Reflect current Zabbix state in the cache
@@ -131,7 +132,8 @@ def pull():
     current_revision = git.get_current_revision()
     git.pull(REMOTE, CREDENTIALS)
 
-    # Check for untracked changes, if there are any, we know Zabbix is out of sync
+    # Check for untracked changes, if there are any, we know Zabbix is out of
+    # sync
     if git.has_changes:
         logger.info(
             "Detected local file changes, detecting changes for zabbix sync")
