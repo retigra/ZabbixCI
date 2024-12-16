@@ -27,7 +27,6 @@ class Git:
                 path,
                 callbacks=pygit2.RemoteCallbacks(credentials=credentials)
             )
-
         else:
             self._repository = pygit2.Repository(path)
 

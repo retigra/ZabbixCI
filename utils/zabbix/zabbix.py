@@ -15,19 +15,25 @@ class Zabbix():
     def __init__(self, *args: P.args, **kwargs: P.kwargs):
         self.zapi = ZabbixAPI(*args, **kwargs)
 
-    def get_templates(self, tags: list[dict] = None):
-        if tags is None:
-            tags = [
-                {
-                    "tag": "retigra",
-                    "value": "true"
+    def _get_template_group(self, template_group_names: list[str]):
+        return self.zapi.send_api_request(
+            "templategroup.get",
+            {
+                "search": {
+                    "name": template_group_names
                 }
-            ]
+            }
+        )['result']
+
+    def get_templates(self, template_group_names: list[str]):
+        ids = self._get_template_group(template_group_names)
+
+        template_group_ids = [group['groupid'] for group in ids]
 
         return self.zapi.send_api_request(
             "template.get",
             {
-                "tags": tags,
+                "groupids": template_group_ids
             }
         )['result']
 

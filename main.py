@@ -11,7 +11,7 @@ from ruamel.yaml import YAML
 from io import StringIO
 from regex import search
 
-from settings import REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH
+from settings import REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH, PARENT_GROUP
 
 if not REMOTE:
     raise ValueError("GIT_REMOTE is not set")
@@ -46,7 +46,7 @@ def zabbix_to_file(cache_path=CACHE_PATH):
     """
     Export Zabbix templates to the cache
     """
-    templates = zabbix.get_templates()
+    templates = zabbix.get_templates([PARENT_GROUP])
 
     logger.info(f"Found {len(templates)} templates in Zabbix")
 
