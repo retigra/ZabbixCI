@@ -126,7 +126,6 @@ def pull():
     clear_cache()
 
     zabbix_to_file()
-    exit()
 
     # Pull the latest remote state, untracked changes are preserved
     current_revision = git.get_current_revision()
