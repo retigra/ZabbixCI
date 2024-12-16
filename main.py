@@ -156,18 +156,3 @@ def pull():
 
         zabbix.import_template(template._export)
         logger.info(f"Template {template['name']} updated in Zabbix")
-
-
-if __name__ == "__main__":
-    args = os.sys.argv[1:]
-
-    logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
-
-    if not args:
-        raise ValueError("No arguments provided")
-
-    if args[0] == "push":
-        push()
-
-    if args[0] == "pull":
-        pull()
