@@ -42,7 +42,9 @@ def parse_cli():
     args = read_args()
 
     if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
 

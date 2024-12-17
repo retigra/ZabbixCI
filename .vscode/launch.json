@@ -11,7 +11,7 @@
             "program": "cli.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env",
-            "args": ["pull"]
+            "args": ["pull", "--debug"]
         },
         {
             "name": "Python Debugger: Push",
@@ -20,7 +20,7 @@
             "program": "cli.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env",
-            "args": ["push"]
+            "args": ["push", "--debug"]
         }
     ]
 }

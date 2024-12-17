@@ -10,8 +10,9 @@ import os
 from ruamel.yaml import YAML
 from io import StringIO
 from regex import search
+import timeit
 
-from settings import REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH, PARENT_GROUP
+from settings import GIT_PREFIX_PATH, REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH, PARENT_GROUP
 
 if not REMOTE:
     raise ValueError("GIT_REMOTE is not set")
@@ -110,6 +111,12 @@ def push():
     host = os.getenv("ZABBIX_HOST", search(
         "https?://([^/]+)", zabbix.zapi.url).group(1))
 
+    changes = git.diff(git.get_current_revision())
+    files = [patch.delta.new_file.path for patch in changes]
+
+    for file in files:
+        logger.info(f"Detected change in {file}")
+
     # Generate commit message
     git.commit(f"Merged Zabbix state from {host}")
     git.push(REMOTE, CREDENTIALS)
@@ -145,14 +152,36 @@ def pull():
     # Sync the file cache with the desired git state
     git.reset(current_revision, ResetMode.HARD)
 
-    # Import the changed files into Zabbix
+    templates: list[Template] = []
+
+    # Open the changed files
     for file in files:
+        # Check if file is within the desired path
+        if not file.startswith(GIT_PREFIX_PATH):
+            continue
+
+        if not file.endswith(".yaml"):
+            continue
+
         logger.info(f"Detected change in {file}")
 
         template = Template.open(file)
 
-        if not template:
+        if not template or not template.is_template:
             continue
 
-        zabbix.import_template(template._export)
-        logger.info(f"Template {template['name']} updated in Zabbix")
+        templates.append(template)
+
+    tic = timeit.default_timer()
+
+    # Group templates by level
+    templates = sorted(
+        templates, key=lambda template: template.level(templates))
+
+    toc = timeit.default_timer()
+    logger.info(f"Sorting took {toc - tic} seconds")
+
+    # Import the templates
+    for template in templates:
+        logging.info(f"Importing {template.name}, level {template._level}")
+        zabbix.import_template(template)

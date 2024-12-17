@@ -1,11 +1,14 @@
 from io import StringIO
+import logging
 from typing import TextIO
 from ruamel.yaml import YAML
-from settings import CACHE_PATH, PARENT_GROUP
+from settings import CACHE_PATH, PARENT_GROUP, GIT_PREFIX_PATH
 import regex
 import os
 
 yaml = YAML()
+
+logger = logging.getLogger(__name__)
 
 
 class Template:
@@ -13,6 +16,11 @@ class Template:
     A Python representation of a Zabbix template
     """
     _export: dict
+    _level: int = None
+
+    @property
+    def is_template(self):
+        return 'templates' in self._export
 
     @property
     def _template(self):
@@ -21,6 +29,10 @@ class Template:
     @property
     def groups(self):
         return map(lambda group: group['name'], self._template['groups'])
+
+    @property
+    def name(self):
+        return self._template['name']
 
     @property
     def primary_group(self):
@@ -56,6 +68,10 @@ class Template:
 
         return match_group.group(1) if match_group else self.primary_group
 
+    @property
+    def linked_templates(self):
+        return [t['name'] for t in self._template['templates']] if 'templates' in self._template else []
+
     def __init__(self, export: dict):
         self._export = export
 
@@ -74,9 +90,10 @@ class Template:
         """
         Save the template to the cache
         """
-        os.makedirs(f"{CACHE_PATH}/{self.truncated_groups}", exist_ok=True)
+        os.makedirs(
+            f"{CACHE_PATH}/{GIT_PREFIX_PATH}/{self.truncated_groups}", exist_ok=True)
 
-        with open(f"{CACHE_PATH}/{self.truncated_groups}/{self._template['name']}.yaml", "w") as file:
+        with open(f"{CACHE_PATH}/{GIT_PREFIX_PATH}/{self.truncated_groups}/{self._template['name']}.yaml", "w") as file:
             self._yaml_dump(file)
 
     def export(self):
@@ -86,6 +103,20 @@ class Template:
         stream = StringIO()
         self._yaml_dump(stream)
         return stream.getvalue()
+
+    def level(self, templates: list):
+        """
+        Get the amount of linked levels
+        """
+        logger.debug(f"Getting level for {self.name}")
+
+        linked_templates = [
+            t for t in templates if t.name in self.linked_templates]
+
+        self._level = max([template.level(templates)
+                          for template in linked_templates] or [0]) + 1
+
+        return self._level
 
     @staticmethod
     def open(path: str):
