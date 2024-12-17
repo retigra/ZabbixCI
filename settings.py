@@ -9,3 +9,5 @@ CACHE_PATH = os.getenv("CACHE_PATH", "./cache")
 
 PUSH_BRANCH = os.getenv("PUSH_BRANCH", "development")
 PULL_BRANCH = os.getenv("PULL_BRANCH", "main")
+
+GIT_PREFIX_PATH = os.getenv("GIT_PREFIX_PATH", "")
