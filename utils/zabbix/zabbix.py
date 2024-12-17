@@ -56,10 +56,18 @@ class Zabbix():
             {
                 "format": "yaml",
                 "rules": {
-                    "templates": {
+                    "template_groups": {
                         "createMissing": True,
                         "updateExisting": True
-                    }
+                    },
+                    "templateLinkage": {
+                        "createMissing": True,
+                        "deleteMissing": True
+                    },
+                    "templates": {
+                        "createMissing": True,
+                        "updateExisting": True,
+                    },
                 },
                 "source": export
             }
