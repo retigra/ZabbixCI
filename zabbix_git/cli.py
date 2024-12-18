@@ -57,7 +57,7 @@ def parse_cli():
 
         settings.get_settings()
 
-    import main
+    from zabbix_git import main
 
     if args.action == "push":
         main.push()
