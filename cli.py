@@ -2,7 +2,6 @@ import argparse
 import settings
 
 import logging
-import main
 import dotenv
 
 # Read command line arguments to fill the settings
@@ -42,9 +41,7 @@ def parse_cli():
     args = read_args()
 
     if args.debug:
-        logging.basicConfig(level=logging.INFO)
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
 
@@ -52,7 +49,12 @@ def parse_cli():
     settings.CACHE_PATH = args.cache
 
     if args.dotenv:
+        logging.info(f"Loading environment variables from {args.dotenv}")
         dotenv.load_dotenv(args.dotenv)
+
+        settings.get_settings()
+
+    import main
 
     if args.action == "push":
         main.push()
