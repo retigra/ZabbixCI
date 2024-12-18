@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-exclude = ["tests", "cache"]
+include = ["zabbixci", "zabbixci.*"]
 
 [project.scripts]
 zabbixci = "zabbixci.cli:parse_cli"
