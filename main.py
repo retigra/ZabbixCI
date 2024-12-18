@@ -14,9 +14,6 @@ import timeit
 
 from settings import GIT_PREFIX_PATH, REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH, PARENT_GROUP, WHITELIST, BLACKLIST
 
-if not REMOTE:
-    raise ValueError("GIT_REMOTE is not set")
-
 CREDENTIALS = pygit2.KeypairFromAgent("git")
 
 logger = logging.getLogger(__name__)
