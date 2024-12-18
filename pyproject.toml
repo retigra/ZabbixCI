@@ -5,9 +5,13 @@ description = "Zabbix Git"
 authors = [
     {name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl"}
 ]
+dependencies = [
+    "zabbix_utils",
+    "python-dotenv",
+]
 
 [tool.setuptools.packages.find]
 include = ["zabbix_git"]
 
 [project.scripts]
-zabbix-git = "zabbix_git:cli"
+zabbix-git = "zabbix_git.cli:parse_cli"
