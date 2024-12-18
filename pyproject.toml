@@ -1,0 +1,10 @@
+[project]
+name = "zabbix-git"
+version = "0.1.0"
+description = "Zabbix Git"
+authors = [
+    {name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl"}
+]
+
+[project.scripts]
+zabbix-git = "zabbix_git:cli"

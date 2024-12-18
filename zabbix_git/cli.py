@@ -42,6 +42,9 @@ def parse_cli():
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
+
+        zabbix_logger = logging.getLogger("zabbix_utils")
+        zabbix_logger.setLevel(logging.INFO)
     else:
         logging.basicConfig(level=logging.INFO)
 
