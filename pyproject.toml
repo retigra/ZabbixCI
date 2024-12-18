@@ -8,10 +8,13 @@ authors = [
 dependencies = [
     "zabbix_utils",
     "python-dotenv",
+    "ruamel.yaml",
+    "regex",
+    "pygit2",
 ]
 
 [tool.setuptools.packages.find]
-include = ["zabbix_git"]
+exclude = ["tests", "cache"]
 
 [project.scripts]
 zabbix-git = "zabbix_git.cli:parse_cli"
