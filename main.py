@@ -12,7 +12,7 @@ from io import StringIO
 from regex import search
 import timeit
 
-from settings import GIT_PREFIX_PATH, REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH, PARENT_GROUP
+from settings import GIT_PREFIX_PATH, REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH, PARENT_GROUP, WHITELIST, BLACKLIST
 
 if not REMOTE:
     raise ValueError("GIT_REMOTE is not set")
@@ -78,6 +78,14 @@ def zabbix_to_file(cache_path=CACHE_PATH):
             export_yaml['zabbix_export']['template_groups'],
             export_yaml['zabbix_export']['version'],
         )
+
+        if template.name in BLACKLIST:
+            logger.debug(f"Skipping blacklisted template {template.name}")
+            continue
+
+        if WHITELIST and template.name not in WHITELIST:
+            logger.debug(f"Skipping non whitelisted template {template.name}")
+            continue
 
         template.save()
 
@@ -163,14 +171,21 @@ def pull():
         if not file.endswith(".yaml"):
             continue
 
-        logger.info(f"Detected change in {file}")
-
         template = Template.open(file)
 
         if not template or not template.is_template:
             continue
 
+        if template.name in BLACKLIST:
+            logger.debug(f"Skipping blacklisted template {template.name}")
+            continue
+
+        if WHITELIST and template.name not in WHITELIST:
+            logger.debug(f"Skipping non whitelisted template {template.name}")
+            continue
+
         templates.append(template)
+        logger.info(f"Detected change in {template.name}")
 
     tic = timeit.default_timer()
 

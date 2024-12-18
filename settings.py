@@ -11,3 +11,6 @@ PUSH_BRANCH = os.getenv("PUSH_BRANCH", "development")
 PULL_BRANCH = os.getenv("PULL_BRANCH", "main")
 
 GIT_PREFIX_PATH = os.getenv("GIT_PREFIX_PATH", "")
+
+WHITELIST = os.getenv("WHITELIST", "").split(";")
+BLACKLIST = os.getenv("BLACKLIST", "").split(";")
