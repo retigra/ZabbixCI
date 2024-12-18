@@ -1,6 +1,6 @@
-from utils.zabbix import Zabbix
-from utils.git import Git
-from utils.template import Template
+from zabbix_git.utils.zabbix import Zabbix
+from zabbix_git.utils.git import Git
+from zabbix_git.utils.template import Template
 
 import logging
 
@@ -12,7 +12,7 @@ from io import StringIO
 from regex import search
 import timeit
 
-from settings import GIT_PREFIX_PATH, REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH, PARENT_GROUP, WHITELIST, BLACKLIST
+from zabbix_git.settings import GIT_PREFIX_PATH, REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH, PARENT_GROUP, WHITELIST, BLACKLIST
 
 CREDENTIALS = pygit2.KeypairFromAgent("git")
 

@@ -2,7 +2,7 @@ from io import StringIO
 import logging
 from typing import TextIO
 from ruamel.yaml import YAML
-from settings import CACHE_PATH, PARENT_GROUP, GIT_PREFIX_PATH
+from zabbix_git.settings import CACHE_PATH, PARENT_GROUP, GIT_PREFIX_PATH
 import regex
 import os
 
@@ -70,7 +70,8 @@ class Template:
 
     @property
     def linked_templates(self):
-        return [t['name'] for t in self._template['templates']] if 'templates' in self._template else []
+        return [t['name'] for t in self._template['templates']
+                ] if 'templates' in self._template else []
 
     def __init__(self, export: dict):
         self._export = export

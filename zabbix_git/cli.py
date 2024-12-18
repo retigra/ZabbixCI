@@ -1,5 +1,5 @@
 import argparse
-import settings
+from zabbix_git import settings
 
 import logging
 import dotenv
