@@ -119,7 +119,7 @@ def push():
     host = os.getenv("ZABBIX_HOST", search(
         "https?://([^/]+)", zabbix.zapi.url).group(1))
 
-    changes = git.diff(git.get_current_revision())
+    changes = git.diff()
     files = [patch.delta.new_file.path for patch in changes]
 
     for file in files:
