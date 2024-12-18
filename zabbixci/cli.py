@@ -1,5 +1,5 @@
 import argparse
-from zabbix_git import settings
+from zabbixci import settings
 
 import logging
 import dotenv
@@ -57,7 +57,7 @@ def parse_cli():
 
         settings.get_settings()
 
-    from zabbix_git import main
+    from zabbixci import main
 
     if args.action == "push":
         main.push()

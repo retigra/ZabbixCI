@@ -1,7 +1,7 @@
 from zabbix_utils import ZabbixAPI
 from typing import ParamSpec
 from ruamel.yaml import YAML
-from zabbix_git.utils.template import Template
+from zabbixci.utils.template import Template
 
 yaml = YAML()
 

@@ -2,7 +2,7 @@ from io import StringIO
 import logging
 from typing import TextIO
 from ruamel.yaml import YAML
-from zabbix_git.settings import CACHE_PATH, PARENT_GROUP, GIT_PREFIX_PATH
+from zabbixci.settings import CACHE_PATH, PARENT_GROUP, GIT_PREFIX_PATH
 import regex
 import os
 

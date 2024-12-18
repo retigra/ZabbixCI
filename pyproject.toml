@@ -1,5 +1,5 @@
 [project]
-name = "zabbix-git"
+name = "zabbixci"
 version = "0.1.0"
 description = "Zabbix Git"
 authors = [
@@ -17,4 +17,4 @@ dependencies = [
 exclude = ["tests", "cache"]
 
 [project.scripts]
-zabbix-git = "zabbix_git.cli:parse_cli"
+zabbixci = "zabbixci.cli:parse_cli"

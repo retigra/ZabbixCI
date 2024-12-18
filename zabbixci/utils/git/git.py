@@ -3,7 +3,7 @@ import pygit2
 from pygit2.enums import MergeAnalysis
 import logging
 import os
-from zabbix_git.settings import REMOTE, GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL
+from zabbixci.settings import REMOTE, GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL
 
 logger = logging.getLogger(__name__)
 
