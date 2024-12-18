@@ -57,11 +57,11 @@ class Git:
         """
         return self._repository.head.target
 
-    def diff(self, old_revision: str):
+    def diff(self, *args: P.args, **kwargs: P.kwargs):
         """
         Get the diff of the changes
         """
-        return self._repository.diff(old_revision)
+        return self._repository.diff(*args, **kwargs)
 
     def switch_branch(self, branch: str):
         """
