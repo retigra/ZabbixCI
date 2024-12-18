@@ -83,7 +83,7 @@ def zabbix_to_file(cache_path=CACHE_PATH):
             logger.debug(f"Skipping blacklisted template {template.name}")
             continue
 
-        if WHITELIST and template.name not in WHITELIST:
+        if len(WHITELIST) and template.name not in WHITELIST:
             logger.debug(f"Skipping non whitelisted template {template.name}")
             continue
 
@@ -180,7 +180,7 @@ def pull():
             logger.debug(f"Skipping blacklisted template {template.name}")
             continue
 
-        if WHITELIST and template.name not in WHITELIST:
+        if len(WHITELIST) and template.name not in WHITELIST:
             logger.debug(f"Skipping non whitelisted template {template.name}")
             continue
 
