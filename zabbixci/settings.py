@@ -19,6 +19,7 @@ class Settings:
     WHITELIST = []
     BLACKLIST = []
     CACHE_PATH = "./cache"
+    BATCH_SIZE = 50
 
     @classmethod
     def from_env(cls):

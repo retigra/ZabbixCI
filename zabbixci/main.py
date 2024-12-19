@@ -57,43 +57,40 @@ def zabbix_to_file(cache_path=Settings.CACHE_PATH):
 
     logger.info(f"Found {len(templates)} templates in Zabbix")
 
-    # Get the templates
-    template_yaml = zabbix.export_template(
-        [template["templateid"] for template in templates])
+    # Split by Settings.BATCH_SIZE
+    batches = [templates[i:i + Settings.BATCH_SIZE]
+               for i in range(0, len(templates), Settings.BATCH_SIZE)]
 
-    if logger.level == logging.DEBUG:
-        with open("./tests/template.yaml", "w") as file:
-            file.write(template_yaml)
+    for batch in batches:
 
-    export_yaml = yaml.load(StringIO(template_yaml))
+        # Get the templates
+        template_yaml = zabbix.export_template(
+            [template['templateid'] for template in batch])
 
-    if not 'templates' in export_yaml['zabbix_export']:
-        logger.info("No templates found in Zabbix")
+        export_yaml = yaml.load(StringIO(template_yaml))
 
-        # Clean the cache
-        for file in os.listdir(cache_path):
-            if file.endswith(".yaml"):
-                os.remove(f"{cache_path}/{file}")
+        if not 'templates' in export_yaml['zabbix_export']:
+            logger.info("No templates found in Zabbix")
+            return
 
-        return
+        # Write the templates to the cache
+        for template in export_yaml['zabbix_export']['templates']:
+            template = Template.from_zabbix(
+                template,
+                export_yaml['zabbix_export']['template_groups'],
+                export_yaml['zabbix_export']['version'],
+            )
 
-    # Write the templates to the cache
-    for template in export_yaml['zabbix_export']['templates']:
-        template = Template.from_zabbix(
-            template,
-            export_yaml['zabbix_export']['template_groups'],
-            export_yaml['zabbix_export']['version'],
-        )
+            if template.name in Settings.BLACKLIST:
+                logger.debug(f"Skipping blacklisted template {template.name}")
+                continue
 
-        if template.name in Settings.BLACKLIST:
-            logger.debug(f"Skipping blacklisted template {template.name}")
-            continue
+            if len(Settings.WHITELIST) and template.name not in Settings.WHITELIST:
+                logger.debug(f"Skipping non whitelisted template {
+                             template.name}")
+                continue
 
-        if len(Settings.WHITELIST) and template.name not in Settings.WHITELIST:
-            logger.debug(f"Skipping non whitelisted template {template.name}")
-            continue
-
-        template.save()
+            template.save()
 
 
 def push():
