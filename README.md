@@ -24,7 +24,7 @@ variables. The following parameters are required:
 
 ```bash
 # Zabbix API Options
-ZABBIX_URL="https://zabbix.example..com"
+ZABBIX_URL="https://zabbix.example.com"
 # ZABBIX_USER="Admin"
 # ZABBIX_PASSWORD="zabbix"
 ZABBIX_TOKEN=""
