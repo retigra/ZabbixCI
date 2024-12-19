@@ -17,32 +17,9 @@ and then you can use the `zabbixci` command.
 
 ## Configuration
 
-ZabbixCI requires parameters to be set as command line arguments or environment
-variables. The following parameters are required:
-
-```bash
-# Zabbix API Options
-ZABBIX_URL="https://zabbix.example..com"
-# ZABBIX_USER="Admin"
-# ZABBIX_PASSWORD="zabbix"
-ZABBIX_TOKEN=""
-
-# Git Options
-GIT_REMOTE="git@github.com:retigra/zabbixci-configuration.git"
-GIT_PREFIX_PATH="templates"
-
-# ZabbixCI Options
-# Template Group to synchronize 
-PARENT_GROUP="Templates"
-
-# Branches to use
-PULL_BRANCH="main"
-PUSH_BRANCH="main"
-
-# Optional whitelist and blacklist matching templates names
-WHITELIST=""
-BLACKLIST=""
-```
+ZabbixCI requires parameters to be set as command line arguments, a yaml
+configuration or as environment variables. See the
+[example configuration file](config.yaml.example).
 
 ## Usage
 
@@ -52,11 +29,11 @@ them to the Zabbix server. The command will also delete templates that are not
 present in the Git repository.
 
 ```bash
-zabbixci --debug --dotenv .env pull
+zabbixci --debug --config config.yaml pull
 
-zabbixci --debug --dotenv .env push
+zabbixci --debug --config config.yaml push
 
-zabbixci help
+zabbixci --help
 ```
 
 # Contributing
