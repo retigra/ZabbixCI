@@ -62,6 +62,7 @@ def read_args():
     parser.add_argument(
         "--debug",
         help="Enable debug logging",
+        action="store_true",
     )
     parser.add_argument(
         "--config",
