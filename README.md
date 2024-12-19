@@ -1,3 +1,5 @@
+![ZabbixCI cog logo](logo.png "ZabbixCI logo")
+
 # ZabbixCI
 
 ZabbixCI is a tool that adds continuous integration to Zabbix configurations,
