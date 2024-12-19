@@ -2,7 +2,7 @@ from io import StringIO
 import logging
 from typing import TextIO
 from ruamel.yaml import YAML
-from zabbixci.settings import CACHE_PATH, PARENT_GROUP, GIT_PREFIX_PATH
+from zabbixci.settings import Settings
 import regex
 import os
 
@@ -46,7 +46,7 @@ class Template:
         # specifying the lowest child in the hierarchy
         for group in self._template['groups']:
             name: str = group['name']
-            if not PARENT_GROUP in name:
+            if not Settings.PARENT_GROUP in name:
                 continue
 
             split = regex.split(r'\/+', name)
@@ -64,7 +64,7 @@ class Template:
         """
         # split = regex.split(fr'{PARENT_GROUP}\/+', self.primary_group)
         match_group = regex.match(
-            fr'{PARENT_GROUP}\/+(.+)', self.primary_group)
+            fr'{Settings.PARENT_GROUP}\/+(.+)', self.primary_group)
 
         return match_group.group(1) if match_group else self.primary_group
 
@@ -92,9 +92,9 @@ class Template:
         Save the template to the cache
         """
         os.makedirs(
-            f"{CACHE_PATH}/{GIT_PREFIX_PATH}/{self.truncated_groups}", exist_ok=True)
+            f"{Settings.CACHE_PATH}/{Settings.GIT_PREFIX_PATH}/{self.truncated_groups}", exist_ok=True)
 
-        with open(f"{CACHE_PATH}/{GIT_PREFIX_PATH}/{self.truncated_groups}/{self._template['name']}.yaml", "w") as file:
+        with open(f"{Settings.CACHE_PATH}/{Settings.GIT_PREFIX_PATH}/{self.truncated_groups}/{self._template['name']}.yaml", "w") as file:
             self._yaml_dump(file)
 
     def export(self):
@@ -124,7 +124,7 @@ class Template:
         """
         Open a template from the cache
         """
-        with open(f"{CACHE_PATH}/{path}", "r") as file:
+        with open(f"{Settings.CACHE_PATH}/{path}", "r") as file:
             return Template(yaml.load(file)['zabbix_export'])
 
     @staticmethod

@@ -1,0 +1,16 @@
+# Zabbix configuration
+zabbix_url: "https://zabbix.example.com/"
+zabbix_token: ""
+# ZABBIX_USER: ""
+# ZABBIX_PASSWORD: ""
+
+# Git configuration
+remoter: "git@github.com/org/repo.git"
+pull_branch: "main"
+push_branch: "main"
+git_prefix_path: ""
+
+# ZabbixCI configuration
+parent_group: "Templates"
+whitelist: "name1,name2,name3"
+blacklist: ""
