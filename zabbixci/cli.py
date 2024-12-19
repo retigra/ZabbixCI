@@ -62,10 +62,18 @@ def read_args():
     )
 
     parser.add_argument(
-        "--debug",
+        "-v",
+        help="Enable verbose logging",
+        action="store_true",
+        dest="verbose",
+    )
+    parser.add_argument(
+        "-vv",
         help="Enable debug logging",
         action="store_true",
+        dest="debug",
     )
+
     parser.add_argument(
         "--config",
         help="The configuration file",
@@ -79,11 +87,12 @@ def parse_cli():
     args = read_args()
     arguments = vars(args)
 
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s")
+    logging.basicConfig(format="%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s",
+                        level=logging.DEBUG if args.debug else logging.INFO)
 
     zabbixci_logger = logging.getLogger("zabbixci")
-    zabbixci_logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
+    zabbixci_logger.setLevel(
+        logging.DEBUG if args.verbose or args.debug else logging.INFO)
 
     for key, value in arguments.items():
         if value is not None:
