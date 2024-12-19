@@ -12,21 +12,30 @@ from io import StringIO
 from regex import search
 import timeit
 
-from zabbixci.settings import GIT_PREFIX_PATH, REMOTE, CACHE_PATH, PUSH_BRANCH, PULL_BRANCH, PARENT_GROUP, WHITELIST, BLACKLIST
+from zabbixci.settings import Settings
 
 CREDENTIALS = pygit2.KeypairFromAgent("git")
 
 logger = logging.getLogger(__name__)
 
-zabbix = Zabbix()
+# Initialize the Zabbix API
+
+
+zabbix = Zabbix(
+    url=Settings.ZABBIX_URL,
+    user=Settings.ZABBIX_USER,
+    password=Settings.ZABBIX_PASSWORD,
+    token=Settings.ZABBIX_TOKEN,
+)
+
 
 # Initialize the git repository
-git = Git(CACHE_PATH, CREDENTIALS)
+git = Git(Settings.CACHE_PATH, CREDENTIALS)
 yaml = YAML()
 
 
 def clear_cache():
-    for root, dirs, files in os.walk(CACHE_PATH, topdown=False):
+    for root, dirs, files in os.walk(Settings.CACHE_PATH, topdown=False):
         if './cache/.git' in root:
             continue
 
@@ -40,11 +49,11 @@ def clear_cache():
             os.rmdir(os.path.join(root, name))
 
 
-def zabbix_to_file(cache_path=CACHE_PATH):
+def zabbix_to_file(cache_path=Settings.CACHE_PATH):
     """
     Export Zabbix templates to the cache
     """
-    templates = zabbix.get_templates([PARENT_GROUP])
+    templates = zabbix.get_templates([Settings.PARENT_GROUP])
 
     logger.info(f"Found {len(templates)} templates in Zabbix")
 
@@ -76,11 +85,11 @@ def zabbix_to_file(cache_path=CACHE_PATH):
             export_yaml['zabbix_export']['version'],
         )
 
-        if template.name in BLACKLIST:
+        if template.name in Settings.BLACKLIST:
             logger.debug(f"Skipping blacklisted template {template.name}")
             continue
 
-        if len(WHITELIST) and template.name not in WHITELIST:
+        if len(Settings.WHITELIST) and template.name not in Settings.WHITELIST:
             logger.debug(f"Skipping non whitelisted template {template.name}")
             continue
 
@@ -91,12 +100,12 @@ def push():
     """
     Fetch Zabbix state and commit changes to git remote
     """
-    git.fetch(REMOTE, CREDENTIALS)
+    git.fetch(Settings.REMOTE, CREDENTIALS)
 
     if not git.is_empty:
         # If the repository is empty, new branches can't be created. But it is
         # safe to push to the default branch
-        git.switch_branch(PUSH_BRANCH)
+        git.switch_branch(Settings.PUSH_BRANCH)
 
     # Reflect current Zabbix state in the cache
     clear_cache()
@@ -124,7 +133,7 @@ def push():
 
     # Generate commit message
     git.commit(f"Merged Zabbix state from {host}")
-    git.push(REMOTE, CREDENTIALS)
+    git.push(Settings.REMOTE, CREDENTIALS)
 
     logger.info("Changes pushed to git")
 
@@ -133,7 +142,7 @@ def pull():
     """
     Pull current state from git remote and update Zabbix
     """
-    git.switch_branch(PULL_BRANCH)
+    git.switch_branch(Settings.PULL_BRANCH)
 
     # Reflect current Zabbix state in the cache
     clear_cache()
@@ -142,7 +151,7 @@ def pull():
 
     # Pull the latest remote state, untracked changes are preserved
     current_revision = git.get_current_revision()
-    git.pull(REMOTE, CREDENTIALS)
+    git.pull(Settings.REMOTE, CREDENTIALS)
 
     # Check for untracked changes, if there are any, we know Zabbix is out of
     # sync
@@ -162,7 +171,7 @@ def pull():
     # Open the changed files
     for file in files:
         # Check if file is within the desired path
-        if not file.startswith(GIT_PREFIX_PATH):
+        if not file.startswith(Settings.GIT_PREFIX_PATH):
             continue
 
         if not file.endswith(".yaml"):
@@ -173,11 +182,11 @@ def pull():
         if not template or not template.is_template:
             continue
 
-        if template.name in BLACKLIST:
+        if template.name in Settings.BLACKLIST:
             logger.debug(f"Skipping blacklisted template {template.name}")
             continue
 
-        if len(WHITELIST) and template.name not in WHITELIST:
+        if len(Settings.WHITELIST) and template.name not in Settings.WHITELIST:
             logger.debug(f"Skipping non whitelisted template {template.name}")
             continue
 

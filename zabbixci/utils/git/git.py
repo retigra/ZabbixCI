@@ -3,7 +3,7 @@ import pygit2
 from pygit2.enums import MergeAnalysis
 import logging
 import os
-from zabbixci.settings import REMOTE, GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL
+from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,8 @@ P = ParamSpec('P')
 
 class Git:
     _repository: pygit2.Repository = None
-    author = pygit2.Signature(GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL)
+    author = pygit2.Signature(Settings.GIT_AUTHOR_NAME,
+                              Settings.GIT_AUTHOR_EMAIL)
 
     def __init__(self, path: str, credentials):
         """
@@ -23,7 +24,7 @@ class Git:
             os.makedirs(path)
 
             self._repository = pygit2.clone_repository(
-                REMOTE,
+                Settings.REMOTE,
                 path,
                 callbacks=pygit2.RemoteCallbacks(credentials=credentials)
             )
