@@ -31,11 +31,13 @@ them to the Zabbix server. The command will also delete templates that are not
 present in the Git repository.
 
 ```bash
-zabbixci --debug --config config.yaml pull
+zabbixci --config config.yaml pull
 
-zabbixci --debug --config config.yaml push
+zabbixci --config config.yaml push
 
 zabbixci --help
+
+# Debug options are available through -v or -vv
 ```
 
 # Contributing

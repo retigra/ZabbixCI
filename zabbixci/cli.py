@@ -6,6 +6,8 @@ import logging
 
 # Read command line arguments to fill the settings
 
+logger = logging.getLogger(__name__)
+
 
 def read_args():
     parser = argparse.ArgumentParser(description="Zabbix to Git")
@@ -60,9 +62,18 @@ def read_args():
     )
 
     parser.add_argument(
-        "--debug",
-        help="Enable debug logging",
+        "-v",
+        help="Enable verbose logging",
+        action="store_true",
+        dest="verbose",
     )
+    parser.add_argument(
+        "-vv",
+        help="Enable debug logging",
+        action="store_true",
+        dest="debug",
+    )
+
     parser.add_argument(
         "--config",
         help="The configuration file",
@@ -72,33 +83,16 @@ def read_args():
 
 
 def parse_cli():
-    logging.config.dictConfig({
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "default": {
-                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            },
-        },
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-                "formatter": "default",
-            },
-        },
-        "loggers": {
-            "zabbixci": {
-                "handlers": ["console"],
-                "level": "INFO" if not read_args().debug else "DEBUG",
-            },
-        },
-    })
-
     Settings.from_env()
-
     args = read_args()
-
     arguments = vars(args)
+
+    logging.basicConfig(format="%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s",
+                        level=logging.DEBUG if args.debug else logging.INFO)
+
+    zabbixci_logger = logging.getLogger("zabbixci")
+    zabbixci_logger.setLevel(
+        logging.DEBUG if args.verbose or args.debug else logging.INFO)
 
     for key, value in arguments.items():
         if value is not None:
@@ -109,7 +103,14 @@ def parse_cli():
 
     from zabbixci import main
 
-    logging.debug(f"Settings: {Settings.__dict__}")
+    settings_debug = {
+        **Settings.__dict__,
+        "ZABBIX_PASSWORD": "********",
+        "ZABBIX_TOKEN": "********",
+        "REMOTE": "********",
+    }
+
+    logger.debug(f"Settings: {settings_debug}")
 
     if args.action == "push":
         main.push()
