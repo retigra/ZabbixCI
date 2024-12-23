@@ -50,5 +50,5 @@ Contributions are welcome! Please take a look at the following guidelines:
 
 # License
 
-This project is licensed under AGPL-3.0, see [LICENSE](LICENSE) for more
+This project is licensed under AGPL-3.0, see [LICENSE](LICENSE.txt) for more
 information.
