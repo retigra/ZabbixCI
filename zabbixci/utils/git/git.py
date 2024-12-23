@@ -7,13 +7,12 @@ from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
 
-P = ParamSpec('P')
+P = ParamSpec("P")
 
 
 class Git:
     _repository: pygit2.Repository = None
-    author = pygit2.Signature(Settings.GIT_AUTHOR_NAME,
-                              Settings.GIT_AUTHOR_EMAIL)
+    author = pygit2.Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
 
     def __init__(self, path: str, credentials):
         """
@@ -26,7 +25,7 @@ class Git:
             self._repository = pygit2.clone_repository(
                 Settings.REMOTE,
                 path,
-                callbacks=pygit2.RemoteCallbacks(credentials=credentials)
+                callbacks=pygit2.RemoteCallbacks(credentials=credentials),
             )
         else:
             self._repository = pygit2.Repository(path)
@@ -80,8 +79,7 @@ class Git:
         Create a branch
         """
         try:
-            self._repository.branches.local.create(
-                branch, self._repository.head.peel())
+            self._repository.branches.local.create(branch, self._repository.head.peel())
         except Exception as e:
             logger.error(f"Failed to create branch: {e}")
 
@@ -103,10 +101,10 @@ class Git:
         """
         Fetch the changes from the remote repository
         """
-        if not 'origin' in self._repository.remotes.names():
-            self._repository.remotes.create('origin', remote_url)
+        if not "origin" in self._repository.remotes.names():
+            self._repository.remotes.create("origin", remote_url)
 
-        remote = self._repository.remotes['origin']
+        remote = self._repository.remotes["origin"]
 
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
@@ -127,20 +125,24 @@ class Git:
             self.author,
             message,
             tree,
-            [self._repository.head.target] if not self._repository.head_is_unborn else []
+            (
+                [self._repository.head.target]
+                if not self._repository.head_is_unborn
+                else []
+            ),
         )
 
     def push(self, remote_url: str, credentials, branch: str = None):
         """
         Push the changes to the remote repository
         """
-        remote = self._repository.remotes['origin']
+        remote = self._repository.remotes["origin"]
 
         if not branch:
             branch = self._repository.head.shorthand
 
         if not remote:
-            remote = self._repository.remotes.create('origin', remote_url)
+            remote = self._repository.remotes.create("origin", remote_url)
 
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
@@ -150,20 +152,21 @@ class Git:
         """
         Pull the changes from the remote repository, merge them with the local repository
         """
-        remote = self._repository.remotes['origin']
+        remote = self._repository.remotes["origin"]
 
         if not branch:
             branch = self._repository.head.shorthand
 
         if not remote:
-            remote = self._repository.remotes.create('origin', remote_url)
+            remote = self._repository.remotes.create("origin", remote_url)
 
         callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
         remote.fetch(callbacks=callbacks)
 
         remote_id = self._repository.lookup_reference(
-            f"refs/remotes/origin/{branch}").target
+            f"refs/remotes/origin/{branch}"
+        ).target
 
         merge_result, _ = self._repository.merge_analysis(remote_id)
 

@@ -45,7 +45,8 @@ zabbixci --help
 Contributions are welcome! Please take a look at the following guidelines:
 
 - Commit messages should follow the [Gitmoji](https://gitmoji.dev/) convention.
-- Code should be formatted using [autopep8](https://pypi.org/project/autopep8/).
+- Code should be formatted using
+  [black](https://black.readthedocs.io/en/stable/).
 
 # License
 

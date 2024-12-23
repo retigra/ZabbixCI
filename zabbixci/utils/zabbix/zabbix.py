@@ -5,10 +5,10 @@ from zabbixci.utils.template import Template
 
 yaml = YAML()
 
-P = ParamSpec('P')
+P = ParamSpec("P")
 
 
-class Zabbix():
+class Zabbix:
     zapi = None
 
     def __init__(self, *args: P.args, **kwargs: P.kwargs):
@@ -16,36 +16,23 @@ class Zabbix():
 
     def _get_template_group(self, template_group_names: list[str]):
         return self.zapi.send_api_request(
-            "templategroup.get",
-            {
-                "search": {
-                    "name": template_group_names
-                }
-            }
-        )['result']
+            "templategroup.get", {"search": {"name": template_group_names}}
+        )["result"]
 
     def get_templates(self, template_group_names: list[str]):
         ids = self._get_template_group(template_group_names)
 
-        template_group_ids = [group['groupid'] for group in ids]
+        template_group_ids = [group["groupid"] for group in ids]
 
         return self.zapi.send_api_request(
-            "template.get",
-            {
-                "groupids": template_group_ids
-            }
-        )['result']
+            "template.get", {"groupids": template_group_ids}
+        )["result"]
 
     def export_template(self, template_ids: list[int]):
         return self.zapi.send_api_request(
             "configuration.export",
-            {
-                "options": {
-                    "templates": template_ids
-                },
-                "format": "yaml"
-            }
-        )['result']
+            {"options": {"templates": template_ids}, "format": "yaml"},
+        )["result"]
 
     def import_template(self, template: Template):
         export = template.export()
@@ -55,22 +42,16 @@ class Zabbix():
             {
                 "format": "yaml",
                 "rules": {
-                    "template_groups": {
-                        "createMissing": True,
-                        "updateExisting": True
-                    },
-                    "templateLinkage": {
-                        "createMissing": True,
-                        "deleteMissing": True
-                    },
+                    "template_groups": {"createMissing": True, "updateExisting": True},
+                    "templateLinkage": {"createMissing": True, "deleteMissing": True},
                     "templates": {
                         "createMissing": True,
                         "updateExisting": True,
                     },
                 },
-                "source": export
-            }
-        )['result']
+                "source": export,
+            },
+        )["result"]
 
     def get_server_version(self):
-        return self.zapi.send_api_request("apiinfo.version")['result']
+        return self.zapi.send_api_request("apiinfo.version")["result"]

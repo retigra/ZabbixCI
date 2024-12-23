@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def read_args():
     parser = argparse.ArgumentParser(description="Zabbix to Git")
     parser.add_argument(
-        'action',
+        "action",
         help="The action to perform",
         choices=["push", "pull"],
     )
@@ -87,12 +87,15 @@ def parse_cli():
     args = read_args()
     arguments = vars(args)
 
-    logging.basicConfig(format="%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s",
-                        level=logging.DEBUG if args.debug else logging.INFO)
+    logging.basicConfig(
+        format="%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s",
+        level=logging.DEBUG if args.debug else logging.INFO,
+    )
 
     zabbixci_logger = logging.getLogger("zabbixci")
     zabbixci_logger.setLevel(
-        logging.DEBUG if args.verbose or args.debug else logging.INFO)
+        logging.DEBUG if args.verbose or args.debug else logging.INFO
+    )
 
     for key, value in arguments.items():
         if value is not None:
