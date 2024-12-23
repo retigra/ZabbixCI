@@ -36,6 +36,10 @@ class Template:
         return self._template["name"]
 
     @property
+    def template_id(self):
+        return self._template["templateid"]
+
+    @property
     def primary_group(self):
         """
         The most specific group of the template, the lowest child in the hierarchy
