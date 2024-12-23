@@ -97,12 +97,13 @@ def parse_cli():
         logging.DEBUG if args.verbose or args.debug else logging.INFO
     )
 
-    for key, value in arguments.items():
-        if value is not None:
-            setattr(Settings, key.upper(), value)
-
     if args.config:
         Settings.read_config(args.config)
+
+    for key, value in arguments.items():
+        if value is not None:
+            logger.debug(f"Setting {key} to {value}")
+            setattr(Settings, key.upper(), value)
 
     from zabbixci import main
 
