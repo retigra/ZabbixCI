@@ -86,8 +86,7 @@ def zabbix_to_file(cache_path=Settings.CACHE_PATH):
                 continue
 
             if len(Settings.WHITELIST) and template.name not in Settings.WHITELIST:
-                logger.debug(f"Skipping non whitelisted template {
-                             template.name}")
+                logger.debug(f"Skipping non whitelisted template {template.name}")
                 continue
 
             template.save()
