@@ -106,17 +106,19 @@ def push():
         # safe to push to the default branch
         git.switch_branch(Settings.PUSH_BRANCH)
 
+        logger.debug(f"Switched to branch {git.current_branch}")
+
     # Reflect current Zabbix state in the cache
     clear_cache()
 
     zabbix_to_file()
 
     # Check if there are any changes to commit
-    if not git.has_changes:
+    if not git.has_changes and not git.ahead_of_remote:
         logger.info("No changes detected")
         exit()
 
-    logger.info("Changes detected, pushing template updates to git")
+    logger.info("Remote differs from local state, preparing to push")
 
     # Commit and push the changes
     git.add_all()
@@ -125,17 +127,21 @@ def push():
         "ZABBIX_HOST", search("https?://([^/]+)", zabbix.zapi.url).group(1)
     )
 
-    changes = git.diff()
-    files = [patch.delta.new_file.path for patch in changes]
+    if git.has_changes:
+        # Create a commit
+        changes = git.diff()
+        files = [patch.delta.new_file.path for patch in changes]
 
-    for file in files:
-        logger.info(f"Detected change in {file}")
+        for file in files:
+            logger.info(f"Detected change in {file}")
 
-    # Generate commit message
-    git.commit(f"Merged Zabbix state from {host}")
+        # Generate commit message
+        git.commit(f"Merged Zabbix state from {host}")
+        logger.info(f"Staged changes from {host} committed to {git.current_branch}")
+    else:
+        logger.info("No staged changes, updating remote with current state")
+
     git.push(Settings.REMOTE, CREDENTIALS)
-
-    logger.info("Changes pushed to git")
 
 
 def pull():
