@@ -36,14 +36,14 @@ yaml = YAML()
 
 def clear_cache():
     for root, dirs, files in os.walk(Settings.CACHE_PATH, topdown=False):
-        if './cache/.git' in root:
+        if "./cache/.git" in root:
             continue
 
         for name in files:
             os.remove(os.path.join(root, name))
 
         for name in dirs:
-            if name == '.git':
+            if name == ".git":
                 continue
 
             os.rmdir(os.path.join(root, name))
@@ -58,27 +58,30 @@ def zabbix_to_file(cache_path=Settings.CACHE_PATH):
     logger.info(f"Found {len(templates)} templates in Zabbix")
 
     # Split by Settings.BATCH_SIZE
-    batches = [templates[i:i + Settings.BATCH_SIZE]
-               for i in range(0, len(templates), Settings.BATCH_SIZE)]
+    batches = [
+        templates[i : i + Settings.BATCH_SIZE]
+        for i in range(0, len(templates), Settings.BATCH_SIZE)
+    ]
 
     for batch in batches:
 
         # Get the templates
         template_yaml = zabbix.export_template(
-            [template['templateid'] for template in batch])
+            [template["templateid"] for template in batch]
+        )
 
         export_yaml = yaml.load(StringIO(template_yaml))
 
-        if not 'templates' in export_yaml['zabbix_export']:
+        if not "templates" in export_yaml["zabbix_export"]:
             logger.info("No templates found in Zabbix")
             return
 
         # Write the templates to the cache
-        for template in export_yaml['zabbix_export']['templates']:
+        for template in export_yaml["zabbix_export"]["templates"]:
             template = Template.from_zabbix(
                 template,
-                export_yaml['zabbix_export']['template_groups'],
-                export_yaml['zabbix_export']['version'],
+                export_yaml["zabbix_export"]["template_groups"],
+                export_yaml["zabbix_export"]["version"],
             )
 
             if template.name in Settings.BLACKLIST:
@@ -118,8 +121,9 @@ def push():
     # Commit and push the changes
     git.add_all()
 
-    host = os.getenv("ZABBIX_HOST", search(
-        "https?://([^/]+)", zabbix.zapi.url).group(1))
+    host = os.getenv(
+        "ZABBIX_HOST", search("https?://([^/]+)", zabbix.zapi.url).group(1)
+    )
 
     changes = git.diff()
     files = [patch.delta.new_file.path for patch in changes]
@@ -152,8 +156,7 @@ def pull():
     # Check for untracked changes, if there are any, we know Zabbix is out of
     # sync
     if git.has_changes:
-        logger.info(
-            "Detected local file changes, detecting changes for zabbix sync")
+        logger.info("Detected local file changes, detecting changes for zabbix sync")
 
     # Save a list of changed files
     changes = git.diff(current_revision)
@@ -192,8 +195,7 @@ def pull():
     tic = timeit.default_timer()
 
     # Group templates by level
-    templates = sorted(
-        templates, key=lambda template: template.level(templates))
+    templates = sorted(templates, key=lambda template: template.level(templates))
 
     toc = timeit.default_timer()
     logger.info("Sorted templates in {:.2f}s".format(toc - tic))
