@@ -5,7 +5,7 @@ from zabbixci.utils.template import Template
 import logging
 
 import pygit2
-from pygit2.enums import ResetMode
+from pygit2.enums import ResetMode, FileStatus
 import os
 from ruamel.yaml import YAML
 from io import StringIO
@@ -164,9 +164,21 @@ def pull():
     if git.has_changes:
         logger.info("Detected local file changes, detecting changes for zabbix sync")
 
-    # Save a list of changed files
-    changes = git.diff(current_revision)
-    files = [patch.delta.new_file.path for patch in changes]
+    status = git.status()
+
+    # Get the changed files, we compare the untracked changes with the desired.
+    # When we have a new untracked file, that means it was deleted in the desired state.
+    files = [
+        path
+        for path, flags in status.items()
+        if flags in [FileStatus.WT_DELETED, FileStatus.WT_MODIFIED]
+    ]
+    deleted_files = [
+        path for path, flags in status.items() if flags == FileStatus.WT_NEW
+    ]
+
+    logger.debug(f"Following templates have changed on Git: {files}")
+    logger.debug(f"Following templates are deleted from Git {deleted_files}")
 
     # Sync the file cache with the desired git state
     git.reset(current_revision, ResetMode.HARD)
@@ -210,3 +222,33 @@ def pull():
     for template in templates:
         logging.info(f"Importing {template.name}, level {template._level}")
         zabbix.import_template(template)
+
+    template_names = []
+
+    # Delete the deleted templates
+    for file in deleted_files:
+        template = Template.open(file)
+
+        if not template or not template.is_template:
+            logger.info(f"Could not open to be deleted file {file}")
+            continue
+
+        if template.name in Settings.BLACKLIST:
+            logger.debug(f"Skipping blacklisted template {template.name}")
+            continue
+
+        if len(Settings.WHITELIST) and template.name not in Settings.WHITELIST:
+            logger.debug(f"Skipping non whitelisted template {template.name}")
+            continue
+
+        template_names.append(template.name)
+        logger.info(f"Added {template.name} to deletion queue")
+
+    if len(template_names):
+        logger.info(f"Deleting templates {template_names}")
+        template_ids = [
+            t["templateid"] for t in zabbix.get_templates_name(template_names)
+        ]
+
+        if len(template_ids):
+            zabbix.delete_template(template_ids)

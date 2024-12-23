@@ -76,6 +76,12 @@ class Git:
         """
         return self._repository.diff(*args, **kwargs)
 
+    def status(self, *args: P.args, **kwargs: P.kwargs):
+        """
+        Get the status of the repository
+        """
+        return self._repository.status(*args, **kwargs)
+
     def switch_branch(self, branch: str):
         """
         Switch to a branch, if the branch does not exist, create it
