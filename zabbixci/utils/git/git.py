@@ -38,6 +38,19 @@ class Git:
         return len(self._repository.status()) > 0
 
     @property
+    def ahead_of_remote(self):
+        """
+        Check if the repository is ahead of the remote repository
+        """
+        branch = self._repository.head.shorthand
+
+        remote_id = self._repository.lookup_reference(
+            f"refs/remotes/origin/{branch}"
+        ).target
+
+        return self._repository.head.target != remote_id
+
+    @property
     def current_branch(self):
         """
         Get the current branch
