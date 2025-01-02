@@ -220,7 +220,7 @@ def pull():
 
         # Import the templates
         for template in templates:
-            logging.info(f"Importing {template.name}, level {template._level}")
+            logger.info(f"Importing {template.name}, level {template._level}")
             zabbix.import_template(template)
 
     template_names = []
