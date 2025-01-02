@@ -69,9 +69,17 @@ def read_args():
     )
     parser.add_argument(
         "-vv",
+        "--debug",
         help="Enable debug logging",
         action="store_true",
         dest="debug",
+    )
+    parser.add_argument(
+        "-vvv",
+        "--debug-all",
+        help="Enable debug logging for all modules",
+        action="store_true",
+        dest="debug_all",
     )
 
     parser.add_argument(
@@ -87,14 +95,22 @@ def parse_cli():
     args = read_args()
     arguments = vars(args)
 
+    global_level = (
+        logging.DEBUG
+        if args.debug_all
+        else logging.INFO if args.verbose else logging.WARN
+    )
+
     logging.basicConfig(
         format="%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s",
-        level=logging.DEBUG if args.debug else logging.INFO,
+        level=global_level,
     )
 
     zabbixci_logger = logging.getLogger("zabbixci")
     zabbixci_logger.setLevel(
-        logging.DEBUG if args.verbose or args.debug else logging.INFO
+        logging.DEBUG
+        if args.debug or args.debug_all
+        else logging.INFO if args.verbose else logging.WARN
     )
 
     if args.config:
