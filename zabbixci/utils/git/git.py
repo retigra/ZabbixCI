@@ -43,12 +43,15 @@ class Git:
         Check if the repository is ahead of the remote repository
         """
         branch = self._repository.head.shorthand
+        try:
+            remote_id = self._repository.lookup_reference(
+                f"refs/remotes/origin/{branch}"
+            ).target
 
-        remote_id = self._repository.lookup_reference(
-            f"refs/remotes/origin/{branch}"
-        ).target
-
-        return self._repository.head.target != remote_id
+            return self._repository.head.target != remote_id
+        except KeyError:
+            # Remote branch does not exist, we must push our state to the remote
+            return True
 
     @property
     def current_branch(self):
