@@ -8,19 +8,19 @@
             "name": "Python Debugger: Pull",
             "type": "debugpy",
             "request": "launch",
-            "program": "cli.py",
+            "program": "zabbixci/cli.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env",
-            "args": ["pull", "--debug"]
+            "args": ["pull", "-v", "--config", "hedium.yaml"]
         },
         {
             "name": "Python Debugger: Push",
             "type": "debugpy",
             "request": "launch",
-            "program": "cli.py",
+            "program": "zabbixci/cli.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env",
-            "args": ["push", "--debug"]
+            "args": ["push", "-v", "--config", "hedium.yaml"]
         }
     ]
 }
