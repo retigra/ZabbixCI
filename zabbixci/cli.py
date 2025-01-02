@@ -93,6 +93,7 @@ def read_args():
         "--ignore-version",
         help="Ignore the Zabbix version",
         action="store_true",
+        default=None,
     )
 
     return parser.parse_args()
