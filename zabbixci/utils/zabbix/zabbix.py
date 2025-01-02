@@ -54,7 +54,7 @@ class Zabbix:
         )["result"]
 
     def get_server_version(self):
-        return self.zapi.send_api_request("apiinfo.version")["result"]
+        return self.zapi.send_api_request("apiinfo.version", need_auth=False)["result"]
 
     def get_templates_name(self, name: list[str]):
         return self.zapi.send_api_request("template.get", {"filter": {"host": name}})[

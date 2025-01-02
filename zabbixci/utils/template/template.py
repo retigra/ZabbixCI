@@ -82,6 +82,10 @@ class Template:
             else []
         )
 
+    @property
+    def zabbix_version(self):
+        return self._export["version"]
+
     def __init__(self, export: dict):
         self._export = export
 

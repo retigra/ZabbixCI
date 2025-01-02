@@ -81,10 +81,19 @@ def read_args():
         action="store_true",
         dest="debug_all",
     )
-
     parser.add_argument(
         "--config",
         help="The configuration file",
+    )
+    parser.add_argument(
+        "--batch-size",
+        help="The batch size",
+    )
+    parser.add_argument(
+        "--ignore-version",
+        help="Ignore the Zabbix version",
+        action="store_true",
+        default=None,
     )
 
     return parser.parse_args()

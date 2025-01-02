@@ -20,6 +20,7 @@ class Settings:
     BLACKLIST = []
     CACHE_PATH = "./cache"
     BATCH_SIZE = 50
+    IGNORE_VERSION = False
 
     @classmethod
     def from_env(cls):
