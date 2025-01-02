@@ -198,7 +198,6 @@ class Git:
 
             try:
                 self._repository.head.set_target(remote_id)
-                print(f"Fast-forwarded to {remote_id}")
             except Exception as e:
                 logger.error(f"Failed to fast-forward: {e}")
 
