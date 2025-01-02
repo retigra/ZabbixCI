@@ -158,6 +158,8 @@ def pull():
     clear_cache()
     zabbix_to_file()
 
+    zabbix_version = zabbix.get_server_version()
+
     # Check for untracked changes, if there are any, we know Zabbix is out of
     # sync
     if git.has_changes:
@@ -206,6 +208,12 @@ def pull():
             logger.debug(f"Skipping non whitelisted template {template.name}")
             continue
 
+        if template.zabbix_version.split(".")[0] != zabbix_version.split(".")[0]:
+            logger.warning(
+                f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {zabbix_version.split('.')[0]}"
+            )
+            continue
+
         templates.append(template)
         logger.info(f"Detected change in {template.name}")
 
@@ -230,7 +238,7 @@ def pull():
         template = Template.open(file)
 
         if not template or not template.is_template:
-            logger.info(f"Could not open to be deleted file {file}")
+            logger.warning(f"Could not open to be deleted file {file}")
             continue
 
         if template.name in Settings.BLACKLIST:
