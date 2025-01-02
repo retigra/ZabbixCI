@@ -187,7 +187,7 @@ class Git:
             f"refs/remotes/origin/{branch}"
         ).target
 
-        merge_result, _ = self._repository.merge_analysis(remote_id)
+        merge_result, merge_pref = self._repository.merge_analysis(remote_id)
 
         if merge_result & MergeAnalysis.UP_TO_DATE:
             logger.info("Already up to date")
@@ -195,10 +195,12 @@ class Git:
 
         if merge_result & MergeAnalysis.FASTFORWARD:
             self._repository.checkout_tree(self._repository.get(remote_id))
-            self._repository.head.set_target(remote_id)
-            self._repository.head.set_target(remote_id)
-            logger.info("Fast-forward merge")
-            return
+
+            try:
+                self._repository.head.set_target(remote_id)
+                print(f"Fast-forwarded to {remote_id}")
+            except Exception as e:
+                logger.error(f"Failed to fast-forward: {e}")
 
         if merge_result & MergeAnalysis.NORMAL:
             self._repository.merge(remote_id)

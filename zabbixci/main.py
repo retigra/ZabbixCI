@@ -136,7 +136,7 @@ def push():
             logger.info(f"Detected change in {file}")
 
         # Generate commit message
-        git.commit(f"Merged Zabbix state from {host}")
+        git.commit(f"Committed Zabbix state from {host}")
         logger.info(f"Staged changes from {host} committed to {git.current_branch}")
     else:
         logger.info("No staged changes, updating remote with current state")
@@ -150,14 +150,13 @@ def pull():
     """
     git.switch_branch(Settings.PULL_BRANCH)
 
+    # Pull the latest remote state, untracked changes are preserved
+    git.pull(Settings.REMOTE, CREDENTIALS)
+    current_revision = git.get_current_revision()
+
     # Reflect current Zabbix state in the cache
     clear_cache()
-
     zabbix_to_file()
-
-    # Pull the latest remote state, untracked changes are preserved
-    current_revision = git.get_current_revision()
-    git.pull(Settings.REMOTE, CREDENTIALS)
 
     # Check for untracked changes, if there are any, we know Zabbix is out of
     # sync
@@ -210,18 +209,19 @@ def pull():
         templates.append(template)
         logger.info(f"Detected change in {template.name}")
 
-    tic = timeit.default_timer()
+    if len(templates):
+        tic = timeit.default_timer()
 
-    # Group templates by level
-    templates = sorted(templates, key=lambda template: template.level(templates))
+        # Group templates by level
+        templates = sorted(templates, key=lambda template: template.level(templates))
 
-    toc = timeit.default_timer()
-    logger.info("Sorted templates in {:.2f}s".format(toc - tic))
+        toc = timeit.default_timer()
+        logger.info("Sorted templates in {:.2f}s".format(toc - tic))
 
-    # Import the templates
-    for template in templates:
-        logging.info(f"Importing {template.name}, level {template._level}")
-        zabbix.import_template(template)
+        # Import the templates
+        for template in templates:
+            logging.info(f"Importing {template.name}, level {template._level}")
+            zabbix.import_template(template)
 
     template_names = []
 
