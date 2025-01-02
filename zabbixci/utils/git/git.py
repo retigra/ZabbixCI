@@ -87,11 +87,14 @@ class Git:
         Switch to a branch, if the branch does not exist, create it
         """
         if not self._repository.branches.local.get(branch):
+            logger.debug(f"Branch {branch} does not exist, creating")
             self.create_branch(branch)
 
         local_branch = self._repository.branches.local[branch]
 
         self._repository.checkout(local_branch)
+        self._repository.head.set_target(local_branch.target)
+        logger.debug(f"Switched to branch {branch}")
 
     def create_branch(self, branch: str):
         """
@@ -150,6 +153,20 @@ class Git:
                 else []
             ),
         )
+
+    def clean(self):
+        """
+        Clean the repository from untracked files
+        """
+        self._repository.checkout_head(strategy=pygit2.GIT_CHECKOUT_FORCE)
+        self._repository.state_cleanup()
+
+        # Any remaining untracked files will be removed
+        changes = self._repository.status()
+
+        for file in changes:
+            logger.debug(f"Removing untracked file {file}")
+            os.remove(f"{self._repository.workdir}/{file}")
 
     def push(self, remote_url: str, credentials, branch: str = None):
         """

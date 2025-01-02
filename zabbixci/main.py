@@ -36,7 +36,7 @@ yaml = YAML()
 
 def clear_cache():
     for root, dirs, files in os.walk(Settings.CACHE_PATH, topdown=False):
-        if "./cache/.git" in root:
+        if f"{Settings.CACHE_PATH}/.git" in root:
             continue
 
         for name in files:
@@ -49,13 +49,14 @@ def clear_cache():
             os.rmdir(os.path.join(root, name))
 
 
-def zabbix_to_file(cache_path=Settings.CACHE_PATH):
+def zabbix_to_file():
     """
     Export Zabbix templates to the cache
     """
     templates = zabbix.get_templates([Settings.PARENT_GROUP])
 
     logger.info(f"Found {len(templates)} templates in Zabbix")
+    logger.debug(f"Found Zabbix templates: {templates}")
 
     # Split by Settings.BATCH_SIZE
     batches = [
@@ -152,6 +153,13 @@ def pull():
 
     # Pull the latest remote state, untracked changes are preserved
     git.pull(Settings.REMOTE, CREDENTIALS)
+    git.reset(
+        git._repository.lookup_reference(
+            f"refs/remotes/origin/{Settings.PULL_BRANCH}"
+        ).target,
+        ResetMode.HARD,
+    )
+
     current_revision = git.get_current_revision()
 
     # Reflect current Zabbix state in the cache
@@ -263,3 +271,6 @@ def pull():
 
         if len(template_ids):
             zabbix.delete_template(template_ids)
+
+    # clean local changes
+    git.clean()
