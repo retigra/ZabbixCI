@@ -63,7 +63,8 @@ def zabbix_to_file(cache_path=Settings.CACHE_PATH):
         for i in range(0, len(templates), Settings.BATCH_SIZE)
     ]
 
-    for batch in batches:
+    for index, batch in enumerate(batches):
+        logger.info(f"Processing export batch {index + 1}/{len(batches)}")
 
         # Get the templates
         template_yaml = zabbix.export_template(
@@ -210,10 +211,11 @@ def pull():
 
         if (
             not Settings.IGNORE_VERSION
-            and template.zabbix_version.split(".")[0] != zabbix_version.split(".")[0]
+            and template.zabbix_version.split(".")[0:1]
+            != zabbix_version.split(".")[0:1]
         ):
             logger.warning(
-                f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {zabbix_version.split('.')[0]}"
+                f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {zabbix_version.split('.')[0:1]}"
             )
             continue
 
