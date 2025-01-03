@@ -9,6 +9,7 @@ class Settings:
     ZABBIX_USER = None
     ZABBIX_PASSWORD = None
     ZABBIX_TOKEN = None
+    ZABBIX_VALIDATE_CERTS = True
     REMOTE = None
     PARENT_GROUP = "Templates"
     GIT_AUTHOR_NAME = "Zabbix CI"

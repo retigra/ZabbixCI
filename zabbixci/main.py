@@ -14,7 +14,8 @@ import timeit
 
 from zabbixci.settings import Settings
 
-CREDENTIALS = pygit2.KeypairFromAgent("git")
+credentials = pygit2.KeypairFromAgent("git")
+GIT_CB = pygit2.RemoteCallbacks(credentials)
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +27,12 @@ zabbix = Zabbix(
     user=Settings.ZABBIX_USER,
     password=Settings.ZABBIX_PASSWORD,
     token=Settings.ZABBIX_TOKEN,
+    validate_certs=Settings.ZABBIX_VALIDATE_CERTS,
 )
 
 
 # Initialize the git repository
-git = Git(Settings.CACHE_PATH, CREDENTIALS)
+git = Git(Settings.CACHE_PATH, GIT_CB)
 yaml = YAML()
 
 
@@ -108,7 +110,7 @@ def push():
     """
     Fetch Zabbix state and commit changes to git remote
     """
-    git.fetch(Settings.REMOTE, CREDENTIALS)
+    git.fetch(Settings.REMOTE, GIT_CB)
 
     if not git.is_empty:
         # If the repository is empty, new branches can't be created. But it is
@@ -117,14 +119,14 @@ def push():
 
         # Pull the latest remote state
         try:
-            git.pull(Settings.REMOTE, CREDENTIALS)
+            git.pull(Settings.REMOTE, GIT_CB)
         except KeyError:
             logger.info(
                 f"Remote branch does not exist, using state from branch {Settings.PULL_BRANCH}"
             )
             # Remote branch does not exist, we pull the default branch and create a new branch
             git.switch_branch(Settings.PULL_BRANCH)
-            git.pull(Settings.REMOTE, CREDENTIALS)
+            git.pull(Settings.REMOTE, GIT_CB)
 
             # Create a new branch
             git.switch_branch(Settings.PUSH_BRANCH)
@@ -162,7 +164,7 @@ def push():
     else:
         logger.info("No staged changes, updating remote with current state")
 
-    git.push(Settings.REMOTE, CREDENTIALS)
+    git.push(Settings.REMOTE, GIT_CB)
 
 
 def pull():
@@ -172,7 +174,7 @@ def pull():
     git.switch_branch(Settings.PULL_BRANCH)
 
     # Pull the latest remote state, untracked changes are preserved
-    git.pull(Settings.REMOTE, CREDENTIALS)
+    git.pull(Settings.REMOTE, GIT_CB)
     git.reset(
         git._repository.lookup_reference(
             f"refs/remotes/origin/{Settings.PULL_BRANCH}"

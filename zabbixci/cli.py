@@ -29,6 +29,16 @@ def read_args():
         help="The Zabbix password",
     )
     parser.add_argument(
+        "--zabbix-token",
+        help="The Zabbix token",
+    )
+    parser.add_argument(
+        "--zabbix-validate-certs",
+        help="Validate the Zabbix certificates",
+        action="store_true",
+        default=None,
+    )
+    parser.add_argument(
         "--remote",
         help="The remote repository",
     )

@@ -14,7 +14,7 @@ class Git:
     _repository: pygit2.Repository = None
     author = pygit2.Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
 
-    def __init__(self, path: str, credentials):
+    def __init__(self, path: str, callbacks: pygit2.RemoteCallbacks):
         """
         Initialize the git repository
         """
@@ -25,7 +25,7 @@ class Git:
             self._repository = pygit2.clone_repository(
                 Settings.REMOTE,
                 path,
-                callbacks=pygit2.RemoteCallbacks(credentials=credentials),
+                callbacks=callbacks,
             )
         else:
             self._repository = pygit2.Repository(path)
