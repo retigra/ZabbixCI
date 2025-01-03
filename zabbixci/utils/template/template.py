@@ -72,7 +72,7 @@ class Template:
             rf"{Settings.PARENT_GROUP}\/+(.+)", self.primary_group
         )
 
-        return match_group.group(1) if match_group else self.primary_group
+        return match_group.group(1) if match_group else ""
 
     @property
     def linked_templates(self):
