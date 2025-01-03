@@ -111,6 +111,17 @@ def push():
 
         logger.debug(f"Switched to branch {git.current_branch}")
 
+        # Pull the latest remote state
+        try:
+            git.pull(Settings.REMOTE, CREDENTIALS)
+        except KeyError:
+            # Remote branch does not exist, we pull the default branch and create a new branch
+            git.switch_branch(Settings.PULL_BRANCH)
+            git.pull(Settings.REMOTE, CREDENTIALS)
+
+            # Create a new branch
+            git.switch_branch(Settings.PUSH_BRANCH)
+
     # Reflect current Zabbix state in the cache
     clear_cache()
 
