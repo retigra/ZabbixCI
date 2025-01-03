@@ -33,12 +33,6 @@ def read_args():
         help="The Zabbix token",
     )
     parser.add_argument(
-        "--zabbix-validate-certs",
-        help="Validate the Zabbix certificates",
-        action="store_true",
-        default=None,
-    )
-    parser.add_argument(
         "--remote",
         help="The remote repository",
     )
@@ -102,6 +96,12 @@ def read_args():
     parser.add_argument(
         "--ignore-version",
         help="Ignore the Zabbix version",
+        action="store_true",
+        default=None,
+    )
+    parser.add_argument(
+        "--insecure-ssl-verify",
+        help="Disable SSL verification",
         action="store_true",
         default=None,
     )

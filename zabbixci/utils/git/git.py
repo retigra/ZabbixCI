@@ -122,7 +122,7 @@ class Git:
         """
         self._repository.reset(*args, **kwargs)
 
-    def fetch(self, remote_url: str, credentials):
+    def fetch(self, remote_url: str, callbacks: pygit2.RemoteCallbacks):
         """
         Fetch the changes from the remote repository
         """
@@ -130,8 +130,6 @@ class Git:
             self._repository.remotes.create("origin", remote_url)
 
         remote = self._repository.remotes["origin"]
-
-        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
         remote.fetch(callbacks=callbacks)
 
@@ -171,7 +169,9 @@ class Git:
             logger.debug(f"Removing untracked file {file}")
             os.remove(f"{self._repository.workdir}/{file}")
 
-    def push(self, remote_url: str, credentials, branch: str = None):
+    def push(
+        self, remote_url: str, callbacks: pygit2.RemoteCallbacks, branch: str = None
+    ):
         """
         Push the changes to the remote repository
         """
@@ -183,11 +183,11 @@ class Git:
         if not remote:
             remote = self._repository.remotes.create("origin", remote_url)
 
-        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
-
         remote.push([f"refs/heads/{branch}"], callbacks=callbacks)
 
-    def pull(self, remote_url: str, credentials, branch: str = None):
+    def pull(
+        self, remote_url: str, callbacks: pygit2.RemoteCallbacks, branch: str = None
+    ):
         """
         Pull the changes from the remote repository, merge them with the local repository
         """
@@ -198,8 +198,6 @@ class Git:
 
         if not remote:
             remote = self._repository.remotes.create("origin", remote_url)
-
-        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
         remote.fetch(callbacks=callbacks)
 

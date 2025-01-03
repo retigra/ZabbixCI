@@ -9,7 +9,6 @@ class Settings:
     ZABBIX_USER = None
     ZABBIX_PASSWORD = None
     ZABBIX_TOKEN = None
-    ZABBIX_VALIDATE_CERTS = True
     REMOTE = None
     PARENT_GROUP = "Templates"
     GIT_AUTHOR_NAME = "Zabbix CI"
@@ -22,6 +21,7 @@ class Settings:
     CACHE_PATH = "./cache"
     BATCH_SIZE = 50
     IGNORE_VERSION = False
+    INSECURE_SSL_VERIFY = False
 
     @classmethod
     def from_env(cls):

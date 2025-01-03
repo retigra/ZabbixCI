@@ -15,7 +15,10 @@ import timeit
 from zabbixci.settings import Settings
 
 credentials = pygit2.KeypairFromAgent("git")
-GIT_CB = pygit2.RemoteCallbacks(credentials)
+GIT_CB = pygit2.RemoteCallbacks(credentials=credentials)
+
+if Settings.INSECURE_SSL_VERIFY:
+    GIT_CB.certificate_check = lambda *args, **kwargs: True
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +30,7 @@ zabbix = Zabbix(
     user=Settings.ZABBIX_USER,
     password=Settings.ZABBIX_PASSWORD,
     token=Settings.ZABBIX_TOKEN,
-    validate_certs=Settings.ZABBIX_VALIDATE_CERTS,
+    validate_certs=Settings.INSECURE_SSL_VERIFY,
 )
 
 
