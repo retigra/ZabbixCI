@@ -115,12 +115,13 @@ def push():
         # safe to push to the default branch
         git.switch_branch(Settings.PUSH_BRANCH)
 
-        logger.debug(f"Switched to branch {git.current_branch}")
-
         # Pull the latest remote state
         try:
             git.pull(Settings.REMOTE, CREDENTIALS)
         except KeyError:
+            logger.info(
+                f"Remote branch does not exist, using state from branch {Settings.PULL_BRANCH}"
+            )
             # Remote branch does not exist, we pull the default branch and create a new branch
             git.switch_branch(Settings.PULL_BRANCH)
             git.pull(Settings.REMOTE, CREDENTIALS)
