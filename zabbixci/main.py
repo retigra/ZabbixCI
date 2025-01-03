@@ -35,18 +35,23 @@ yaml = YAML()
 
 
 def clear_cache():
-    for root, dirs, files in os.walk(Settings.CACHE_PATH, topdown=False):
+    for root, dirs, files in os.walk(
+        f"{Settings.CACHE_PATH}/{Settings.GIT_PREFIX_PATH}", topdown=False
+    ):
         if f"{Settings.CACHE_PATH}/.git" in root:
             continue
 
         for name in files:
-            os.remove(os.path.join(root, name))
+            if name.endswith(".yaml"):
+                os.remove(os.path.join(root, name))
 
         for name in dirs:
             if name == ".git" and root == Settings.CACHE_PATH:
                 continue
 
-            os.rmdir(os.path.join(root, name))
+            # Remove empty directories
+            if not os.listdir(os.path.join(root, name)):
+                os.rmdir(os.path.join(root, name))
 
 
 def zabbix_to_file():
