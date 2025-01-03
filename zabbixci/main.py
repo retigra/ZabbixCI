@@ -43,7 +43,7 @@ def clear_cache():
             os.remove(os.path.join(root, name))
 
         for name in dirs:
-            if name == ".git":
+            if name == ".git" and root == Settings.CACHE_PATH:
                 continue
 
             os.rmdir(os.path.join(root, name))
