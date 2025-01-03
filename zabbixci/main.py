@@ -286,11 +286,17 @@ def pull():
             logger.debug(f"Skipping non whitelisted template {template.name}")
             continue
 
+        if template.uuid in [t.uuid for t in templates]:
+            logger.debug(
+                f"Template {template.name} is being imported under a different name or path, skipping deletion"
+            )
+            continue
+
         template_names.append(template.name)
         logger.info(f"Added {template.name} to deletion queue")
 
     if len(template_names):
-        logger.info(f"Deleting templates {template_names}")
+        logger.info(f"Deleting {len(template_names)} templates from Zabbix")
         template_ids = [
             t["templateid"] for t in zabbix.get_templates_name(template_names)
         ]

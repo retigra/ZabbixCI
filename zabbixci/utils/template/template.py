@@ -36,6 +36,10 @@ class Template:
         return self._template["name"]
 
     @property
+    def uuid(self):
+        return self._template["uuid"]
+
+    @property
     def template_id(self):
         return self._template["templateid"]
 
