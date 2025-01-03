@@ -30,7 +30,7 @@ zabbix = Zabbix(
     user=Settings.ZABBIX_USER,
     password=Settings.ZABBIX_PASSWORD,
     token=Settings.ZABBIX_TOKEN,
-    validate_certs=Settings.INSECURE_SSL_VERIFY,
+    validate_certs=not Settings.INSECURE_SSL_VERIFY,
 )
 
 
