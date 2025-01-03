@@ -243,11 +243,11 @@ def pull():
 
         if (
             not Settings.IGNORE_VERSION
-            and template.zabbix_version.split(".")[0:1]
-            != zabbix_version.split(".")[0:1]
+            and template.zabbix_version.split(".")[0:2]
+            != zabbix_version.split(".")[0:2]
         ):
             logger.warning(
-                f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {zabbix_version.split('.')[0:1]}"
+                f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {'.'.join(zabbix_version.split('.')[0:2])}"
             )
             continue
 
