@@ -65,7 +65,7 @@ def zabbix_to_file(cache_path=Settings.CACHE_PATH):
 
     for index, batch in enumerate(batches):
         logger.info(
-            f"Processing export batch {index + 1}/{len(batches)} ({index * Settings.BATCH_SIZE}/{len(templates)})"
+            f"Processing export batch {index + 1}/{len(batches)} [{index * Settings.BATCH_SIZE}/{len(templates)}]"
         )
 
         # Get the templates
