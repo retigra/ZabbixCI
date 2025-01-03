@@ -63,7 +63,10 @@ def zabbix_to_file(cache_path=Settings.CACHE_PATH):
         for i in range(0, len(templates), Settings.BATCH_SIZE)
     ]
 
-    for batch in batches:
+    for index, batch in enumerate(batches):
+        logger.info(
+            f"Processing export batch {index + 1}/{len(batches)} [{(index * Settings.BATCH_SIZE) + 1}/{len(templates)}]"
+        )
 
         # Get the templates
         template_yaml = zabbix.export_template(
@@ -107,6 +110,17 @@ def push():
         git.switch_branch(Settings.PUSH_BRANCH)
 
         logger.debug(f"Switched to branch {git.current_branch}")
+
+        # Pull the latest remote state
+        try:
+            git.pull(Settings.REMOTE, CREDENTIALS)
+        except KeyError:
+            # Remote branch does not exist, we pull the default branch and create a new branch
+            git.switch_branch(Settings.PULL_BRANCH)
+            git.pull(Settings.REMOTE, CREDENTIALS)
+
+            # Create a new branch
+            git.switch_branch(Settings.PUSH_BRANCH)
 
     # Reflect current Zabbix state in the cache
     clear_cache()
@@ -210,10 +224,11 @@ def pull():
 
         if (
             not Settings.IGNORE_VERSION
-            and template.zabbix_version.split(".")[0] != zabbix_version.split(".")[0]
+            and template.zabbix_version.split(".")[0:1]
+            != zabbix_version.split(".")[0:1]
         ):
             logger.warning(
-                f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {zabbix_version.split('.')[0]}"
+                f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {zabbix_version.split('.')[0:1]}"
             )
             continue
 
