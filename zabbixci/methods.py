@@ -1,18 +1,17 @@
-from zabbixci.utils.zabbix import Zabbix
-from zabbixci.utils.git import Git
-from zabbixci.utils.template import Template
-
 import logging
-
-import pygit2
-from pygit2.enums import ResetMode, FileStatus
 import os
-from ruamel.yaml import YAML
-from io import StringIO
-from regex import search
 import timeit
 
+import pygit2
+from pygit2.enums import FileStatus, ResetMode
+from regex import search
+from ruamel.yaml import YAML
+
 from zabbixci.settings import Settings
+from zabbixci.utils.git import Git
+from zabbixci.utils.template import Template
+from zabbixci.utils.zabbix import Zabbix
+from zabbixci.zabbixci import cleanup_cache, ignore_template, zabbix_to_file
 
 credentials = pygit2.KeypairFromAgent("git")
 GIT_CB = pygit2.RemoteCallbacks(credentials=credentials)
@@ -21,10 +20,9 @@ if Settings.INSECURE_SSL_VERIFY:
     GIT_CB.certificate_check = lambda *args, **kwargs: True
 
 logger = logging.getLogger(__name__)
+yaml = YAML()
 
 # Initialize the Zabbix API
-
-
 zabbix = Zabbix(
     url=Settings.ZABBIX_URL,
     user=Settings.ZABBIX_USER,
@@ -36,77 +34,6 @@ zabbix = Zabbix(
 
 # Initialize the git repository
 git = Git(Settings.CACHE_PATH, GIT_CB)
-yaml = YAML()
-
-
-def clear_cache():
-    for root, dirs, files in os.walk(
-        f"{Settings.CACHE_PATH}/{Settings.GIT_PREFIX_PATH}", topdown=False
-    ):
-        if f"{Settings.CACHE_PATH}/.git" in root:
-            continue
-
-        for name in files:
-            if name.endswith(".yaml"):
-                os.remove(os.path.join(root, name))
-
-        for name in dirs:
-            if name == ".git" and root == Settings.CACHE_PATH:
-                continue
-
-            # Remove empty directories
-            if not os.listdir(os.path.join(root, name)):
-                os.rmdir(os.path.join(root, name))
-
-
-def zabbix_to_file():
-    """
-    Export Zabbix templates to the cache
-    """
-    templates = zabbix.get_templates([Settings.PARENT_GROUP])
-
-    logger.info(f"Found {len(templates)} templates in Zabbix")
-    logger.debug(f"Found Zabbix templates: {templates}")
-
-    # Split by Settings.BATCH_SIZE
-    batches = [
-        templates[i : i + Settings.BATCH_SIZE]
-        for i in range(0, len(templates), Settings.BATCH_SIZE)
-    ]
-
-    for index, batch in enumerate(batches):
-        logger.info(
-            f"Processing export batch {index + 1}/{len(batches)} [{(index * Settings.BATCH_SIZE) + 1}/{len(templates)}]"
-        )
-
-        # Get the templates
-        template_yaml = zabbix.export_template(
-            [template["templateid"] for template in batch]
-        )
-
-        export_yaml = yaml.load(StringIO(template_yaml))
-
-        if not "templates" in export_yaml["zabbix_export"]:
-            logger.info("No templates found in Zabbix")
-            return
-
-        # Write the templates to the cache
-        for template in export_yaml["zabbix_export"]["templates"]:
-            template = Template.from_zabbix(
-                template,
-                export_yaml["zabbix_export"]["template_groups"],
-                export_yaml["zabbix_export"]["version"],
-            )
-
-            if template.name in Settings.BLACKLIST:
-                logger.debug(f"Skipping blacklisted template {template.name}")
-                continue
-
-            if len(Settings.WHITELIST) and template.name not in Settings.WHITELIST:
-                logger.debug(f"Skipping non whitelisted template {template.name}")
-                continue
-
-            template.save()
 
 
 def push():
@@ -135,9 +62,9 @@ def push():
             git.switch_branch(Settings.PUSH_BRANCH)
 
     # Reflect current Zabbix state in the cache
-    clear_cache()
+    cleanup_cache()
 
-    zabbix_to_file()
+    zabbix_to_file(zabbix)
 
     # Check if there are any changes to commit
     if not git.has_changes and not git.ahead_of_remote:
@@ -188,7 +115,7 @@ def pull():
     current_revision = git.get_current_revision()
 
     # Reflect current Zabbix state in the cache
-    clear_cache()
+    cleanup_cache()
     zabbix_to_file()
 
     zabbix_version = zabbix.get_server_version()
@@ -233,12 +160,7 @@ def pull():
         if not template or not template.is_template:
             continue
 
-        if template.name in Settings.BLACKLIST:
-            logger.debug(f"Skipping blacklisted template {template.name}")
-            continue
-
-        if len(Settings.WHITELIST) and template.name not in Settings.WHITELIST:
-            logger.debug(f"Skipping non whitelisted template {template.name}")
+        if ignore_template(template.name):
             continue
 
         if (
@@ -278,12 +200,7 @@ def pull():
             logger.warning(f"Could not open to be deleted file {file}")
             continue
 
-        if template.name in Settings.BLACKLIST:
-            logger.debug(f"Skipping blacklisted template {template.name}")
-            continue
-
-        if len(Settings.WHITELIST) and template.name not in Settings.WHITELIST:
-            logger.debug(f"Skipping non whitelisted template {template.name}")
+        if ignore_template(template.name):
             continue
 
         if template.uuid in [t.uuid for t in templates]:
