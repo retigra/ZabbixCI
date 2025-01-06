@@ -14,13 +14,29 @@ import timeit
 
 from zabbixci.settings import Settings
 
-credentials = pygit2.KeypairFromAgent("git")
+logger = logging.getLogger(__name__)
+
+credentials = None
+
+if Settings.GIT_USERNAME and Settings.GIT_PASSWORD:
+    logger.info("Using username and password for authentication")
+    credentials = pygit2.UserPass(Settings.GIT_USERNAME, Settings.GIT_PASSWORD)
+elif Settings.GIT_PUBKEY and Settings.GIT_PRIVKEY:
+    logger.info("Using SSH keypair for authentication")
+    credentials = pygit2.Keypair(
+        Settings.GIT_USERNAME,
+        Settings.GIT_PUBKEY,
+        Settings.GIT_PRIVKEY,
+        Settings.GIT_KEYPASSPHRASE,
+    )
+else:
+    logger.info("Using SSH agent for authentication")
+    credentials = pygit2.KeypairFromAgent(Settings.GIT_USERNAME)
+
 GIT_CB = pygit2.RemoteCallbacks(credentials=credentials)
 
 if Settings.INSECURE_SSL_VERIFY:
     GIT_CB.certificate_check = lambda *args, **kwargs: True
-
-logger = logging.getLogger(__name__)
 
 # Initialize the Zabbix API
 

@@ -22,6 +22,11 @@ class Settings:
     BATCH_SIZE = 50
     IGNORE_VERSION = False
     INSECURE_SSL_VERIFY = False
+    GIT_USERNAME = "git"
+    GIT_PASSWORD = None
+    GIT_PUBKEY = None
+    GIT_PRIVKEY = None
+    GIT_KEYPASSPHRASE = None
 
     @classmethod
     def from_env(cls):
