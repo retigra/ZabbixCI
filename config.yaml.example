@@ -10,6 +10,12 @@ pull_branch: "main"
 push_branch: "main"
 git_prefix_path: ""
 
+git_username: "git"
+git_password: None
+git_pubkey: ~/.ssh/id_ed25519.pub
+git_privkey: ~/.ssh/id_ed25519
+git_keypassphrase: None
+
 # ZabbixCI configuration
 parent_group: "Templates"
 whitelist: "name1,name2,name3"
