@@ -14,6 +14,7 @@ from zabbixci.utils.zabbix import Zabbix
 from zabbixci.zabbixci import cleanup_cache, ignore_template, zabbix_to_file
 
 logger = logging.getLogger(__name__)
+yaml = YAML()
 
 credentials = None
 
@@ -36,9 +37,6 @@ GIT_CB = pygit2.RemoteCallbacks(credentials=credentials)
 
 if Settings.INSECURE_SSL_VERIFY:
     GIT_CB.certificate_check = lambda *args, **kwargs: True
-
-logger = logging.getLogger(__name__)
-yaml = YAML()
 
 # Initialize the Zabbix API
 zabbix = Zabbix(
