@@ -11,61 +11,99 @@ logger = logging.getLogger(__name__)
 
 
 def read_args():
-    parser = argparse.ArgumentParser(description="Zabbix to Git")
+    parser = argparse.ArgumentParser(
+        description="""ZabbixCI is a tool to manage Zabbix templates in a Git repository.
+        
+        ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.""",
+        prog="zabbixci",
+    )
     parser.add_argument(
         "action",
         help="The action to perform",
         choices=["push", "pull", "clearcache"],
     )
+
+    # Provide configuration as file
+    parser.add_argument(
+        "--config",
+        help="Provide configuration as yaml file",
+    )
+
+    # Zabbix
     parser.add_argument(
         "--zabbix-url",
-        help="The Zabbix URL",
+        help="Zabbix URL",
     )
     parser.add_argument(
         "--zabbix-user",
-        help="The Zabbix user",
+        help="Zabbix user for user/password authentication",
     )
     parser.add_argument(
         "--zabbix-password",
-        help="The Zabbix password",
+        help="Zabbix password for user/password authentication",
     )
     parser.add_argument(
         "--zabbix-token",
-        help="The Zabbix token",
+        help="Zabbix token for token authentication (preferred)",
     )
+
+    # Git
     parser.add_argument(
         "--remote",
-        help="The remote repository",
-    )
-    parser.add_argument(
-        "--parent-group",
-        help="The parent group",
+        help="URL of the remote git repository, supports ssh and http(s)",
     )
     parser.add_argument(
         "--pull-branch",
-        help="The branch to pull",
+        help="Branch to pull from",
     )
     parser.add_argument(
         "--push-branch",
-        help="The branch to push",
+        help="Branch to push to",
+    )
+    parser.add_argument(
+        "--git-username",
+        help="Git username, used for http(s) authentication",
+    )
+    parser.add_argument(
+        "--git-password",
+        help="Git password, used for http(s) authentication",
+    )
+    parser.add_argument(
+        "--git-pubkey",
+        help="SSH public key, used for ssh authentication",
+    )
+    parser.add_argument(
+        "--git-privkey",
+        help="SSH private key, used for ssh authentication",
+    )
+    parser.add_argument(
+        "--git-keypassphrase",
+        help="SSH key passphrase, used for ssh authentication",
+    )
+
+    # ZabbixCI
+    parser.add_argument(
+        "--parent-group",
+        help="Zabbix Template Group used for the templates",
     )
     parser.add_argument(
         "--git-prefix-path",
-        help="The prefix path for the git repository",
+        help="The prefix path in the git repository, used to store the templates",
     )
     parser.add_argument(
         "--whitelist",
-        help="The whitelist of templates",
+        help="Comma separated list of templates to include",
     )
     parser.add_argument(
         "--blacklist",
-        help="The blacklist of templates",
+        help="Comma separated list of templates to exclude",
     )
     parser.add_argument(
         "--cache",
-        help="The cache path",
+        help="Cache path for git repository, defaults to ./cache",
     )
 
+    # ZabbixCI advanced
     parser.add_argument(
         "-v",
         help="Enable verbose logging",
@@ -87,22 +125,18 @@ def read_args():
         dest="debug_all",
     )
     parser.add_argument(
-        "--config",
-        help="The configuration file",
-    )
-    parser.add_argument(
         "--batch-size",
-        help="The batch size",
+        help="Batch size for Zabbix API export requests",
     )
     parser.add_argument(
         "--ignore-version",
-        help="Ignore the Zabbix version",
+        help="Ignore template versions on import, useful for initial import",
         action="store_true",
         default=None,
     )
     parser.add_argument(
         "--insecure-ssl-verify",
-        help="Disable SSL verification",
+        help="Disable SSL verification for Zabbix API and git, only use for testing",
         action="store_true",
         default=None,
     )
