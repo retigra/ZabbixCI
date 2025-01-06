@@ -1,8 +1,9 @@
 import argparse
-import logging.config
-from zabbixci.settings import Settings
-
 import logging
+import logging.config
+
+from zabbixci.settings import Settings
+from zabbixci.zabbixci import cleanup_cache
 
 # Read command line arguments to fill the settings
 
@@ -14,12 +15,12 @@ def read_args():
         description="""ZabbixCI is a tool to manage Zabbix templates in a Git repository.
         
         ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.""",
-        prog="zabbixci"
+        prog="zabbixci",
     )
     parser.add_argument(
         "action",
         help="The action to perform",
-        choices=["push", "pull"],
+        choices=["push", "pull", "clearcache"],
     )
 
     # Provide configuration as file
@@ -140,7 +141,6 @@ def read_args():
         default=None,
     )
 
-
     return parser.parse_args()
 
 
@@ -175,8 +175,6 @@ def parse_cli():
             logger.debug(f"Setting {key} to {value}")
             setattr(Settings, key.upper(), value)
 
-    from zabbixci import main
-
     settings_debug = {
         **Settings.__dict__,
         "ZABBIX_PASSWORD": "********",
@@ -187,10 +185,17 @@ def parse_cli():
     logger.debug(f"Settings: {settings_debug}")
 
     if args.action == "push":
-        main.push()
+        from zabbixci import methods
+
+        methods.push()
 
     elif args.action == "pull":
-        main.pull()
+        from zabbixci import methods
+
+        methods.pull()
+
+    elif args.action == "clearcache":
+        cleanup_cache(full=True)
 
 
 if __name__ == "__main__":

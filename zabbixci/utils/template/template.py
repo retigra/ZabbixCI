@@ -1,10 +1,12 @@
-from io import StringIO
 import logging
-from typing import TextIO
-from ruamel.yaml import YAML
-from zabbixci.settings import Settings
-import regex
 import os
+from io import StringIO
+from typing import TextIO
+
+import regex
+from ruamel.yaml import YAML
+
+from zabbixci.settings import Settings
 
 yaml = YAML()
 

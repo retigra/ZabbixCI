@@ -1,8 +1,10 @@
-from typing import ParamSpec
-import pygit2
-from pygit2.enums import MergeAnalysis
 import logging
 import os
+from typing import ParamSpec
+
+import pygit2
+from pygit2.enums import MergeAnalysis
+
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
