@@ -28,6 +28,7 @@ class Settings:
     GIT_PUBKEY = None
     GIT_PRIVKEY = None
     GIT_KEYPASSPHRASE = None
+    CA_BUNDLE = None
 
     @classmethod
     def from_env(cls):

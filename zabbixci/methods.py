@@ -1,6 +1,7 @@
 import logging
 import os
 import timeit
+from ssl import SSLContext
 
 import pygit2
 from pygit2.enums import FileStatus, ResetMode
@@ -38,13 +39,21 @@ GIT_CB = pygit2.RemoteCallbacks(credentials=credentials)
 if Settings.INSECURE_SSL_VERIFY:
     GIT_CB.certificate_check = lambda *args, **kwargs: True
 
+# Construct the SSL context if a CA bundle is provided
+ssl_context = None
+
+if Settings.CA_BUNDLE:
+    ssl_context = SSLContext()
+    ssl_context.load_verify_locations(cafile=Settings.CA_BUNDLE)
+
 # Initialize the Zabbix API
 zabbix = Zabbix(
     url=Settings.ZABBIX_URL,
     user=Settings.ZABBIX_USER,
     password=Settings.ZABBIX_PASSWORD,
     token=Settings.ZABBIX_TOKEN,
-    validate_certs=not Settings.INSECURE_SSL_VERIFY,
+    validate_certs=not Settings.INSECURE_SSL_VERIFY and not ssl_context,
+    ssl_context=ssl_context,
 )
 
 
