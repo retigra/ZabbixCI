@@ -83,19 +83,19 @@ def read_args():
 
     # ZabbixCI
     parser.add_argument(
-        "--parent-group",
-        help="Zabbix Template Group used for the templates",
+        "--root-template-group",
+        help="Zabbix Template Group root, defaults to Templates",
     )
     parser.add_argument(
-        "--git-prefix-path",
-        help="The prefix path in the git repository, used to store the templates",
+        "--template-prefix-path",
+        help="The path in the git repository, used to store the templates",
     )
     parser.add_argument(
-        "--whitelist",
+        "--template-whitelist",
         help="Comma separated list of templates to include",
     )
     parser.add_argument(
-        "--blacklist",
+        "--template-blacklist",
         help="Comma separated list of templates to exclude",
     )
     parser.add_argument(
@@ -129,7 +129,7 @@ def read_args():
         help="Batch size for Zabbix API export requests",
     )
     parser.add_argument(
-        "--ignore-version",
+        "--ignore-template-version",
         help="Ignore template versions on import, useful for initial import",
         action="store_true",
         default=None,
