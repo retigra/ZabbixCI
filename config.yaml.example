@@ -1,11 +1,10 @@
-#
 # Configuration file for ZabbixCI
 #
 # To get more information about
 # using ZabbixCI, please visit:
 #
 # https://github.com/retigra/ZabbixCI
-# 
+
 
 #### GENERAL CONFIGURATION ####
 
@@ -13,7 +12,7 @@
 # Template group name in Zabbix to use
 # as root for synchronization.
 # 
-# Mandatory: yes
+# Mandatory: no
 # Default: 
 parent_group: "Templates"
 
@@ -46,6 +45,17 @@ blacklist: ""
 # Default: 
 batch_size: 50
 
+### Option: insecure_ssl_verify
+# Ignore certificate verification.
+# This can be used to ignore self-signed
+# certificates.
+#
+# Do not use this in production!
+#
+# Mandatory: no
+# Default:
+ignore_ssl_verify: False
+
 
 #### ZABBIX CONFIGURATION ####
 
@@ -53,12 +63,16 @@ batch_size: 50
 # URL of your Zabbix frontend.
 #
 # Mandatory: yes
-zabbix_url: "https://zabbix.example.com/"
+# Default:
+zabbix_url: "http://localhost:8080"
 
 ### Option: zabbix_token
 # API token to access your Zabbix frontend.
 # This is prefered over using a user and
 # password.
+#
+# Required if zabbix_user and 
+# zabbix_password are not set.
 # 
 # Mandatory: no
 zabbix_token: ""
@@ -66,7 +80,9 @@ zabbix_token: ""
 ### Option: zabbix_user
 # Zabbix user to access your Zabbix frontend.
 # Please consider switching to using
-# an API token.
+# an API token. 
+#
+# Required if zabbix_token is not set.
 #
 # Mandatory: no
 zabbix_user: ""
@@ -74,7 +90,9 @@ zabbix_user: ""
 ### Option: zabbix_password
 # Zabbix password to access your Zabbix frontend.
 # Please consider switching to using
-# an API token.
+# an API token. 
+#
+# Required if zabbix_token is not set.
 #
 # Mandatory: no
 zabbix_password: ""
@@ -93,15 +111,33 @@ remote: "git@github.com/org/repo.git"
 # Git branche used to pull
 # for synchronisation.
 #
-# Mandatory: yes
+# Mandatory: no
+# Default:
 pull_branch: "main"
 
 ### Option: push_branche
 # Git branche used to push
 # for synchronisation.
 #
-# Mandatory: yes
+# Mandatory: no
+# Default:
 push_branch: "main"
+
+### Option: git_author_name
+# Name of the Git author to use in
+# Git commits.
+#
+# Mandatory: no
+# Default:
+git_author_name: "Zabbix CI"
+
+### Option: git_author_email
+# Email of the Git author to use in
+# Git commits.
+#
+# Mandatory: no
+# Default:
+git_author_email: "zabbixci@localhost"
 
 ### Option: git_prefix_path
 # Path in the Git repo to use for template
@@ -111,4 +147,53 @@ push_branch: "main"
 # be synced with Zabbix.
 #
 # Mandatory: no
+# Default:
 git_prefix_path: ""
+
+### Option: git_username
+# Username to use for access to the git
+# repository.
+#
+# Mandatory: no
+# Default:
+git_username: "git"
+
+### Option: git_password
+# Password to use for access to the git
+# repository.
+#
+# Mandatory: no
+# Default:
+#git_password: ""
+
+### Option: git_pubkey
+# Publickey for access to the git
+# repository.
+#
+# Mandatory: no
+# Default:
+git_pubkey: ""
+
+### Option: git_privkey
+# Privatekey to use for access to the git
+# repository.
+#
+# Mandatory: no
+# Default:
+git_privkey: ""
+
+### Option: git_keypassphrase
+# Passphrase to unlock the git_privkey.
+#
+# Mandatory: no
+# Default:
+git_keypassphrase: ""
+
+### Option: cache_path
+# Local filesystem path
+# to use for caching the remote Git
+# repository.
+#
+# Mandatory: no
+# Default:
+cache_path: "./cache"
