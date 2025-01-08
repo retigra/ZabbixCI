@@ -57,7 +57,7 @@ class Template:
         # specifying the lowest child in the hierarchy
         for group in self._template["groups"]:
             name: str = group["name"]
-            if not Settings.PARENT_GROUP in name:
+            if not Settings.ROOT_TEMPLATE_GROUP in name:
                 continue
 
             split = regex.split(r"\/+", name)
@@ -75,7 +75,7 @@ class Template:
         """
         # split = regex.split(fr'{PARENT_GROUP}\/+', self.primary_group)
         match_group = regex.match(
-            rf"{Settings.PARENT_GROUP}\/+(.+)", self.primary_group
+            rf"{Settings.ROOT_TEMPLATE_GROUP}\/+(.+)", self.primary_group
         )
 
         return match_group.group(1) if match_group else ""
@@ -109,12 +109,12 @@ class Template:
         Save the template to the cache
         """
         os.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.GIT_PREFIX_PATH}/{self.truncated_groups}",
+            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}",
             exist_ok=True,
         )
 
         with open(
-            f"{Settings.CACHE_PATH}/{Settings.GIT_PREFIX_PATH}/{self.truncated_groups}/{self._template['name']}.yaml",
+            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['name']}.yaml",
             "w",
         ) as file:
             self._yaml_dump(file)

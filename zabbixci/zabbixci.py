@@ -196,7 +196,7 @@ class ZabbixCI:
         # Open the changed files
         for file in files:
             # Check if file is within the desired path
-            if not file.startswith(Settings.GIT_PREFIX_PATH):
+            if not file.startswith(Settings.TEMPLATE_PREFIX_PATH):
                 continue
 
             if not file.endswith(".yaml"):
@@ -211,7 +211,7 @@ class ZabbixCI:
                 continue
 
             if (
-                not Settings.IGNORE_VERSION
+                not Settings.IGNORE_TEMPLATE_VERSION
                 and template.zabbix_version.split(".")[0:2]
                 != zabbix_version.split(".")[0:2]
             ):
@@ -277,7 +277,7 @@ class ZabbixCI:
         """
         Export Zabbix templates to the cache
         """
-        templates = self._zabbix.get_templates([Settings.PARENT_GROUP])
+        templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
 
         self.logger.info(f"Found {len(templates)} templates in Zabbix")
         self.logger.debug(f"Found Zabbix templates: {templates}")
@@ -325,7 +325,7 @@ class ZabbixCI:
         If full is True, also remove the .git directory and all other files
         """
         for root, dirs, files in os.walk(
-            f"{Settings.CACHE_PATH}/{Settings.GIT_PREFIX_PATH}", topdown=False
+            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}", topdown=False
         ):
             if f"{Settings.CACHE_PATH}/.git" in root and not full:
                 continue
@@ -351,11 +351,14 @@ class ZabbixCI:
         """
         Returns true if template should be ignored because of the blacklist or whitelist
         """
-        if template_name in Settings.BLACKLIST:
+        if template_name in Settings.TEMPLATE_BLACKLIST:
             cls.logger.debug(f"Skipping blacklisted template {template_name}")
             return True
 
-        if len(Settings.WHITELIST) and template_name not in Settings.WHITELIST:
+        if (
+            len(Settings.TEMPLATE_WHITELIST)
+            and template_name not in Settings.TEMPLATE_WHITELIST
+        ):
             cls.logger.debug(f"Skipping non whitelisted template {template_name}")
             return True
 
