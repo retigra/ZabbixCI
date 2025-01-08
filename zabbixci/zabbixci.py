@@ -282,7 +282,7 @@ class ZabbixCI:
         templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
 
         self.logger.info(f"Found {len(templates)} templates in Zabbix")
-        self.logger.debug(f"Found Zabbix templates: {templates}")
+        self.logger.debug(f"Found Zabbix templates: {[t['name'] for t in templates]}")
 
         # Split by Settings.BATCH_SIZE
         batches = [

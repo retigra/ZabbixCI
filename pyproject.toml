@@ -1,7 +1,38 @@
 [project]
 name = "zabbixci"
-version = "0.0.0-beta.1"
+version = "0.0.0-beta.3"
 description = "Source control for Zabbix templates in Git"
+long_description = "README.md"
+license = "AGPL-3.0"
+readme = "README.md"
+keywords = ["zabbix", "git", "source control", "templates"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Version Control",
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Networking :: Monitoring",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
+    "Environment :: Console",
+]
+
+[project.urls]
+Homepage = "https://github.com/retigra/zabbixci"
+Repository = "https://github.com/retigra/zabbixci"
+Issues = "https://github.com/retigra/zabbixci/issues"
+Changelog = "https://github.com/retigra/zabbixci/releases"
+Discussions = "https://github.com/retigra/ZabbixCI/discussions"
+
 authors = [
     {name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl"},
     {name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl"}
