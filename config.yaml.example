@@ -1,23 +1,114 @@
-# Zabbix configuration
-zabbix_url: "https://zabbix.example.com/"
-zabbix_token: ""
-# ZABBIX_USER: ""
-# ZABBIX_PASSWORD: ""
+#
+# Configuration file for ZabbixCI
+#
+# To get more information about
+# using ZabbixCI, please visit:
+#
+# https://github.com/retigra/ZabbixCI
+# 
 
-# Git configuration
-remoter: "git@github.com/org/repo.git"
-pull_branch: "main"
-push_branch: "main"
-git_prefix_path: ""
+#### GENERAL CONFIGURATION ####
 
-git_username: "git"
-git_password: None
-git_pubkey: ~/.ssh/id_ed25519.pub
-git_privkey: ~/.ssh/id_ed25519
-git_keypassphrase: None
-
-# ZabbixCI configuration
+### Option: parent_group
+# Template group name in Zabbix to use
+# as root for synchronization.
+# 
+# Mandatory: yes
+# Default: 
 parent_group: "Templates"
-whitelist: "name1,name2,name3"
+
+### Option: whitelist
+# Comma seperated list of template names
+# to synchonize explicitly.
+# If set, all other templates will be ignored.
+#
+# Mandatory: no
+# Default:
+whitelist: ""
+
+### Option: blacklist
+# Comma seperated list of template names
+# to ignore during synchronization.
+# All other templates will be synced.
+#
+# Mandatory: no
+# Default: 
 blacklist: ""
+
+### Option: batch_size
+# Number of assets (templates) to export
+# from Zabbix simultaneously.
+# This can be tuned to fit to support
+# the system resources of your Zabbix
+# frontend servers.
+#
+# Mandatory: yes
+# Default: 
 batch_size: 50
+
+
+#### ZABBIX CONFIGURATION ####
+
+### Option: zabbix_url
+# URL of your Zabbix frontend.
+#
+# Mandatory: yes
+zabbix_url: "https://zabbix.example.com/"
+
+### Option: zabbix_token
+# API token to access your Zabbix frontend.
+# This is prefered over using a user and
+# password.
+# 
+# Mandatory: no
+zabbix_token: ""
+
+### Option: zabbix_user
+# Zabbix user to access your Zabbix frontend.
+# Please consider switching to using
+# an API token.
+#
+# Mandatory: no
+zabbix_user: ""
+
+### Option: zabbix_password
+# Zabbix password to access your Zabbix frontend.
+# Please consider switching to using
+# an API token.
+#
+# Mandatory: no
+zabbix_password: ""
+
+
+#### GIT CONFIGURATION
+
+### Option: remote
+# Remote Git repository to use for
+# synchronisation.
+#
+# Mandatory: yes
+remote: "git@github.com/org/repo.git"
+
+### Option: pull_branche
+# Git branche used to pull
+# for synchronisation.
+#
+# Mandatory: yes
+pull_branch: "main"
+
+### Option: push_branche
+# Git branche used to push
+# for synchronisation.
+#
+# Mandatory: yes
+push_branch: "main"
+
+### Option: git_prefix_path
+# Path in the Git repo to use for template
+# synchronisation. This can be used to ignore
+# other directories in the Git repo that may
+# contain other information that is not to
+# be synced with Zabbix.
+#
+# Mandatory: no
+git_prefix_path: ""
