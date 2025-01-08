@@ -3,7 +3,10 @@ name = "zabbixci"
 version = "0.0.0-beta.3"
 description = "Source control for Zabbix templates in Git"
 long_description = "README.md"
-license = "AGPL-3.0"
+
+[project.license]
+file = "LICENSE.txt"
+
 readme = "README.md"
 keywords = ["zabbix", "git", "source control", "templates"]
 classifiers = [
