@@ -107,7 +107,7 @@ zabbix_user: ""
 zabbix_password: ""
 
 
-#### GIT CONFIGURATION
+#### GIT CONFIGURATION ####
 
 ### Option: remote
 # Remote Git repository to use for
