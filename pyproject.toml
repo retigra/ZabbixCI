@@ -2,7 +2,7 @@
 name = "zabbixci"
 version = "0.0.0-beta.3"
 description = "Source control for Zabbix templates in Git"
-long_description = "README.md"
+readme = "README.md"
 
 [project.license]
 file = "LICENSE.txt"
