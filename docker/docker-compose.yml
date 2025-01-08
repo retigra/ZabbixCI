@@ -1,0 +1,22 @@
+services:
+  zabbixci:
+    image: zabbix/zabbix-ci
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    command: ["zabbixci", "push", "-v"]
+    # volumes:
+    #   - ./config.yml:/etc/zabbixci/config.yml
+    environment:
+      ZABBIX_URL: "http://zabbix-web:8080"
+      ZABBIX_USER: "Admin"
+      ZABBIX_PASSWORD: "zabbix"
+      REMOTE: "git@example.com/zabbix-templates.git"
+      ROOT_TEMPLATE_GROUP: "Templates"
+      PULL_BRANCH: "main"
+      PUSH_BRANCH: "main"
+      TEMPLATE_PREFIX_PATH: "Templates"
+      GIT_PUBKEY: "/app/.ssh/id_ed25519.pub"
+      GIT_PRIVKEY: "/app/.ssh/id_ed25519"
+    volumes:
+      - ./ssh_keys:/app/.ssh
