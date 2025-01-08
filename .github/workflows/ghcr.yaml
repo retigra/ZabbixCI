@@ -26,4 +26,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository }}/zabbixci:${{ github.ref_name }}
+        tags: ghcr.io/retigra/zabbixci/zabbixci:${{ github.ref_name }}
