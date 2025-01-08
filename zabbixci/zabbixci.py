@@ -108,7 +108,7 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        self.zabbix_to_file(self._zabbix)
+        self.zabbix_to_file()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
