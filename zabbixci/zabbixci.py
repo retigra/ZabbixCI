@@ -195,16 +195,18 @@ class ZabbixCI:
 
         # Open the changed files
         for file in files:
-            # Check if file is within the desired path
-            if not file.startswith(Settings.TEMPLATE_PREFIX_PATH):
+            if not file.endswith(".yaml"):
                 continue
 
-            if not file.endswith(".yaml"):
+            # Check if file is within the desired path
+            if not file.startswith(Settings.TEMPLATE_PREFIX_PATH):
+                self.logger.debug(f"Skipping .yaml file {file} outside of prefix path")
                 continue
 
             template = Template.open(file)
 
             if not template or not template.is_template:
+                self.logger.warning(f"Could load file {file} as a template")
                 continue
 
             if self.ignore_template(template.name):
