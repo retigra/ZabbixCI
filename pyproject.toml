@@ -3,7 +3,8 @@ name = "zabbixci"
 version = "0.1.0"
 description = "Source control for Zabbix templates in Git"
 authors = [
-    {name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl"}
+    {name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl"},
+    {name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl"}
 ]
 dependencies = [
     "zabbix_utils",
