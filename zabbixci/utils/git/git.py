@@ -1,8 +1,10 @@
-from typing import ParamSpec
-import pygit2
-from pygit2.enums import MergeAnalysis
 import logging
 import os
+from typing import ParamSpec
+
+import pygit2
+from pygit2.enums import MergeAnalysis
+
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -14,7 +16,7 @@ class Git:
     _repository: pygit2.Repository = None
     author = pygit2.Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
 
-    def __init__(self, path: str, credentials):
+    def __init__(self, path: str, callbacks: pygit2.RemoteCallbacks):
         """
         Initialize the git repository
         """
@@ -25,7 +27,7 @@ class Git:
             self._repository = pygit2.clone_repository(
                 Settings.REMOTE,
                 path,
-                callbacks=pygit2.RemoteCallbacks(credentials=credentials),
+                callbacks=callbacks,
             )
         else:
             self._repository = pygit2.Repository(path)
@@ -122,7 +124,7 @@ class Git:
         """
         self._repository.reset(*args, **kwargs)
 
-    def fetch(self, remote_url: str, credentials):
+    def fetch(self, remote_url: str, callbacks: pygit2.RemoteCallbacks):
         """
         Fetch the changes from the remote repository
         """
@@ -130,8 +132,6 @@ class Git:
             self._repository.remotes.create("origin", remote_url)
 
         remote = self._repository.remotes["origin"]
-
-        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
         remote.fetch(callbacks=callbacks)
 
@@ -171,7 +171,9 @@ class Git:
             logger.debug(f"Removing untracked file {file}")
             os.remove(f"{self._repository.workdir}/{file}")
 
-    def push(self, remote_url: str, credentials, branch: str = None):
+    def push(
+        self, remote_url: str, callbacks: pygit2.RemoteCallbacks, branch: str = None
+    ):
         """
         Push the changes to the remote repository
         """
@@ -183,11 +185,11 @@ class Git:
         if not remote:
             remote = self._repository.remotes.create("origin", remote_url)
 
-        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
-
         remote.push([f"refs/heads/{branch}"], callbacks=callbacks)
 
-    def pull(self, remote_url: str, credentials, branch: str = None):
+    def pull(
+        self, remote_url: str, callbacks: pygit2.RemoteCallbacks, branch: str = None
+    ):
         """
         Pull the changes from the remote repository, merge them with the local repository
         """
@@ -198,8 +200,6 @@ class Git:
 
         if not remote:
             remote = self._repository.remotes.create("origin", remote_url)
-
-        callbacks = pygit2.RemoteCallbacks(credentials=credentials)
 
         remote.fetch(callbacks=callbacks)
 

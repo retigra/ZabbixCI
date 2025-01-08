@@ -21,23 +21,16 @@ and then you can use the `zabbixci` command.
 
 ZabbixCI requires parameters to be set as command line arguments, a yaml
 configuration or as environment variables. See the
-[example configuration file](config.yaml.example).
+[example configuration file](docs/config.yaml.example).
 
 ## Usage
 
+Please see [Docs](docs/README.md) for extended details on usage.
 The `zabbixci` command can be used to synchronize Zabbix templates with a Git
-repository. The command will pull templates from the Git repository and push
-them to the Zabbix server. The command will also delete templates that are not
-present in the Git repository.
+repository. 
 
 ```bash
-zabbixci --config config.yaml pull
-
-zabbixci --config config.yaml push
-
 zabbixci --help
-
-# Debug options are available through -v or -vv
 ```
 
 # Contributing

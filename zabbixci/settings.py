@@ -1,4 +1,5 @@
 import os
+
 from ruamel.yaml import YAML
 
 yaml = YAML()
@@ -10,17 +11,23 @@ class Settings:
     ZABBIX_PASSWORD = None
     ZABBIX_TOKEN = None
     REMOTE = None
-    PARENT_GROUP = "Templates"
+    ROOT_TEMPLATE_GROUP = "Templates"
     GIT_AUTHOR_NAME = "Zabbix CI"
     GIT_AUTHOR_EMAIL = "zabbixci@localhost"
     PULL_BRANCH = "main"
     PUSH_BRANCH = "main"
-    GIT_PREFIX_PATH = ""
-    WHITELIST = []
-    BLACKLIST = []
+    TEMPLATE_PREFIX_PATH = ""
+    TEMPLATE_WHITELIST = []
+    TEMPLATE_BLACKLIST = []
     CACHE_PATH = "./cache"
     BATCH_SIZE = 50
-    IGNORE_VERSION = False
+    IGNORE_TEMPLATE_VERSION = False
+    INSECURE_SSL_VERIFY = False
+    GIT_USERNAME = "git"
+    GIT_PASSWORD = None
+    GIT_PUBKEY = None
+    GIT_PRIVKEY = None
+    GIT_KEYPASSPHRASE = None
 
     @classmethod
     def from_env(cls):

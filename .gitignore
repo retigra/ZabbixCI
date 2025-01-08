@@ -1,7 +1,6 @@
 .env*
 cache
 __pycache__
-tests
 build
 *.egg-info
 /*.yaml
