@@ -3,7 +3,7 @@ import logging
 import logging.config
 
 from zabbixci.settings import Settings
-from zabbixci.zabbixci import cleanup_cache
+from zabbixci.zabbixci import ZabbixCI
 
 # Read command line arguments to fill the settings
 
@@ -185,17 +185,15 @@ def parse_cli():
     logger.debug(f"Settings: {settings_debug}")
 
     if args.action == "push":
-        from zabbixci import methods
-
-        methods.push()
+        zabbixci = ZabbixCI()
+        zabbixci.push()
 
     elif args.action == "pull":
-        from zabbixci import methods
-
-        methods.pull()
+        zabbixci = ZabbixCI()
+        zabbixci.pull()
 
     elif args.action == "clearcache":
-        cleanup_cache(full=True)
+        ZabbixCI.cleanup_cache(full=True)
 
 
 if __name__ == "__main__":
