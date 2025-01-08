@@ -29,13 +29,6 @@ classifiers = [
     "Environment :: Console",
 ]
 
-[project.urls]
-Homepage = "https://github.com/retigra/zabbixci"
-Repository = "https://github.com/retigra/zabbixci"
-Issues = "https://github.com/retigra/zabbixci/issues"
-Changelog = "https://github.com/retigra/zabbixci/releases"
-Discussions = "https://github.com/retigra/ZabbixCI/discussions"
-
 authors = [
     {name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl"},
     {name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl"}
@@ -47,6 +40,14 @@ dependencies = [
     "regex",
     "pygit2",
 ]
+
+
+[project.urls]
+Homepage = "https://github.com/retigra/zabbixci"
+Repository = "https://github.com/retigra/zabbixci"
+Issues = "https://github.com/retigra/zabbixci/issues"
+Changelog = "https://github.com/retigra/zabbixci/releases"
+Discussions = "https://github.com/retigra/ZabbixCI/discussions"
 
 [tool.setuptools.packages.find]
 include = ["zabbixci", "zabbixci.*"]
