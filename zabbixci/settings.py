@@ -28,6 +28,7 @@ class Settings:
     GIT_PUBKEY = None
     GIT_PRIVKEY = None
     GIT_KEYPASSPHRASE = None
+    DRY_RUN = False
 
     @classmethod
     def from_env(cls):
