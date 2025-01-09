@@ -40,7 +40,7 @@ class ZabbixCI:
         self.create_zabbix()
         self.create_git()
 
-    def validate_ssl_cert(self, cert, valid, hostname: bytes):
+    def validate_ssl_cert(self, cert: None, valid: bool, hostname: bytes):
         """
         Callback function for pygit2 RemoteCallbacks object to validate SSL certificates
 
@@ -49,6 +49,10 @@ class ZabbixCI:
         :param hostname: Hostname of the certificate
         """
         hostname_str = hostname.decode("utf-8")
+
+        if valid:
+            # If native SSL validation is successful, we can skip the custom check
+            return True
 
         if self._ssl_valid:
             # If the certificate has already been validated, we can skip the check
