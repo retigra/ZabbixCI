@@ -206,3 +206,12 @@ git_keypassphrase: ""
 # Mandatory: no
 # Default:
 cache_path: "./cache"
+
+### Option: dry_run
+# Disabled non-reversible changes
+# Git push, Zabbix import and ZabbixCI
+#  template removal is disabled.
+#
+# Mandatory: no
+# Default:
+dry_run: False
