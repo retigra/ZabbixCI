@@ -16,3 +16,8 @@ RUN pip install /app/
 RUN pip install -r /app/requirements.txt
 
 ENTRYPOINT [ "zabbixci" ]
+
+LABEL org.opencontainers.image.source=https://github.com/retigra/ZabbixCI
+LABEL org.opencontainers.image.description="Source control for Zabbix templates in Git"
+LABEL org.opencontainers.image.licenses=AGPL
+LABEL org.opencontainers.image.authors="info@retigra.nl"
