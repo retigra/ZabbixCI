@@ -1,7 +1,10 @@
 import logging
 import os
+import ssl
 import timeit
+import urllib.error
 from io import StringIO
+from urllib.request import Request, urlopen
 
 import pygit2
 from pygit2.enums import FileStatus, ResetMode
@@ -24,6 +27,9 @@ class ZabbixCI:
     _zabbix = None
     _git = None
 
+    _ssl_context = None
+    _ssl_valid = False
+
     def __init__(self, settings=Settings, logger=None):
         self._settings = settings
 
@@ -33,6 +39,42 @@ class ZabbixCI:
         self.create_git_callback()
         self.create_zabbix()
         self.create_git()
+
+    def validate_ssl_cert(self, cert: None, valid: bool, hostname: bytes):
+        """
+        Callback function for pygit2 RemoteCallbacks object to validate SSL certificates
+
+        :param cert: Certificate object (this is always None in pygit2)
+        :param valid: Whether the certificate is valid
+        :param hostname: Hostname of the certificate
+        """
+        hostname_str = hostname.decode("utf-8")
+
+        if valid:
+            # If native SSL validation is successful, we can skip the custom check
+            return True
+
+        if self._ssl_valid:
+            # If the certificate has already been validated, we can skip the check
+            return True
+
+        # Check if the certificate matches in SSL context
+        # Certificate is not given by pygit2, so we request it ourself
+        # by making a request to the hostname with urllib
+        try:
+            req = Request(
+                f"https://{hostname_str}",
+                method="GET",
+            )
+            resp = urlopen(req, context=self._ssl_context)
+
+            self.logger.debug(f"Response from {hostname_str}: {resp.status}")
+
+            self._ssl_valid = True
+            return True
+        except urllib.error.URLError as e:
+            self.logger.error(f"Error validating SSL certificate: {e}")
+            return False
 
     def create_git_callback(self):
         """
@@ -61,18 +103,29 @@ class ZabbixCI:
         self._git_cb = pygit2.RemoteCallbacks(credentials=credentials)
 
         if self._settings.INSECURE_SSL_VERIFY:
-            self._git_cb.certificate_check = lambda *args, **kwargs: True
+            # Accept all certificates
+            self._git_cb.certificate_check = lambda cert, valid, hostname: True
+        elif self._settings.CA_BUNDLE:
+            # Validate certificates with the provided CA bundle
+            self._git_cb.certificate_check = self.validate_ssl_cert
 
     def create_zabbix(self):
         """
         Create a Zabbix object with the appropriate credentials
         """
+        # Construct the SSL context if a CA bundle is provided
+
+        if Settings.CA_BUNDLE:
+            self._ssl_context = ssl.create_default_context()
+            self._ssl_context.load_verify_locations(Settings.CA_BUNDLE)
+
         self._zabbix = Zabbix(
             url=self._settings.ZABBIX_URL,
             user=self._settings.ZABBIX_USER,
             password=self._settings.ZABBIX_PASSWORD,
             token=self._settings.ZABBIX_TOKEN,
             validate_certs=not self._settings.INSECURE_SSL_VERIFY,
+            ssl_context=self._ssl_context,
         )
 
     def create_git(self):

@@ -146,6 +146,10 @@ def read_args():
         action="store_true",
         default=None,
     )
+    parser.add_argument(
+        "--ca-bundle",
+        help="Path to CA bundle for SSL verification",
+    )
 
     return parser.parse_args()
 

@@ -56,6 +56,16 @@ batch_size: 50
 # Default:
 ignore_ssl_verify: False
 
+### Option: ca_bundle
+# Custom CA bundle to use
+# Should be a path to a valid ca bundle file
+# Used for Git (https) and Zabbix validation
+# Is used in addition of pygit2 native SSL validation
+#
+# Mandatory: no
+# Default:
+#ca_bundle: None
+
 ### Option: ignore_template_version
 # Ignore template version on Zabbix import.
 # Used for importing older templates into
