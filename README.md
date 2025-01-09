@@ -49,6 +49,12 @@ the options.
 zabbixci --help
 ```
 
+# License
+
+This project is licensed under AGPL-3.0, see
+[LICENSE](https://github.com/retigra/ZabbixCI/tree/main/LICENSE.txt) for more
+information.
+
 # Contributing
 
 Contributions are welcome! Please take a look at the following guidelines:
@@ -57,8 +63,9 @@ Contributions are welcome! Please take a look at the following guidelines:
 - Code should be formatted using
   [black](https://black.readthedocs.io/en/stable/).
 
-# License
+## Star History
 
-This project is licensed under AGPL-3.0, see
-[LICENSE](https://github.com/retigra/ZabbixCI/tree/main/LICENSE.txt) for more
-information.
+> [!NOTE]
+> If you like this project, please consider starring it on GitHub. ❤️
+
+[![Star History Chart](https://api.star-history.com/svg?repos=retigra/ZabbixCI&type=Date)](https://star-history.com/#retigra/ZabbixCI&Date)
