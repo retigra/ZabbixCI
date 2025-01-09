@@ -273,7 +273,8 @@ class ZabbixCI:
             ]
 
             if len(template_ids):
-                self._zabbix.delete_template(template_ids)
+                if not self._settings.DRY_RUN:
+                    self._zabbix.delete_template(template_ids)
 
         # clean local changes
         self._git.clean()
