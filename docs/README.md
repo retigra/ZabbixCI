@@ -15,6 +15,16 @@ pip install zabbixci
 
 and then you can use the `zabbixci` command.
 
+### Containerized Deployment
+
+Or you can use the Docker image available on GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/retigra/zabbixci:latest
+```
+
+See the [Containerized Deployment](Containerized.md) documentation for more
+
 ## Configuration
 
 ZabbixCI requires parameters to be set as command line arguments, a yaml
@@ -63,7 +73,7 @@ which puts all underlying API calls and Python modules in debug mode.
 By foreign templates, we mean template exports that were not created by
 ZabbixCI. (Example: the official Zabbix templates repository)
 
-ZabbixCI can also be used to import a unstructured github repository containing
+ZabbixCI can also be used to import an unstructured github repository containing
 templates to a Zabbix server. The foreign repository should contain Zabbix
 exports in yaml format, when this repository is used as a source for the `pull`
 method, ZabbixCI will import the templates to the Zabbix server. After which,
