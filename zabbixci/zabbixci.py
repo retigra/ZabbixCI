@@ -140,7 +140,8 @@ class ZabbixCI:
         else:
             self.logger.info("No staged changes, updating remote with current state")
 
-        self._git.push(Settings.REMOTE, self._git_cb)
+        if not self._settings.DRY_RUN:
+            self._git.push(Settings.REMOTE, self._git_cb)
 
     def pull(self):
         """
@@ -239,7 +240,9 @@ class ZabbixCI:
             # Import the templates
             for template in templates:
                 self.logger.info(f"Importing {template.name}, level {template._level}")
-                self._zabbix.import_template(template)
+
+                if not self._settings.DRY_RUN:
+                    self._zabbix.import_template(template)
 
         template_names = []
 
@@ -270,7 +273,8 @@ class ZabbixCI:
             ]
 
             if len(template_ids):
-                self._zabbix.delete_template(template_ids)
+                if not self._settings.DRY_RUN:
+                    self._zabbix.delete_template(template_ids)
 
         # clean local changes
         self._git.clean()

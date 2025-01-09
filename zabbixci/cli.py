@@ -102,6 +102,12 @@ def read_args():
         "--cache",
         help="Cache path for git repository, defaults to ./cache",
     )
+    parser.add_argument(
+        "--dry-run",
+        help="Dry run, only show changes",
+        action="store_true",
+        default=None,
+    )
 
     # ZabbixCI advanced
     parser.add_argument(
