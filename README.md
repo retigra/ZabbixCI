@@ -11,6 +11,9 @@ synchronize Zabbix assets with a Git repository. By using the Zabbix API,
 ZabbixCI can create, update, and delete templates across multiple Zabbix
 servers.
 
+> [!NOTE]
+> ZabbixCI has no affiliation with [Zabbix SIA](https://www.zabbix.com).
+
 ## Installation
 
 ZabbixCI is available on [PyPI](https://pypi.org/project/zabbixci/) and can be
