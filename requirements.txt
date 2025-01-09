@@ -1,0 +1,6 @@
+cffi==1.17.1
+pycparser==2.22
+pygit2==1.17.0
+regex==2024.11.6
+ruamel.yaml==0.18.10
+zabbix-utils==2.0.2

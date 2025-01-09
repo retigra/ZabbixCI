@@ -34,8 +34,7 @@ authors = [
     {name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl"}
 ]
 dependencies = [
-    "zabbix_utils",
-    "python-dotenv",
+    "zabbix-utils",
     "ruamel.yaml",
     "regex",
     "pygit2",
