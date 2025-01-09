@@ -28,6 +28,7 @@ class ZabbixCI:
     _git = None
 
     _ssl_context = None
+    _ssl_valid = False
 
     def __init__(self, settings=Settings, logger=None):
         self._settings = settings
@@ -47,10 +48,11 @@ class ZabbixCI:
         :param valid: Whether the certificate is valid
         :param hostname: Hostname of the certificate
         """
-        self.logger.debug(f"Certificate for {hostname} is {valid}")
-        self.logger.debug(cert)
-
         hostname_str = hostname.decode("utf-8")
+
+        if self._ssl_valid:
+            # If the certificate has already been validated, we can skip the check
+            return True
 
         # Check if the certificate matches in SSL context
         # Certificate is not given by pygit2, so we request it ourself
@@ -64,6 +66,7 @@ class ZabbixCI:
 
             self.logger.debug(f"Response from {hostname_str}: {resp.status}")
 
+            self._ssl_valid = True
             return True
         except urllib.error.URLError as e:
             self.logger.error(f"Error validating SSL certificate: {e}")
