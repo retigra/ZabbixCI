@@ -27,4 +27,4 @@ jobs:
         context: .
         file: ./docker/Dockerfile
         push: true
-        tags: ghcr.io/retigra/zabbixci/zabbixci:${{ github.ref_name }}
+        tags: ghcr.io/retigra/zabbixci:${{ github.ref_name }}
