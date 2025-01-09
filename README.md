@@ -6,20 +6,21 @@
 
 # ZabbixCI
 
-ZabbixCI is a tool that adds continuous integration to Zabbix configurations,
-allowing you to synchronize Zabbix configurations with a Git repository. By
+ZabbixCI is a tool that adds continuous integration to Zabbix,
+allowing you to synchronize Zabbix assets with a Git repository. By
 using the Zabbix API, ZabbixCI can create, update, and delete templates across
 multiple Zabbix servers.
 
 ## Installation
 
-ZabbixCI is available on PyPI and can be installed using pip:
+ZabbixCI is available on [PyPI](https://pypi.org/project/zabbixci/) and can be installed using pip:
 
 ```bash
 pip install zabbixci
 ```
 
-and then you can use the `zabbixci` command.
+Alternatively, you can use a container image to run ZabbixCI,
+see the available [container images](https://github.com/retigra/ZabbixCI/pkgs/container/zabbixci).
 
 ## Configuration
 
@@ -27,11 +28,14 @@ ZabbixCI requires parameters to be set as command line arguments, a yaml
 configuration or as environment variables. See the
 [example configuration file](https://github.com/retigra/ZabbixCI/tree/main/docs/config.yaml.example).
 
+We recommend passing environment variables when using the container image.
+Feel free to use the method that best suits your workflow.
+
 ## Usage
 
 Please see [Docs](https://github.com/retigra/ZabbixCI/tree/main/docs/README.md)
 for extended details on usage. The `zabbixci` command can be used to synchronize
-Zabbix templates with a Git repository.
+Zabbix templates with a Git repository. `--help` will give you an overview of the options.
 
 ```bash
 zabbixci --help
