@@ -25,5 +25,6 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
+        file: ./docker/Dockerfile
         push: true
         tags: ghcr.io/retigra/zabbixci/zabbixci:${{ github.ref_name }}
