@@ -7,22 +7,15 @@ multiple Zabbix servers.
 
 ## Installation
 
-ZabbixCI is available on PyPI and can be installed using pip:
+ZabbixCI is available on [PyPI](https://pypi.org/project/zabbixci/) and can be
+installed using pip:
 
 ```bash
 pip install zabbixci
 ```
 
-and then you can use the `zabbixci` command.
-
-### Containerized Deployment
-
-Or you can use the Docker image available on GitHub Container Registry:
-
-```bash
-docker pull ghcr.io/retigra/zabbixci:latest
-```
-
+Alternatively, you can use a container image to run ZabbixCI, see the available
+[container images](https://github.com/retigra/ZabbixCI/pkgs/container/zabbixci).
 See the [Containerized Deployment](Containerized.md) documentation for more
 
 ## Configuration
