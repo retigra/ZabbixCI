@@ -1,4 +1,4 @@
-![ZabbixCI cog logo](logo.png "ZabbixCI logo")
+![ZabbixCI cog logo](https://github.com/retigra/ZabbixCI/blob/main/logo.png "ZabbixCI logo")
 
 # ZabbixCI
 
@@ -21,11 +21,11 @@ and then you can use the `zabbixci` command.
 
 ZabbixCI requires parameters to be set as command line arguments, a yaml
 configuration or as environment variables. See the
-[example configuration file](docs/config.yaml.example).
+[example configuration file](https://github.com/retigra/ZabbixCI/tree/main/docs/config.yaml.example).
 
 ## Usage
 
-Please see [Docs](docs/README.md) for extended details on usage.
+Please see [Docs](https://github.com/retigra/ZabbixCI/tree/main/docs/README.md) for extended details on usage.
 The `zabbixci` command can be used to synchronize Zabbix templates with a Git
 repository. 
 
@@ -43,5 +43,5 @@ Contributions are welcome! Please take a look at the following guidelines:
 
 # License
 
-This project is licensed under AGPL-3.0, see [LICENSE](LICENSE.txt) for more
+This project is licensed under AGPL-3.0, see [LICENSE](https://github.com/retigra/ZabbixCI/tree/main/LICENSE.txt) for more
 information.
