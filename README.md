@@ -1,5 +1,11 @@
 ![ZabbixCI cog logo](https://github.com/retigra/ZabbixCI/blob/main/logo.png "ZabbixCI logo")
 
+
+![PyPI - Version](https://img.shields.io/pypi/v/zabbixci)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/retigra/ZabbixCI/pypi.yml?label=pypi%20build)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/retigra/ZabbixCI/ghcr.yaml?label=docker%20build)
+
+
 # ZabbixCI
 
 ZabbixCI is a tool that adds continuous integration to Zabbix configurations,
