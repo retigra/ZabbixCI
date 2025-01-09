@@ -3,7 +3,7 @@ import logging
 import logging.config
 
 from zabbixci.settings import Settings
-from zabbixci.zabbixci import cleanup_cache
+from zabbixci.zabbixci import ZabbixCI
 
 # Read command line arguments to fill the settings
 
@@ -83,24 +83,30 @@ def read_args():
 
     # ZabbixCI
     parser.add_argument(
-        "--parent-group",
-        help="Zabbix Template Group used for the templates",
+        "--root-template-group",
+        help="Zabbix Template Group root, defaults to Templates",
     )
     parser.add_argument(
-        "--git-prefix-path",
-        help="The prefix path in the git repository, used to store the templates",
+        "--template-prefix-path",
+        help="The path in the git repository, used to store the templates",
     )
     parser.add_argument(
-        "--whitelist",
+        "--template-whitelist",
         help="Comma separated list of templates to include",
     )
     parser.add_argument(
-        "--blacklist",
+        "--template-blacklist",
         help="Comma separated list of templates to exclude",
     )
     parser.add_argument(
         "--cache",
         help="Cache path for git repository, defaults to ./cache",
+    )
+    parser.add_argument(
+        "--dry-run",
+        help="Dry run, only show changes",
+        action="store_true",
+        default=None,
     )
 
     # ZabbixCI advanced
@@ -129,7 +135,7 @@ def read_args():
         help="Batch size for Zabbix API export requests",
     )
     parser.add_argument(
-        "--ignore-version",
+        "--ignore-template-version",
         help="Ignore template versions on import, useful for initial import",
         action="store_true",
         default=None,
@@ -189,17 +195,15 @@ def parse_cli():
     logger.debug(f"Settings: {settings_debug}")
 
     if args.action == "push":
-        from zabbixci import methods
-
-        methods.push()
+        zabbixci = ZabbixCI()
+        zabbixci.push()
 
     elif args.action == "pull":
-        from zabbixci import methods
-
-        methods.pull()
+        zabbixci = ZabbixCI()
+        zabbixci.pull()
 
     elif args.action == "clearcache":
-        cleanup_cache(full=True)
+        ZabbixCI.cleanup_cache(full=True)
 
 
 if __name__ == "__main__":

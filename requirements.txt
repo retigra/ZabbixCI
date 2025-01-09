@@ -1,12 +1,6 @@
-certifi==2024.8.30
 cffi==1.17.1
-charset-normalizer==3.4.0
-idna==3.10
-packaging==24.2
 pycparser==2.22
-pygit2==1.16.0
+pygit2==1.17.0
 regex==2024.11.6
-requests==2.32.3
-ruamel.yaml==0.17.40
-urllib3==2.2.3
+ruamel.yaml==0.18.10
 zabbix-utils==2.0.2
