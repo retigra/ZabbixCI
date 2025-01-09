@@ -1,8 +1,8 @@
 [project]
 name = "zabbixci"
-version = "0.0.0-beta.3"
 description = "Source control for Zabbix templates in Git"
 readme = "README.md"
+dynamic = ["version"]
 
 [project.license]
 file = "LICENSE.txt"
@@ -49,8 +49,14 @@ Issues = "https://github.com/retigra/zabbixci/issues"
 Changelog = "https://github.com/retigra/zabbixci/releases"
 Discussions = "https://github.com/retigra/ZabbixCI/discussions"
 
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools.packages.find]
 include = ["zabbixci", "zabbixci.*"]
+
+[tool.setuptools_scm]
 
 [project.scripts]
 zabbixci = "zabbixci.cli:parse_cli"
