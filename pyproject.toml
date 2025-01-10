@@ -23,19 +23,15 @@ classifiers = [
     "Topic :: Utilities",
     "Environment :: Console",
 ]
-authors = [
-    {name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl"},
-    {name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl"},
-]
-dependencies = [
-    "zabbix-utils",
-    "ruamel.yaml",
-    "regex",
-    "pygit2",
-]
-license = {file = "LICENSE.txt"}
+authors = [{ name = "Retigra", email = "into@retigra.nl" }]
 
+maintainers = [
+    { name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl" },
+    { name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl" },
+]
 
+dependencies = ["zabbix-utils", "ruamel.yaml", "regex", "pygit2"]
+license = { file = "LICENSE.txt" }
 
 [project.urls]
 Homepage = "https://github.com/retigra/zabbixci"
