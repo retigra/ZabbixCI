@@ -54,7 +54,7 @@ batch_size: 50
 #
 # Mandatory: no
 # Default:
-ignore_ssl_verify: False
+insecure_ssl_verify: true
 
 ### Option: ca_bundle
 # Custom CA bundle to use
@@ -64,7 +64,7 @@ ignore_ssl_verify: False
 #
 # Mandatory: no
 # Default:
-#ca_bundle: None
+#ca_bundle: none
 
 ### Option: ignore_template_version
 # Ignore template version on Zabbix import.
@@ -73,7 +73,16 @@ ignore_ssl_verify: False
 #
 # Mandatory: no
 # Default:
-ignore_template_version: False
+ignore_template_version: false
+
+### Option: dry_run
+# Disabled non-reversible changes
+# Git push, Zabbix import and ZabbixCI
+#  template removal is disabled.
+#
+# Mandatory: no
+# Default:
+dry_run: false
 
 
 #### ZABBIX CONFIGURATION ####
@@ -216,12 +225,3 @@ git_keypassphrase: ""
 # Mandatory: no
 # Default:
 cache_path: "./cache"
-
-### Option: dry_run
-# Disabled non-reversible changes
-# Git push, Zabbix import and ZabbixCI
-#  template removal is disabled.
-#
-# Mandatory: no
-# Default:
-dry_run: False
