@@ -31,3 +31,11 @@ jobs:
           ghcr.io/retigra/zabbixci:${{ github.ref_name }}
           ghcr.io/retigra/zabbixci:latest
         platforms: linux/amd64,linux/arm64
+        annotations: |
+          org.opencontainers.image.source=https://github.com/retigra/ZabbixCI
+          org.opencontainers.image.title="ZabbixCI"
+          org.opencontainers.image.description="Source control for Zabbix templates in Git"
+          org.opencontainers.image.documentation=https://github.com/retigra/ZabbixCI/tree/main/docs
+          org.opencontainers.image.licenses=AGPL
+          org.opencontainers.image.vendor="Retigra"
+          org.opencontainers.image.authors="info@retigra.nl"
