@@ -21,13 +21,18 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/retigra/zabbixci
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v6
       with:
         context: .
         file: ./docker/Dockerfile
         push: true
-        tags: |
-          ghcr.io/retigra/zabbixci:${{ github.ref_name }}
-          ghcr.io/retigra/zabbixci:latest
         platforms: linux/amd64,linux/arm64
+        annotations: ${{ steps.meta.outputs.annotations }}
+        tags: ${{ steps.meta.outputs.tags }}
