@@ -5,7 +5,7 @@ We will be making a backup of your Zabbix templates using ZabbixCI and pushing t
 After your templates are pushed to git, we will make changes and make sure they are pushed to git.
 
 
-# Prerequisites
+## Prerequisites
 You will need the following things setup and working:
 
 * A computer with a working [Python3](https://realpython.com/installing-python/) environment (can be your Zabbix Server!)
@@ -19,9 +19,10 @@ You will need the following things setup and working:
 
 To install ZabbixCI, use the following command, this will install ZabbixCI and all it's dependencies:
 
-'pip install zabbixci'
+`pip install zabbixci`
 
-> [!IMPORTANT] Some Linux distributions do not allow you to install Python packages directly via pip.
+> [!IMPORTANT] 
+> Some Linux distributions do not allow you to install Python packages directly via pip.
 > If this is the case, you can use a Python [virtual environment](https://docs.python.org/3/tutorial/venv.html) to run ZabbixCI. 
 
 If for some reason the installation fails with the following error:
@@ -61,7 +62,8 @@ user@localhost:~/zabbixci$
 
 Now, create a `config.yaml` file with your favorite editor with the following contents (replace for your own settings).
 
-> [!TIP] You can download an [example config file](https://raw.githubusercontent.com/retigra/ZabbixCI/refs/heads/main/docs/config.yaml.example) to see all of the allowed options.
+> [!TIP] 
+> You can download an [example config file](https://raw.githubusercontent.com/retigra/ZabbixCI/refs/heads/main/docs/config.yaml.example) to see all of the allowed options.
 
 ```
 # Zabbix API connection parameters
@@ -82,8 +84,8 @@ git_privkey: /path/to/your/ssh_priv.key
 # optional, if you've used a passphrase on your SSH key
 #git_keypassphrase: YOURPASSPHRASE
 ```
-> [!TIP] If you've loaded in your ssh key via ssh-agent, you don't need to supply the ssh parameters in the config file.
-
+> [!TIP] 
+> If you've loaded in your ssh key via ssh-agent, you don't need to supply the ssh parameters in the config file.
 
 ## Pushing your templates to Git
 
@@ -119,7 +121,8 @@ First, add the following line to the config.yaml file:
 push_branch: develop
 ```
 
-> [!TIP] We recommend using a development branch to develop and maintain templates within Git.
+> [!TIP] 
+> We recommend using a development branch to develop and maintain templates within Git.
 > Once the templates have been tested properly, you can merge the changes back to your main branch.
 > See ['Branches in a nutshell'](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell) on working with git Branches.
 
