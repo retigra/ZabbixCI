@@ -8,7 +8,7 @@ After your templates are pushed to git, we will make changes and make sure they 
 # Prerequisites
 You will need the following things setup and working:
 
-* A computer with a working Python3 environment (can be your Zabbix Server!)
+* A computer with a working [Python3](https://realpython.com/installing-python/) environment (can be your Zabbix Server!)
 * A working [Zabbix server](https://www.zabbix.com/download)
 * A [Zabbix API token](https://www.zabbix.com/documentation/7.0/en/manual/web_interface/frontend_sections/users/api_tokens)
 * A remote Git repository (e.g. [Github](https://github.com) or [GitLab](https://gitlab.com))
@@ -107,6 +107,43 @@ user@localhost:~/zabbixci$
 If we don't see any errors, we can run the actual push with:
 `zabbixci push -v --config ./config.yaml`
 
-Now, your templates should show up in your Git repository.
+Now, your templates should show up in your Git repository!
 ![image](pics/git_repo_filled.png)
+
+## Make a change
+
+So, now we want to make a change to one of the templates in Zabbix and push this to the development branch in Git.
+
+First, add the following line to the config.yaml file:
+```yaml
+push_branch: develop
+```
+
+> [!TIP] We recommend using a development branch to develop and maintain templates within Git.
+> Once the templates have been tested properly, you can merge the changes back to your main branch.
+> See ['Branches in a nutshell'](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell) on working with git Branches.
+
+Now, make a minor change to one of your Templates. In my case I added some text to the `description` field of the
+template `HP iLO by SNMP`.
+Rerun the command `zabbixci push -v --config ./config.yaml`:
+
+```console
+2025-01-10 15:09:34,052 [zabbixci.zabbixci]  [INFO]: Using SSH keypair for authentication
+2025-01-10 15:09:37,710 [zabbixci.zabbixci]  [INFO]: Remote branch does not exist, using state from branch main
+2025-01-10 15:09:39,410 [zabbixci.utils.git.git]  [INFO]: Already up to date
+2025-01-10 15:09:40,274 [zabbixci.zabbixci]  [INFO]: Found 281 templates in Zabbix
+2025-01-10 15:09:40,274 [zabbixci.zabbixci]  [INFO]: Processing export batch 1/6 [1/281]
+2025-01-10 15:09:59,782 [zabbixci.zabbixci]  [INFO]: Processing export batch 2/6 [51/281]
+2025-01-10 15:10:18,896 [zabbixci.zabbixci]  [INFO]: Processing export batch 3/6 [101/281]
+2025-01-10 15:10:39,386 [zabbixci.zabbixci]  [INFO]: Processing export batch 4/6 [151/281]
+2025-01-10 15:10:58,650 [zabbixci.zabbixci]  [INFO]: Processing export batch 5/6 [201/281]
+2025-01-10 15:11:18,174 [zabbixci.zabbixci]  [INFO]: Processing export batch 6/6 [251/281]
+2025-01-10 15:11:30,626 [zabbixci.zabbixci]  [INFO]: Remote differs from local state, preparing to push
+2025-01-10 15:11:31,060 [zabbixci.zabbixci]  [INFO]: Staged changes from zabbix.kub.dev.trelion.nl committed to develop
+```
+
+As you can see, some changes were detected and pushed to the `develop` branch.
+You can see the diff in Git:
+![image](pics/hp_ilo_change.png)
+
 
