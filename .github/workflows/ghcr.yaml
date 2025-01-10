@@ -26,6 +26,14 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: ghcr.io/retigra/zabbixci
+        annotations: |
+          org.opencontainers.image.source=https://github.com/retigra/ZabbixCI
+          org.opencontainers.image.title="ZabbixCI"
+          org.opencontainers.image.description="Source control for Zabbix templates in Git"
+          org.opencontainers.image.documentation=https://github.com/retigra/ZabbixCI/tree/main/docs
+          org.opencontainers.image.licenses=AGPL
+          org.opencontainers.image.vendor="Retigra"
+          org.opencontainers.image.authors="info@retigra.nl"
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v6
