@@ -50,6 +50,36 @@ class Zabbix:
                         "createMissing": True,
                         "updateExisting": True,
                     },
+                    "discoveryRules": {
+                        "createMissing": True,
+                        "updateExisting": True,
+                        "deleteMissing": True,
+                    },
+                    "graphs": {
+                        "createMissing": True,
+                        "updateExisting": True,
+                        "deleteMissing": True,
+                    },
+                    "httptests": {
+                        "createMissing": True,
+                        "updateExisting": True,
+                        "deleteMissing": True,
+                    },
+                    "items": {
+                        "createMissing": True,
+                        "updateExisting": True,
+                        "deleteMissing": True,
+                    },
+                    "triggers": {
+                        "createMissing": True,
+                        "updateExisting": True,
+                        "deleteMissing": True,
+                    },
+                    "valueMaps": {
+                        "createMissing": True,
+                        "updateExisting": True,
+                        "deleteMissing": True,
+                    },
                 },
                 "source": export,
             },
