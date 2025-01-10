@@ -26,7 +26,7 @@ To install ZabbixCI, use the following command, this will install ZabbixCI and a
 > If this is the case, you can use a Python [virtual environment](https://docs.python.org/3/tutorial/venv.html) to run ZabbixCI. 
 
 If for some reason the installation fails with the following error:
-```
+```console
 fatal error: git2.h: No such file or directory
 ```
 
@@ -65,7 +65,7 @@ Now, create a `config.yaml` file with your favorite editor with the following co
 > [!TIP] 
 > You can download an [example config file](https://raw.githubusercontent.com/retigra/ZabbixCI/refs/heads/main/docs/config.yaml.example) to see all of the allowed options.
 
-```
+```yaml
 # Zabbix API connection parameters
 zabbix_token: your_Zabbix_API_token
 zabbix_url: http://your.zabbix.server
@@ -142,7 +142,7 @@ Rerun the command `zabbixci push -v --config ./config.yaml`:
 2025-01-10 15:10:58,650 [zabbixci.zabbixci]  [INFO]: Processing export batch 5/6 [201/281]
 2025-01-10 15:11:18,174 [zabbixci.zabbixci]  [INFO]: Processing export batch 6/6 [251/281]
 2025-01-10 15:11:30,626 [zabbixci.zabbixci]  [INFO]: Remote differs from local state, preparing to push
-2025-01-10 15:11:31,060 [zabbixci.zabbixci]  [INFO]: Staged changes from zabbix.kub.dev.trelion.nl committed to develop
+2025-01-10 15:11:31,060 [zabbixci.zabbixci]  [INFO]: Staged changes from your.zabbix.server committed to develop
 ```
 
 As you can see, some changes were detected and pushed to the `develop` branch.
