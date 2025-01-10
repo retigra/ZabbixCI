@@ -3,11 +3,6 @@ name = "zabbixci"
 description = "Source control for Zabbix templates in Git"
 readme = "README.md"
 dynamic = ["version"]
-
-[project.license]
-file = "LICENSE.txt"
-
-readme = "README.md"
 keywords = ["zabbix", "git", "source control", "templates"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -28,10 +23,9 @@ classifiers = [
     "Topic :: Utilities",
     "Environment :: Console",
 ]
-
 authors = [
     {name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl"},
-    {name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl"}
+    {name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl"},
 ]
 dependencies = [
     "zabbix-utils",
@@ -39,6 +33,8 @@ dependencies = [
     "regex",
     "pygit2",
 ]
+license = {file = "LICENSE.txt"}
+
 
 
 [project.urls]
