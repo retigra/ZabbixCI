@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import logging
 import logging.config
 
@@ -194,16 +195,29 @@ def parse_cli():
 
     logger.debug(f"Settings: {settings_debug}")
 
-    if args.action == "push":
-        zabbixci = ZabbixCI()
-        zabbixci.push()
-
-    elif args.action == "pull":
-        zabbixci = ZabbixCI()
-        zabbixci.pull()
-
-    elif args.action == "clearcache":
+    if args.action == "clearcache":
         ZabbixCI.cleanup_cache(full=True)
+    else:
+        asyncio.run(run_zabbixci(args.action))
+
+
+async def run_zabbixci(action: str):
+    zabbixci = ZabbixCI()
+    await zabbixci.create_zabbix()
+
+    try:
+        if action == "push":
+            await zabbixci.push()
+
+        elif action == "pull":
+            await zabbixci.pull()
+    except KeyboardInterrupt:
+        logger.error("Interrupted by user")
+
+    finally:
+        logger.info("Logging out")
+        await zabbixci._zabbix.zapi.logout()
+        await zabbixci._zabbix._client_session.close()
 
 
 if __name__ == "__main__":

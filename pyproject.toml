@@ -30,7 +30,7 @@ maintainers = [
     { name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl" },
 ]
 
-dependencies = ["zabbix-utils", "ruamel.yaml", "regex", "pygit2"]
+dependencies = ["zabbix-utils", "ruamel.yaml", "regex", "pygit2", "aiohttp"]
 license = { file = "LICENSE.txt" }
 
 [project.urls]
