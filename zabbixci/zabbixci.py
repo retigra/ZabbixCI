@@ -230,12 +230,12 @@ class ZabbixCI:
 
         # Get the changed files, we compare the untracked changes with the desired.
         # When we have a new untracked file, that means it was deleted in the desired state.
-        files = [
+        files: list[str] = [
             path
             for path, flags in status.items()
             if flags in [FileStatus.WT_DELETED, FileStatus.WT_MODIFIED]
         ]
-        deleted_files = [
+        deleted_files: list[str] = [
             path for path, flags in status.items() if flags == FileStatus.WT_NEW
         ]
 
@@ -290,14 +290,34 @@ class ZabbixCI:
             toc = timeit.default_timer()
             self.logger.info("Sorted templates in {:.2f}s".format(toc - tic))
 
+            failed_templates = []
+
             # Import the templates
             for template in templates:
                 self.logger.info(f"Importing {template.name}, level {template._level}")
 
                 if not self._settings.DRY_RUN:
-                    self._zabbix.import_template(template)
+                    try:
+                        self._zabbix.import_template(template)
+                    except Exception as e:
+                        self.logger.warning(
+                            f"Error importing template {template.name}, will try to import later"
+                        )
+                        self.logger.debug(f"Error details: {e}")
+                        failed_templates.append(template.name)
 
-        template_names = []
+            if len(failed_templates):
+                for template in failed_templates:
+                    try:
+                        self._zabbix.import_template(template)
+                    except Exception as e:
+                        self.logger.error(f"Error importing template {template}: {e}")
+
+        deletion_queue = []
+        imported_template_ids = []
+
+        for t in templates:
+            imported_template_ids.extend(t.template_ids)
 
         # Delete the deleted templates
         for file in deleted_files:
@@ -310,19 +330,19 @@ class ZabbixCI:
             if self.ignore_template(template.name):
                 continue
 
-            if template.uuid in [t.uuid for t in templates]:
+            if template.uuid in imported_template_ids:
                 self.logger.debug(
                     f"Template {template.name} is being imported under a different name or path, skipping deletion"
                 )
                 continue
 
-            template_names.append(template.name)
+            deletion_queue.append(template.name)
             self.logger.info(f"Added {template.name} to deletion queue")
 
-        if len(template_names):
-            self.logger.info(f"Deleting {len(template_names)} templates from Zabbix")
+        if len(deletion_queue):
+            self.logger.info(f"Deleting {len(deletion_queue)} templates from Zabbix")
             template_ids = [
-                t["templateid"] for t in self._zabbix.get_templates_name(template_names)
+                t["templateid"] for t in self._zabbix.get_templates_name(deletion_queue)
             ]
 
             if len(template_ids):
