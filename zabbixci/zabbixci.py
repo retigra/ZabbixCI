@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import ssl
@@ -37,7 +38,6 @@ class ZabbixCI:
             self.logger = logger
 
         self.create_git_callback()
-        self.create_zabbix()
         self.create_git()
 
     def validate_ssl_cert(self, cert: None, valid: bool, hostname: bytes):
@@ -109,7 +109,7 @@ class ZabbixCI:
             # Validate certificates with the provided CA bundle
             self._git_cb.certificate_check = self.validate_ssl_cert
 
-    def create_zabbix(self):
+    async def create_zabbix(self):
         """
         Create a Zabbix object with the appropriate credentials
         """
@@ -121,12 +121,18 @@ class ZabbixCI:
 
         self._zabbix = Zabbix(
             url=self._settings.ZABBIX_URL,
-            user=self._settings.ZABBIX_USER,
-            password=self._settings.ZABBIX_PASSWORD,
-            token=self._settings.ZABBIX_TOKEN,
             validate_certs=not self._settings.INSECURE_SSL_VERIFY,
             ssl_context=self._ssl_context,
         )
+
+        if self._settings.ZABBIX_USER and self._settings.ZABBIX_PASSWORD:
+            self.logger.info("Using username and password for authentication")
+            await self._zabbix.zapi.login(
+                user=self._settings.ZABBIX_USER, password=self._settings.ZABBIX_PASSWORD
+            )
+        elif self._settings.ZABBIX_TOKEN:
+            self.logger.info("Using token for authentication")
+            await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
 
     def create_git(self):
         """
@@ -134,7 +140,7 @@ class ZabbixCI:
         """
         self._git = Git(self._settings.CACHE_PATH, self._git_cb)
 
-    def push(self):
+    async def push(self):
         """
         Fetch Zabbix state and commit changes to git remote
         """
@@ -161,12 +167,12 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        self.zabbix_to_file()
+        await self.zabbix_to_file()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
             self.logger.info("No changes detected")
-            exit()
+            return
 
         self.logger.info("Remote differs from local state, preparing to push")
 
@@ -196,7 +202,7 @@ class ZabbixCI:
         if not self._settings.DRY_RUN:
             self._git.push(Settings.REMOTE, self._git_cb)
 
-    def pull(self):
+    async def pull(self):
         """
         Pull current state from git remote and update Zabbix
         """
@@ -215,7 +221,7 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        self.zabbix_to_file()
+        await self.zabbix_to_file()
 
         zabbix_version = self._zabbix.get_server_version()
 
@@ -352,7 +358,51 @@ class ZabbixCI:
         # clean local changes
         self._git.clean()
 
-    def zabbix_to_file(self) -> None:
+    async def zabbix_export(self, templates: list[str]):
+        batches = [
+            templates[i : i + Settings.BATCH_SIZE]
+            for i in range(0, len(templates), Settings.BATCH_SIZE)
+        ]
+
+        failed_exports = []
+
+        for index, batch in enumerate(batches):
+            self.logger.info(f"Processing batch {index + 1}/{len(batches)}")
+            coros = []
+            for t in batch:
+                coros.append(self._zabbix.export_template_async([t["templateid"]]))
+
+            responses = await asyncio.gather(*coros, return_exceptions=True)
+
+            for index, response in enumerate(responses):
+                if isinstance(response, Exception):
+                    self.logger.error(f"Error exporting template: {response}")
+
+                    # Retry the export
+                    failed_exports.append(batch[index])
+                    continue
+
+                export_yaml = self.yaml.load(StringIO(response["result"]))
+
+                if not "templates" in export_yaml["zabbix_export"]:
+                    self.logger.info("No templates found in Zabbix")
+                    return
+
+                zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
+
+                if self.ignore_template(zabbix_template.name):
+                    continue
+
+                zabbix_template.save()
+                self.logger.info(f"Exported Zabbix template {zabbix_template.name}")
+
+        if len(failed_exports):
+            self.logger.warning(
+                f"Failed to export {len(failed_exports)} templates, retrying"
+            )
+            await self.zabbix_export(failed_exports)
+
+    async def zabbix_to_file(self) -> None:
         """
         Export Zabbix templates to the cache
         """
@@ -361,23 +411,7 @@ class ZabbixCI:
         self.logger.info(f"Found {len(templates)} templates in Zabbix")
         self.logger.debug(f"Found Zabbix templates: {[t['name'] for t in templates]}")
 
-        for template in templates:
-            # Get the templates
-            template_yaml = self._zabbix.export_template([template["templateid"]])
-
-            export_yaml = self.yaml.load(StringIO(template_yaml))
-
-            if not "templates" in export_yaml["zabbix_export"]:
-                self.logger.info("No templates found in Zabbix")
-                return
-
-            zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
-
-            if self.ignore_template(zabbix_template.name):
-                continue
-
-            zabbix_template.save()
-            self.logger.info(f"Exported Zabbix template {zabbix_template.name}")
+        await self.zabbix_export(templates)
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:
