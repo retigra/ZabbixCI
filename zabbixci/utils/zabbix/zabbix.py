@@ -16,10 +16,11 @@ class Zabbix:
     _client_session = None
 
     def __init__(self, *args: P.args, **kwargs: P.kwargs):
-        self._client_session = aiohttp.ClientSession()
 
-        if "ssl_context" in kwargs and kwargs["ssl_context"]:
-            self._client_session._connector._ssl = kwargs["ssl_context"]
+        if "ssl_context" in kwargs:
+            if kwargs["ssl_context"]:
+                self._client_session = aiohttp.ClientSession()
+                self._client_session._connector._ssl = kwargs["ssl_context"]
 
             del kwargs["ssl_context"]
 
