@@ -150,22 +150,10 @@ class Template:
             return Template(yaml.load(file)["zabbix_export"])
 
     @staticmethod
-    def from_zabbix(template: dict, template_groups: dict, zabbix_version: str):
+    def from_zabbix(export: dict):
         """
         Create a individual template from a bulk Zabbix export
         """
-        groups = list(
-            filter(
-                lambda group: group["name"]
-                in [group["name"] for group in template["groups"]],
-                template_groups,
-            )
-        )
+        # TODO: Prepare dict for export, otherwise remove this method and use the constructor directly
 
-        return Template(
-            {
-                "version": zabbix_version,
-                "template_groups": groups,
-                "templates": [template],
-            }
-        )
+        return Template(export)
