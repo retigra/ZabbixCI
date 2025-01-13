@@ -47,7 +47,7 @@ class Template:
 
     @property
     def template_ids(self):
-        return [template["templateid"] for template in self._template["templates"]]
+        return [template["templateid"] for template in self._export["templates"]]
 
     @property
     def primary_group(self):
