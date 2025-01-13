@@ -217,7 +217,10 @@ async def run_zabbixci(action: str):
     finally:
         logger.info("Logging out")
         await zabbixci._zabbix.zapi.logout()
-        await zabbixci._zabbix._client_session.close()
+
+        # Close custom session, if it exists
+        if zabbixci._zabbix._client_session:
+            await zabbixci._zabbix._client_session.close()
 
 
 if __name__ == "__main__":
