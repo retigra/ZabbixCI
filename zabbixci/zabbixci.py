@@ -361,21 +361,9 @@ class ZabbixCI:
         self.logger.info(f"Found {len(templates)} templates in Zabbix")
         self.logger.debug(f"Found Zabbix templates: {[t['name'] for t in templates]}")
 
-        # Split by Settings.BATCH_SIZE
-        batches = [
-            templates[i : i + Settings.BATCH_SIZE]
-            for i in range(0, len(templates), Settings.BATCH_SIZE)
-        ]
-
-        for index, batch in enumerate(batches):
-            self.logger.info(
-                f"Processing export batch {index + 1}/{len(batches)} [{(index * Settings.BATCH_SIZE) + 1}/{len(templates)}]"
-            )
-
+        for template in templates:
             # Get the templates
-            template_yaml = self._zabbix.export_template(
-                [template["templateid"] for template in batch]
-            )
+            template_yaml = self._zabbix.export_template([template["templateid"]])
 
             export_yaml = self.yaml.load(StringIO(template_yaml))
 
@@ -383,18 +371,13 @@ class ZabbixCI:
                 self.logger.info("No templates found in Zabbix")
                 return
 
-            # Write the templates to the cache
-            for template in export_yaml["zabbix_export"]["templates"]:
-                template = Template.from_zabbix(
-                    template,
-                    export_yaml["zabbix_export"]["template_groups"],
-                    export_yaml["zabbix_export"]["version"],
-                )
+            zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
 
-                if self.ignore_template(template.name):
-                    continue
+            if self.ignore_template(zabbix_template.name):
+                continue
 
-                template.save()
+            zabbix_template.save()
+            self.logger.info(f"Exported Zabbix template {zabbix_template.name}")
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:
