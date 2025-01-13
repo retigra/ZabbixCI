@@ -296,7 +296,7 @@ class ZabbixCI:
             toc = timeit.default_timer()
             self.logger.info("Sorted templates in {:.2f}s".format(toc - tic))
 
-            failed_templates = []
+            failed_templates: list[Template] = []
 
             # Import the templates
             for template in templates:
@@ -310,7 +310,7 @@ class ZabbixCI:
                             f"Error importing template {template.name}, will try to import later"
                         )
                         self.logger.debug(f"Error details: {e}")
-                        failed_templates.append(template.name)
+                        failed_templates.append(template)
 
             if len(failed_templates):
                 for template in failed_templates:
