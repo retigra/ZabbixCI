@@ -134,6 +134,12 @@ class ZabbixCI:
             self.logger.info("Using token for authentication")
             await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
 
+        if self._zabbix.zapi.version < 7.0:
+            self.logger.error(
+                f"Zabbix server version {self._zabbix.zapi.version} is not supported (7.0+ required)"
+            )
+            raise SystemExit(1)
+
     def create_git(self):
         """
         Create a Git object with the appropriate credentials
