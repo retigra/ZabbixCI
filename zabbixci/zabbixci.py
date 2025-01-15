@@ -244,6 +244,9 @@ class ZabbixCI:
 
         if not self._settings.DRY_RUN:
             self._git.push(Settings.REMOTE, self._git_cb)
+            self.logger.info(
+                f"Committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+            )
         else:
             self.logger.info(
                 f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
@@ -405,7 +408,11 @@ class ZabbixCI:
 
         if Settings.DRY_RUN:
             self.logger.info(
-                f"Dry run enabled, no changes will be made to Zabbix. Would have deleted {len(deletion_queue)} templates and imported {len(templates)} templates"
+                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(templates)} templates and deleted {len(deletion_queue)} templates"
+            )
+        else:
+            self.logger.info(
+                f"Zabbix state has been synchronized, imported {len(templates)} templates and deleted {len(deletion_queue)} templates"
             )
 
         # clean local changes
