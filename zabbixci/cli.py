@@ -213,7 +213,10 @@ async def run_zabbixci(action: str):
             await zabbixci.pull()
     except KeyboardInterrupt:
         logger.error("Interrupted by user")
-
+    except SystemExit as e:
+        logger.debug(f"Script exited with code {e.code}")
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
     finally:
         logger.info("Logging out")
         await zabbixci._zabbix.zapi.logout()
