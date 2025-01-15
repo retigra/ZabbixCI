@@ -216,7 +216,7 @@ async def run_zabbixci(action: str):
     except SystemExit as e:
         logger.debug(f"Script exited with code {e.code}")
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error:", exc_info=True)
     finally:
         logger.info("Logging out")
         await zabbixci._zabbix.zapi.logout()
