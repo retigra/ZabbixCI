@@ -403,17 +403,17 @@ class ZabbixCI:
                 if not self._settings.DRY_RUN:
                     self._zabbix.delete_template(template_ids)
 
-        if len(deletion_queue) == 0 and len(templates) == 0:
-            self.logger.info("No changes detected, Zabbix is up to date")
-
         if Settings.DRY_RUN:
             self.logger.info(
                 f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(templates)} templates and deleted {len(deletion_queue)} templates"
             )
         else:
-            self.logger.info(
-                f"Zabbix state has been synchronized, imported {len(templates)} templates and deleted {len(deletion_queue)} templates"
-            )
+            if len(deletion_queue) == 0 and len(templates) == 0:
+                self.logger.info("No changes detected, Zabbix is up to date")
+            else:
+                self.logger.info(
+                    f"Zabbix state has been synchronized, imported {len(templates)} templates and deleted {len(deletion_queue)} templates"
+                )
 
         # clean local changes
         self._git.clean()
