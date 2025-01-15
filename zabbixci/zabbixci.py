@@ -201,11 +201,12 @@ class ZabbixCI:
             for file in changes:
                 self.logger.info(f"Detected change in {file}")
 
-            # Generate commit message
-            self._git.commit(f"Committed Zabbix state from {host}")
-            self.logger.info(
-                f"Staged changes from {host} committed to {self._git.current_branch}"
-            )
+            if not Settings.DRY_RUN:
+                # Generate commit message
+                self._git.commit(f"Committed Zabbix state from {host}")
+                self.logger.info(
+                    f"Staged changes from {host} committed to {self._git.current_branch}"
+                )
         else:
             self.logger.info("No staged changes, updating remote with current state")
 
