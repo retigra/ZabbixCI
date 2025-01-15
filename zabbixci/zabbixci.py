@@ -207,6 +207,8 @@ class ZabbixCI:
 
         if not self._settings.DRY_RUN:
             self._git.push(Settings.REMOTE, self._git_cb)
+        else:
+            self.logger.info("Dry run enabled, push to remote skipped")
 
     async def pull(self):
         """
@@ -292,15 +294,10 @@ class ZabbixCI:
             self.logger.info(f"Detected change in {template.name}")
 
         if len(templates):
-            tic = timeit.default_timer()
-
             # Group templates by level
             templates = sorted(
                 templates, key=lambda template: template.level(templates)
             )
-
-            toc = timeit.default_timer()
-            self.logger.info("Sorted templates in {:.2f}s".format(toc - tic))
 
             failed_templates: list[Template] = []
 
@@ -360,6 +357,17 @@ class ZabbixCI:
             if len(template_ids):
                 if not self._settings.DRY_RUN:
                     self._zabbix.delete_template(template_ids)
+
+        if len(deletion_queue) == 0 and len(templates) == 0:
+            self.logger.info("No changes detected, Zabbix is up to date")
+
+        if Settings.DRY_RUN:
+            self.logger.info(
+                f"""
+Dry run enabled, no changes will be made to Zabbix
+Would have imported {len(templates)} templates and deleted {len(deletion_queue)} templates
+            """
+            )
 
         # clean local changes
         self._git.clean()
