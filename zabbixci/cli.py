@@ -218,7 +218,6 @@ async def run_zabbixci(action: str):
     except Exception as e:
         logger.error(f"Unexpected error:", exc_info=True)
     finally:
-        logger.info("Logging out")
         await zabbixci._zabbix.zapi.logout()
 
         # Close custom session, if it exists
