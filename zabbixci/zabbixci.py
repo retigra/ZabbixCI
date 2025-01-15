@@ -268,7 +268,7 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        await self.zabbix_to_file()
+        template_objects = await self.zabbix_to_file()
 
         zabbix_version = self._zabbix.get_server_version()
 
@@ -390,7 +390,10 @@ class ZabbixCI:
         if len(deletion_queue):
             self.logger.info(f"Deleting {len(deletion_queue)} templates from Zabbix")
             template_ids = [
-                t["templateid"] for t in self._zabbix.get_templates_name(deletion_queue)
+                t["templateid"]
+                for t in list(
+                    filter(lambda t: t["name"] in deletion_queue, template_objects)
+                )
             ]
 
             if len(template_ids):
