@@ -2,8 +2,8 @@ import asyncio
 import logging
 import os
 import ssl
-import timeit
 import urllib.error
+from datetime import datetime, timezone
 from io import StringIO
 from urllib.request import Request, urlopen
 
@@ -173,7 +173,7 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        await self.zabbix_to_file()
+        templates = await self.zabbix_to_file()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -188,9 +188,6 @@ class ZabbixCI:
             # Create a commit
             changes = self._git.status()
 
-            # Commit and push the changes
-            self._git.add_all()
-
             host = os.getenv(
                 "ZABBIX_HOST",
                 search("https?://([^/]+)", self._zabbix.zapi.url).group(1),
@@ -200,6 +197,41 @@ class ZabbixCI:
 
             for file in changes:
                 self.logger.info(f"Detected change in {file}")
+
+                template = Template.open(file)
+
+                if Settings.VENDOR and not template.vendor:
+                    set_vendor = Settings.VENDOR
+                    template.set_vendor(set_vendor)
+                    self.logger.debug(f"Setting vendor to {set_vendor}")
+
+                if Settings.SET_VERSION:
+                    new_version = datetime.now(timezone.utc).strftime(
+                        "%Y.%m.%d:%H:%M:%S"
+                    )
+                    template.set_version(new_version)
+                    self.logger.debug(f"Setting version to {new_version}")
+
+                if (
+                    template.new_version
+                    or template.new_vendor
+                    and (template.vendor and template.version)
+                ):
+                    template.save()
+
+                    if not Settings.DRY_RUN:
+                        self.logger.info(
+                            f"Updating template metadata for {template.name}"
+                        )
+                        self._zabbix.set_template(
+                            next(
+                                filter(lambda t: t["name"] == template.name, templates)
+                            )["templateid"],
+                            template.updated_items,
+                        )
+
+            # Commit and push the changes
+            self._git.add_all()
 
             if not Settings.DRY_RUN:
                 # Generate commit message
@@ -376,7 +408,7 @@ class ZabbixCI:
         # clean local changes
         self._git.clean()
 
-    async def zabbix_export(self, templates: list[str]):
+    async def zabbix_export(self, templates: list[dict]):
         batches = [
             templates[i : i + Settings.BATCH_SIZE]
             for i in range(0, len(templates), Settings.BATCH_SIZE)
@@ -420,7 +452,7 @@ class ZabbixCI:
             )
             await self.zabbix_export(failed_exports)
 
-    async def zabbix_to_file(self) -> None:
+    async def zabbix_to_file(self) -> list[str]:
         """
         Export Zabbix templates to the cache
         """
@@ -430,6 +462,7 @@ class ZabbixCI:
         self.logger.debug(f"Found Zabbix templates: {[t['name'] for t in templates]}")
 
         await self.zabbix_export(templates)
+        return templates
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:

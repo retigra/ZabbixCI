@@ -21,6 +21,9 @@ class Template:
     _export: dict
     _level: int = None
 
+    new_version = False
+    new_vendor = False
+
     @property
     def is_template(self):
         return "templates" in self._export
@@ -96,6 +99,43 @@ class Template:
     def zabbix_version(self):
         return self._export["version"]
 
+    @property
+    def vendor(self):
+        if not "vendor" in self._template:
+            return ""
+
+        return (
+            self._template["vendor"]["name"]
+            if "name" in self._template["vendor"]
+            else ""
+        )
+
+    @property
+    def version(self):
+        if not "vendor" in self._template:
+            return ""
+
+        return (
+            self._template["vendor"]["version"]
+            if "version" in self._template["vendor"]
+            else ""
+        )
+
+    @property
+    def updated_items(self):
+        """
+        dict containg the new vendor and or version
+        """
+        updates = {}
+
+        if self.new_vendor:
+            updates["vendor_name"] = self.vendor
+
+        if self.new_version:
+            updates["vendor_version"] = self.version
+
+        return updates
+
     def __init__(self, export: dict):
         self._export = export
 
@@ -107,6 +147,25 @@ class Template:
         Dump Zabbix importable template to stream
         """
         yaml.dump({"zabbix_export": self._export}, stream)
+
+    def set_vendor(self, vendor: str):
+        """
+        Set the vendor of the template
+        """
+        if not "vendor" in self._export["templates"][0]:
+            self._export["templates"][0]["vendor"] = {}
+
+        self._export["templates"][0]["vendor"]["name"] = vendor
+        self.new_vendor = True
+
+    def set_version(self, version: str):
+        """
+        Set the version of the template
+        """
+        if not "vendor" in self._export["templates"][0]:
+            self._export["templates"][0]["vendor"] = {}
+        self._export["templates"][0]["vendor"]["version"] = version
+        self.new_version = True
 
     def save(self):
         """
