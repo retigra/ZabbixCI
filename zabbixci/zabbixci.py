@@ -181,20 +181,24 @@ class ZabbixCI:
             return
 
         self.logger.info("Remote differs from local state, preparing to push")
+        change_amount = len(self._git.status())
 
-        # Commit and push the changes
-        self._git.add_all()
-
-        host = os.getenv(
-            "ZABBIX_HOST", search("https?://([^/]+)", self._zabbix.zapi.url).group(1)
-        )
-
+        # Check if we have any changes to commit. Otherwise, we just push the current state
         if self._git.has_changes:
             # Create a commit
-            changes = self._git.diff()
-            files = [patch.delta.new_file.path for patch in changes]
+            changes = self._git.status()
 
-            for file in files:
+            # Commit and push the changes
+            self._git.add_all()
+
+            host = os.getenv(
+                "ZABBIX_HOST",
+                search("https?://([^/]+)", self._zabbix.zapi.url).group(1),
+            )
+
+            change_amount = len(changes)
+
+            for file in changes:
                 self.logger.info(f"Detected change in {file}")
 
             # Generate commit message
@@ -208,7 +212,9 @@ class ZabbixCI:
         if not self._settings.DRY_RUN:
             self._git.push(Settings.REMOTE, self._git_cb)
         else:
-            self.logger.info("Dry run enabled, push to remote skipped")
+            self.logger.info(
+                f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{self._git.current_branch}"
+            )
 
     async def pull(self):
         """
@@ -363,10 +369,7 @@ class ZabbixCI:
 
         if Settings.DRY_RUN:
             self.logger.info(
-                f"""
-Dry run enabled, no changes will be made to Zabbix
-Would have imported {len(templates)} templates and deleted {len(deletion_queue)} templates
-            """
+                f"Dry run enabled, no changes will be made to Zabbix. Would have deleted {len(deletion_queue)} templates and imported {len(templates)} templates"
             )
 
         # clean local changes
