@@ -134,6 +134,12 @@ class ZabbixCI:
             self.logger.info("Using token for authentication")
             await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
 
+        if self._zabbix.zapi.version < 7.0:
+            self.logger.error(
+                f"Zabbix server version {self._zabbix.zapi.version} is not supported (7.0+ required)"
+            )
+            raise SystemExit(1)
+
     def create_git(self):
         """
         Create a Git object with the appropriate credentials
@@ -175,32 +181,41 @@ class ZabbixCI:
             return
 
         self.logger.info("Remote differs from local state, preparing to push")
+        change_amount = len(self._git.status())
 
-        # Commit and push the changes
-        self._git.add_all()
-
-        host = os.getenv(
-            "ZABBIX_HOST", search("https?://([^/]+)", self._zabbix.zapi.url).group(1)
-        )
-
+        # Check if we have any changes to commit. Otherwise, we just push the current state
         if self._git.has_changes:
             # Create a commit
-            changes = self._git.diff()
-            files = [patch.delta.new_file.path for patch in changes]
+            changes = self._git.status()
 
-            for file in files:
+            # Commit and push the changes
+            self._git.add_all()
+
+            host = os.getenv(
+                "ZABBIX_HOST",
+                search("https?://([^/]+)", self._zabbix.zapi.url).group(1),
+            )
+
+            change_amount = len(changes)
+
+            for file in changes:
                 self.logger.info(f"Detected change in {file}")
 
-            # Generate commit message
-            self._git.commit(f"Committed Zabbix state from {host}")
-            self.logger.info(
-                f"Staged changes from {host} committed to {self._git.current_branch}"
-            )
+            if not Settings.DRY_RUN:
+                # Generate commit message
+                self._git.commit(f"Committed Zabbix state from {host}")
+                self.logger.info(
+                    f"Staged changes from {host} committed to {self._git.current_branch}"
+                )
         else:
             self.logger.info("No staged changes, updating remote with current state")
 
         if not self._settings.DRY_RUN:
             self._git.push(Settings.REMOTE, self._git_cb)
+        else:
+            self.logger.info(
+                f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+            )
 
     async def pull(self):
         """
@@ -286,15 +301,10 @@ class ZabbixCI:
             self.logger.info(f"Detected change in {template.name}")
 
         if len(templates):
-            tic = timeit.default_timer()
-
             # Group templates by level
             templates = sorted(
                 templates, key=lambda template: template.level(templates)
             )
-
-            toc = timeit.default_timer()
-            self.logger.info("Sorted templates in {:.2f}s".format(toc - tic))
 
             failed_templates: list[Template] = []
 
@@ -354,6 +364,14 @@ class ZabbixCI:
             if len(template_ids):
                 if not self._settings.DRY_RUN:
                     self._zabbix.delete_template(template_ids)
+
+        if len(deletion_queue) == 0 and len(templates) == 0:
+            self.logger.info("No changes detected, Zabbix is up to date")
+
+        if Settings.DRY_RUN:
+            self.logger.info(
+                f"Dry run enabled, no changes will be made to Zabbix. Would have deleted {len(deletion_queue)} templates and imported {len(templates)} templates"
+            )
 
         # clean local changes
         self._git.clean()
