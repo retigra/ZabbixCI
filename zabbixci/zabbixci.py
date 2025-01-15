@@ -214,7 +214,7 @@ class ZabbixCI:
             self._git.push(Settings.REMOTE, self._git_cb)
         else:
             self.logger.info(
-                f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{self._git.current_branch}"
+                f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
             )
 
     async def pull(self):
