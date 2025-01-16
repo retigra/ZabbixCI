@@ -42,7 +42,7 @@ template_blacklist: ""
 #
 # Mandatory: yes
 # Default:
-batch_size: 50
+batch_size: 5
 
 ### Option: insecure_ssl_verify
 # Ignore certificate verification.
