@@ -148,12 +148,24 @@ class Template:
         """
         yaml.dump({"zabbix_export": self._export}, stream)
 
+    def _insert_vendor_dict(self):
+        """
+        Insert vendor dict into export.
+        Vendor needs to be positioned after description
+        to match the Zabbix export format
+        """
+        description_index = list(self._template.keys()).index("description")
+
+        items = list(self._template.items())
+        items.insert(description_index + 1, ("vendor", {}))
+        self._export["templates"][0] = dict(items)
+
     def set_vendor(self, vendor: str):
         """
         Set the vendor of the template
         """
         if not "vendor" in self._export["templates"][0]:
-            self._export["templates"][0]["vendor"] = {}
+            self._insert_vendor_dict()
 
         self._export["templates"][0]["vendor"]["name"] = vendor
         self.new_vendor = True
@@ -163,7 +175,8 @@ class Template:
         Set the version of the template
         """
         if not "vendor" in self._export["templates"][0]:
-            self._export["templates"][0]["vendor"] = {}
+            self._insert_vendor_dict()
+
         self._export["templates"][0]["vendor"]["version"] = version
         self.new_version = True
 
