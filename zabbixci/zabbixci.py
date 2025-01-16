@@ -220,7 +220,7 @@ class ZabbixCI:
                     template.save()
 
                     if not Settings.DRY_RUN:
-                        self.logger.info(
+                        self.logger.debug(
                             f"Updating template metadata for {template.name}"
                         )
                         self._zabbix.set_template(
