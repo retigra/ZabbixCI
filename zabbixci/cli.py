@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 
 def read_args():
     parser = argparse.ArgumentParser(
-        description="""ZabbixCI is a tool to manage Zabbix templates in a Git repository.
-        
-        ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.""",
+        description="ZabbixCI is a tool to manage Zabbix templates in a Git repository. ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.",
         prog="zabbixci",
     )
     parser.add_argument(
@@ -226,8 +224,8 @@ async def run_zabbixci(action: str):
         logger.error("Interrupted by user")
     except SystemExit as e:
         logger.debug(f"Script exited with code {e.code}")
-    except Exception as e:
-        logger.error(f"Unexpected error:", exc_info=True)
+    except Exception:
+        logger.error("Unexpected error:", exc_info=True)
     finally:
         await zabbixci._zabbix.zapi.logout()
 

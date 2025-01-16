@@ -444,7 +444,7 @@ class ZabbixCI:
 
                 export_yaml = self.yaml.load(StringIO(response["result"]))
 
-                if not "templates" in export_yaml["zabbix_export"]:
+                if "templates" not in export_yaml["zabbix_export"]:
                     self.logger.info("No templates found in Zabbix")
                     return
 
