@@ -212,9 +212,7 @@ class ZabbixCI:
                     self.logger.debug(f"Setting vendor to {set_vendor}")
 
                 if Settings.SET_VERSION:
-                    new_version = datetime.now(timezone.utc).strftime(
-                        "%Y.%m.%d:%H:%M:%S"
-                    )
+                    new_version = datetime.now(timezone.utc).strftime("%Y.%m.%d %H:%M")
                     template.set_version(new_version)
                     self.logger.debug(f"Setting version to {new_version}")
 
