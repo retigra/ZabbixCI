@@ -64,7 +64,7 @@ class Template:
         # specifying the lowest child in the hierarchy
         for group in self._template["groups"]:
             name: str = group["name"]
-            if not Settings.ROOT_TEMPLATE_GROUP in name:
+            if Settings.ROOT_TEMPLATE_GROUP not in name:
                 continue
 
             split = regex.split(r"\/+", name)
@@ -101,7 +101,7 @@ class Template:
 
     @property
     def vendor(self):
-        if not "vendor" in self._template:
+        if "vendor" not in self._template:
             return ""
 
         return (
@@ -112,7 +112,7 @@ class Template:
 
     @property
     def version(self):
-        if not "vendor" in self._template:
+        if "vendor" not in self._template:
             return ""
 
         return (
@@ -164,7 +164,7 @@ class Template:
         """
         Set the vendor of the template
         """
-        if not "vendor" in self._export["templates"][0]:
+        if "vendor" not in self._export["templates"][0]:
             self._insert_vendor_dict()
 
         self._export["templates"][0]["vendor"]["name"] = vendor
@@ -174,7 +174,7 @@ class Template:
         """
         Set the version of the template
         """
-        if not "vendor" in self._export["templates"][0]:
+        if "vendor" not in self._export["templates"][0]:
             self._insert_vendor_dict()
 
         self._export["templates"][0]["vendor"]["version"] = version

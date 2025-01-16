@@ -84,12 +84,12 @@ class ZabbixCI:
         :param settings: Settings object
         """
         if self._settings.GIT_USERNAME and self._settings.GIT_PASSWORD:
-            self.logger.info("Using username and password for authentication")
+            self.logger.debug("Using username and password for Git authentication")
             credentials = pygit2.UserPass(
                 self._settings.GIT_USERNAME, self._settings.GIT_PASSWORD
             )
         elif self._settings.GIT_PUBKEY and self._settings.GIT_PRIVKEY:
-            self.logger.info("Using SSH keypair for authentication")
+            self.logger.debug("Using SSH keypair for Git authentication")
             credentials = pygit2.Keypair(
                 self._settings.GIT_USERNAME,
                 self._settings.GIT_PUBKEY,
@@ -97,7 +97,7 @@ class ZabbixCI:
                 self._settings.GIT_KEYPASSPHRASE,
             )
         else:
-            self.logger.info("Using SSH agent for authentication")
+            self.logger.debug("Using SSH agent for Git authentication")
             credentials = pygit2.KeypairFromAgent(self._settings.GIT_USERNAME)
 
         self._git_cb = pygit2.RemoteCallbacks(credentials=credentials)
@@ -126,12 +126,12 @@ class ZabbixCI:
         )
 
         if self._settings.ZABBIX_USER and self._settings.ZABBIX_PASSWORD:
-            self.logger.info("Using username and password for authentication")
+            self.logger.debug("Using username and password for Zabbix authentication")
             await self._zabbix.zapi.login(
                 user=self._settings.ZABBIX_USER, password=self._settings.ZABBIX_PASSWORD
             )
         elif self._settings.ZABBIX_TOKEN:
-            self.logger.info("Using token for authentication")
+            self.logger.debug("Using token for Zabbix authentication")
             await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
 
         if self._zabbix.zapi.version < 7.0:
@@ -328,7 +328,7 @@ class ZabbixCI:
                 != zabbix_version.split(".")[0:2]
             ):
                 self.logger.warning(
-                    f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {'.'.join(zabbix_version.split('.')[0:2])}"
+                    f"Template {template.name}: {template.zabbix_version} must match Zabbix release {'.'.join(zabbix_version.split('.')[0:2])}"
                 )
                 continue
 
@@ -444,7 +444,7 @@ class ZabbixCI:
 
                 export_yaml = self.yaml.load(StringIO(response["result"]))
 
-                if not "templates" in export_yaml["zabbix_export"]:
+                if "templates" not in export_yaml["zabbix_export"]:
                     self.logger.info("No templates found in Zabbix")
                     return
 

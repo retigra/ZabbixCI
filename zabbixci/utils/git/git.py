@@ -128,7 +128,7 @@ class Git:
         """
         Fetch the changes from the remote repository
         """
-        if not "origin" in self._repository.remotes.names():
+        if "origin" not in self._repository.remotes.names():
             self._repository.remotes.create("origin", remote_url)
 
         remote = self._repository.remotes["origin"]
