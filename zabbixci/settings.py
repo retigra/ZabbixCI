@@ -30,6 +30,8 @@ class Settings:
     GIT_KEYPASSPHRASE = None
     CA_BUNDLE = None
     DRY_RUN = False
+    VENDOR = None
+    SET_VERSION = False
 
     @classmethod
     def from_env(cls):
