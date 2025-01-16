@@ -116,7 +116,7 @@ def read_args():
         "--set-version",
         help="Set version on import",
         action="store_true",
-        default=False,
+        default=None,
     )
 
     # ZabbixCI advanced
