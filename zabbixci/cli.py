@@ -213,10 +213,10 @@ def parse_cli():
 
 
 async def run_zabbixci(action: str):
-    zabbixci = ZabbixCI()
-    await zabbixci.create_zabbix()
-
     try:
+        zabbixci = ZabbixCI()
+        await zabbixci.create_zabbix()
+
         if action == "push":
             await zabbixci.push()
 
