@@ -38,7 +38,7 @@ class Template:
 
     @property
     def name(self):
-        return self._template["name"]
+        return self._template["template"]
 
     @property
     def uuid(self):
@@ -190,7 +190,7 @@ class Template:
         )
 
         with open(
-            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['name']}.yaml",
+            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['template']}.yaml",
             "w",
         ) as file:
             self._yaml_dump(file)
