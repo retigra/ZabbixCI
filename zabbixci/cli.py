@@ -109,6 +109,17 @@ def read_args():
         action="store_true",
         default=None,
     )
+    parser.add_argument(
+        "--vendor",
+        help="Vendor name for templates",
+        default=None,
+    )
+    parser.add_argument(
+        "--set-version",
+        help="Set version on import",
+        action="store_true",
+        default=False,
+    )
 
     # ZabbixCI advanced
     parser.add_argument(
