@@ -78,12 +78,35 @@ ignore_template_version: false
 ### Option: dry_run
 # Disabled non-reversible changes
 # Git push, Zabbix import and ZabbixCI
-#  template removal is disabled.
+# template removal is disabled.
 #
 # Mandatory: no
 # Default:
 dry_run: false
 
+### Option: vendor
+# Set the vendor for updated templates
+# String to fill the vendor_name field of a
+# Zabbix template when the template is updated
+# and pushed to Git, only when vendor_name was
+# previously empty.
+# Note: vendor_name and vendor_version must both be set
+# or unset for any given template.
+#
+# Mandatory: no
+# Default: null
+#vendor: null
+
+### Option: set_version
+# Update the vendor_version when a template is updated
+# Fills the vendor_version field with a timestamp
+# when a template is updated and pushed to git.
+# Note: vendor_name and vendor_version must both be set
+# or unset for a given template.
+#
+# Mandatory: no
+# Default:
+set_version: false
 
 #### ZABBIX CONFIGURATION ####
 
