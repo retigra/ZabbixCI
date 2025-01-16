@@ -40,6 +40,9 @@ Issues = "https://github.com/retigra/zabbixci/issues"
 Changelog = "https://github.com/retigra/zabbixci/releases"
 Discussions = "https://github.com/retigra/ZabbixCI/discussions"
 
+[project.scripts]
+zabbixci = "zabbixci.cli:parse_cli"
+
 [build-system]
 requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
@@ -49,5 +52,9 @@ include = ["zabbixci", "zabbixci.*"]
 
 [tool.setuptools_scm]
 
-[project.scripts]
-zabbixci = "zabbixci.cli:parse_cli"
+[tool.isort]
+profile = "black"
+
+[tool.black]
+include = '\.pyi?$'
+exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist)/'
