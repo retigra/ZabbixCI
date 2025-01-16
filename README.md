@@ -34,7 +34,7 @@ Alternatively, you can use a container image to run ZabbixCI, see the available
 [container images](https://github.com/retigra/ZabbixCI/pkgs/container/zabbixci).
 See the
 [Containerized Deployment](https://github.com/retigra/ZabbixCI/blob/main/docs/Containerized.md)
-documentation for more
+documentation for more information.
 
 ## Configuration
 
