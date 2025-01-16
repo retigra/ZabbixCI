@@ -195,7 +195,13 @@ class ZabbixCI:
 
             change_amount = len(changes)
 
-            for file in changes:
+            for file, status in changes.items():
+                self.logger.info(f"Detected change in {file}")
+
+                if status == FileStatus.WT_DELETED:
+                    self.logger.info(f"Detected deletion of {file}")
+                    continue
+
                 self.logger.info(f"Detected change in {file}")
 
                 template = Template.open(file)
