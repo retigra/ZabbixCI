@@ -5,15 +5,14 @@
 #
 # https://github.com/retigra/ZabbixCI
 
-
 #### GENERAL CONFIGURATION ####
 
 ### Option: root_template_group
 # Template group name in Zabbix to use
 # as root for synchronization.
-# 
+#
 # Mandatory: no
-# Default: 
+# Default:
 root_template_group: "Templates"
 
 ### Option: whitelist
@@ -31,7 +30,7 @@ template_whitelist: ""
 # All other templates will be synced.
 #
 # Mandatory: no
-# Default: 
+# Default:
 template_blacklist: ""
 
 ### Option: batch_size
@@ -42,7 +41,7 @@ template_blacklist: ""
 # frontend servers.
 #
 # Mandatory: yes
-# Default: 
+# Default:
 batch_size: 50
 
 ### Option: insecure_ssl_verify
@@ -122,16 +121,16 @@ zabbix_url: "http://localhost:8080"
 # This is preferred over using a user and
 # password.
 #
-# Required if zabbix_user and 
+# Required if zabbix_user and
 # zabbix_password are not set.
-# 
+#
 # Mandatory: no
 zabbix_token: ""
 
 ### Option: zabbix_user
 # Zabbix user to access your Zabbix frontend.
 # Please consider switching to using
-# an API token. 
+# an API token.
 #
 # Required if zabbix_token is not set.
 #
@@ -141,13 +140,12 @@ zabbix_user: ""
 ### Option: zabbix_password
 # Zabbix password to access your Zabbix frontend.
 # Please consider switching to using
-# an API token. 
+# an API token.
 #
 # Required if zabbix_token is not set.
 #
 # Mandatory: no
 zabbix_password: ""
-
 
 #### GIT CONFIGURATION ####
 
