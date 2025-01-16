@@ -210,7 +210,7 @@ class Git:
         merge_result, merge_pref = self._repository.merge_analysis(remote_id)
 
         if merge_result & MergeAnalysis.UP_TO_DATE:
-            logger.info("Already up to date")
+            logger.debug("Already up to date")
             return
 
         if merge_result & MergeAnalysis.FASTFORWARD:
