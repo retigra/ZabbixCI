@@ -212,10 +212,8 @@ class ZabbixCI:
                     template.set_version(new_version)
                     self.logger.debug(f"Setting version to {new_version}")
 
-                if (
-                    template.new_version
-                    or template.new_vendor
-                    and (template.vendor and template.version)
+                if (template.new_version or template.new_vendor) and (
+                    template.vendor and template.version
                 ):
                     template.save()
 
