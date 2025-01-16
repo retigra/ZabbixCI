@@ -328,7 +328,7 @@ class ZabbixCI:
                 != zabbix_version.split(".")[0:2]
             ):
                 self.logger.warning(
-                    f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {'.'.join(zabbix_version.split('.')[0:2])}"
+                    f"Template {template.name}: {template.zabbix_version} must match Zabbix release {'.'.join(zabbix_version.split('.')[0:2])}"
                 )
                 continue
 
