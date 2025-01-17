@@ -32,9 +32,8 @@ ZabbixCI provides the following features:
 * Removes deleted templates automatically (unless black- or whitelisting is used)
 * Fully configurable through cli arguments, config file or environment variables
 * Supports HTTP(S) and SSH auth for Git
-* Build with parallelization in mind to speed up the process
-* Batch sizes can be scaled to best suite your Zabbix environment
-* Version protection; only allows the import of Zabbix templates matching the version of your Zabbix server by default
+* Build with parallelization in mind to speed up the process (can be scaled for your needs)
+* Built-in version compatibility checking
 * Use dry runs to verify behavior without changes to Zabbix or Git
 * (Optional) Support for private CA servers to verify certificates
 * (Optional) Allow black-/whitelisting of templates
