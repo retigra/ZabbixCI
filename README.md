@@ -4,6 +4,13 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/retigra/ZabbixCI/pypi.yml?label=pypi%20build)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/retigra/ZabbixCI/ghcr.yaml?label=docker%20build)
 
+
+> [!WARNING]
+> This project is under active development, the code in the main branch should be relatively stable but things might break every now and then.
+> The releases that can be installed with `pip` are currently stable enough for testing.
+> If you run into unexpected bugs, please create an [issue](https://github.com/retigra/ZabbixCI/issues/new).
+> For questions about usage, please start a [discussion](https://github.com/retigra/ZabbixCI/discussions/new?category=q-a).
+
 # ZabbixCI
 
 ZabbixCI is a tool that adds continuous integration to Zabbix, allowing you to
@@ -27,7 +34,7 @@ Alternatively, you can use a container image to run ZabbixCI, see the available
 [container images](https://github.com/retigra/ZabbixCI/pkgs/container/zabbixci).
 See the
 [Containerized Deployment](https://github.com/retigra/ZabbixCI/blob/main/docs/Containerized.md)
-documentation for more
+documentation for more information.
 
 ## Configuration
 

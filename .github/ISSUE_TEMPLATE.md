@@ -39,6 +39,7 @@ section.
 - ZabbixCI version:
 - Zabbix version:
 - Python version:
+- Operating system version:
 
 ## Detailed Description
 
