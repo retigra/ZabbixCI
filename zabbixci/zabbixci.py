@@ -467,9 +467,9 @@ class ZabbixCI:
         Export Zabbix templates to the cache
         """
         templates = []
-        if Settings.TEMPLATE_WHITELIST:
+        if Settings.get_template_whitelist():
             templates = self._zabbix.get_templates_filtered(
-                [Settings.ROOT_TEMPLATE_GROUP], Settings.TEMPLATE_WHITELIST
+                [Settings.ROOT_TEMPLATE_GROUP], Settings.get_template_whitelist()
             )
         else:
             templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
@@ -514,13 +514,13 @@ class ZabbixCI:
         """
         Returns true if template should be ignored because of the blacklist or whitelist
         """
-        if template_name in Settings.TEMPLATE_BLACKLIST:
+        if template_name in Settings.get_template_blacklist():
             cls.logger.debug(f"Skipping blacklisted template {template_name}")
             return True
 
         if (
-            len(Settings.TEMPLATE_WHITELIST)
-            and template_name not in Settings.TEMPLATE_WHITELIST
+            len(Settings.get_template_whitelist())
+            and template_name not in Settings.get_template_whitelist()
         ):
             cls.logger.debug(f"Skipping non whitelisted template {template_name}")
             return True
