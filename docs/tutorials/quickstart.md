@@ -2,8 +2,7 @@
 For this tutorial, you will need to have a Zabbix server and a remote Git repository set up.
 We will be making a backup of your Zabbix templates using ZabbixCI and pushing them to your Git repository.
 
-After your templates are pushed to git, we will make changes and make sure they are pushed to git.
-
+After your templates are pushed to git, we will make changes to the templates to show how ZabbixCI can sync these changes.
 
 ## Prerequisites
 You will need the following things setup and working:
@@ -93,26 +92,46 @@ If everything is configured, we should now be able to perform a dry-run to see i
 
 ```console
 user@localhost:~/zabbixci$ zabbixci push -v --config ./config.yaml --dry-run
-2025-01-10 14:28:30,046 [zabbixci.zabbixci]  [INFO]: Using SSH keypair for authentication
-2025-01-10 14:28:34,785 [zabbixci.utils.git.git]  [INFO]: Already up to date
-2025-01-10 14:28:35,380 [zabbixci.zabbixci]  [INFO]: Found 281 templates in Zabbix
-2025-01-10 14:28:35,380 [zabbixci.zabbixci]  [INFO]: Processing export batch 1/6 [1/281]
-2025-01-10 14:28:55,850 [zabbixci.zabbixci]  [INFO]: Processing export batch 2/6 [51/281]
-2025-01-10 14:29:15,303 [zabbixci.zabbixci]  [INFO]: Processing export batch 3/6 [101/281]
-2025-01-10 14:29:34,956 [zabbixci.zabbixci]  [INFO]: Processing export batch 4/6 [151/281]
-2025-01-10 14:29:53,351 [zabbixci.zabbixci]  [INFO]: Processing export batch 5/6 [201/281]
-2025-01-10 14:30:12,140 [zabbixci.zabbixci]  [INFO]: Processing export batch 6/6 [251/281]
-2025-01-10 14:30:25,383 [zabbixci.zabbixci]  [INFO]: Remote differs from local state, preparing to push
-2025-01-10 14:30:25,682 [zabbixci.zabbixci]  [INFO]: Staged changes from your.zabbix.server committed to main
+2025-01-17 15:51:58,950 [zabbixci.zabbixci]  [INFO]: Found 282 templates in Zabbix
+2025-01-17 15:51:58,951 [zabbixci.zabbixci]  [INFO]: Processing batch 1/57
+2025-01-17 15:52:00,167 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template MikroTik RB2011iL-IN by SNMP
+2025-01-17 15:52:00,499 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template Brocade_Foundry Nonstackable by SNMP
+2025-01-17 15:52:00,971 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template MikroTik RB260GSP by SNMP
+2025-01-17 15:52:01,245 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template MySQL by Zabbix agent active
+2025-01-17 15:52:01,700 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template MikroTik hEX by SNMP
+...
+2025-01-17 15:54:01,121 [zabbixci.zabbixci]  [INFO]: Remote differs from local state, preparing to push
+2025-01-17 15:54:01,134 [zabbixci.zabbixci]  [INFO]: Detected change in Applications/Acronis Cyber Protect Cloud MSP by HTTP.yaml
+2025-01-17 15:54:01,300 [zabbixci.zabbixci]  [INFO]: Detected change in Applications/Acronis Cyber Protect Cloud by HTTP.yaml
+2025-01-17 15:54:01,312 [zabbixci.zabbixci]  [INFO]: Detected change in Applications/Apache ActiveMQ by JMX.yaml
+2025-01-17 15:54:01,404 [zabbixci.zabbixci]  [INFO]: Detected change in Applications/Apache Kafka by JMX.yaml
+2025-01-17 15:54:01,537 [zabbixci.zabbixci]  [INFO]: Detected change in Applications/Apache Tomcat by JMX.yaml
+...
+2025-01-17 15:54:53,360 [zabbixci.zabbixci]  [INFO]: Detected change in Telephony/Asterisk by HTTP.yaml
+2025-01-17 15:54:53,472 [zabbixci.zabbixci]  [INFO]: Detected change in Video surveillance/Hikvision camera by HTTP.yaml
+2025-01-17 15:54:53,959 [zabbixci.zabbixci]  [INFO]: Dry run enabled, would have committed 282 new changes to git@github.com:gituser/gitrepo.git:main
 user@localhost:~/zabbixci$
 ```
+
 If we don't see any errors, we can run the actual push with:
 `zabbixci push -v --config ./config.yaml`
+
+```
+...
+2025-01-17 16:00:29,719 [zabbixci.zabbixci]  [INFO]: Detected change in Server hardware/SMART by Zabbix agent 2 active.yaml
+2025-01-17 16:00:29,809 [zabbixci.zabbixci]  [INFO]: Detected change in Server hardware/SMART by Zabbix agent 2.yaml
+2025-01-17 16:00:29,901 [zabbixci.zabbixci]  [INFO]: Detected change in Server hardware/Supermicro Aten by SNMP.yaml
+2025-01-17 16:00:29,949 [zabbixci.zabbixci]  [INFO]: Detected change in Telephony/Asterisk by HTTP.yaml
+2025-01-17 16:00:30,063 [zabbixci.zabbixci]  [INFO]: Detected change in Video surveillance/Hikvision camera by HTTP.yaml
+2025-01-17 16:00:30,327 [zabbixci.zabbixci]  [INFO]: Staged changes from http://your.zabbix.server committed to main
+2025-01-17 16:00:34,885 [zabbixci.zabbixci]  [INFO]: Committed 282 new changes to git@github.com:gituser/gitrepo.git:main
+user@localhost:~/zabbixci$
+```
 
 Now, your templates should show up in your Git repository!
 ![image](pics/git_repo_filled.png)
 
-## Make a change
+## Make a change in Zabbix
 
 So, now we want to make a change to one of the templates in Zabbix and push this to the development branch in Git.
 
@@ -128,21 +147,21 @@ push_branch: develop
 
 Now, make a minor change to one of your Templates. In my case I added some text to the `description` field of the
 template `HP iLO by SNMP`.
+
 Rerun the command `zabbixci push -v --config ./config.yaml`:
 
 ```console
-2025-01-10 15:09:34,052 [zabbixci.zabbixci]  [INFO]: Using SSH keypair for authentication
-2025-01-10 15:09:37,710 [zabbixci.zabbixci]  [INFO]: Remote branch does not exist, using state from branch main
-2025-01-10 15:09:39,410 [zabbixci.utils.git.git]  [INFO]: Already up to date
-2025-01-10 15:09:40,274 [zabbixci.zabbixci]  [INFO]: Found 281 templates in Zabbix
-2025-01-10 15:09:40,274 [zabbixci.zabbixci]  [INFO]: Processing export batch 1/6 [1/281]
-2025-01-10 15:09:59,782 [zabbixci.zabbixci]  [INFO]: Processing export batch 2/6 [51/281]
-2025-01-10 15:10:18,896 [zabbixci.zabbixci]  [INFO]: Processing export batch 3/6 [101/281]
-2025-01-10 15:10:39,386 [zabbixci.zabbixci]  [INFO]: Processing export batch 4/6 [151/281]
-2025-01-10 15:10:58,650 [zabbixci.zabbixci]  [INFO]: Processing export batch 5/6 [201/281]
-2025-01-10 15:11:18,174 [zabbixci.zabbixci]  [INFO]: Processing export batch 6/6 [251/281]
-2025-01-10 15:11:30,626 [zabbixci.zabbixci]  [INFO]: Remote differs from local state, preparing to push
-2025-01-10 15:11:31,060 [zabbixci.zabbixci]  [INFO]: Staged changes from your.zabbix.server committed to develop
+2025-01-17 16:06:55,467 [zabbixci.zabbixci]  [INFO]: Found 282 templates in Zabbix
+2025-01-17 16:06:55,468 [zabbixci.zabbixci]  [INFO]: Processing batch 1/57
+2025-01-17 16:06:56,644 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template MikroTik RB2011iL-IN by SNMP
+2025-01-17 16:06:56,960 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template Brocade_Foundry Nonstackable by SNMP
+2025-01-17 16:06:57,410 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template MikroTik RB260GSP by SNMP
+...
+2025-01-17 16:08:55,070 [zabbixci.zabbixci]  [INFO]: Remote differs from local state, preparing to push
+2025-01-17 16:08:55,487 [zabbixci.zabbixci]  [INFO]: Detected change in Server hardware/HP iLO by SNMP.yaml
+2025-01-17 16:08:55,879 [zabbixci.zabbixci]  [INFO]: Staged changes from http://your.zabbix.server committed to main
+2025-01-17 16:08:57,454 [zabbixci.zabbixci]  [INFO]: Committed 1 new changes to git@github.com:gituser/gitrepo.git:main
+user@localhost:~/zabbixci$
 ```
 
 As you can see, some changes were detected and pushed to the `develop` branch.
@@ -150,3 +169,35 @@ You can see the diff in Git:
 ![image](pics/hp_ilo_change.png)
 
 
+## Make a change in Git
+
+Now, Let's make a change in Git and import the Change in Zabbix.
+In this case we will update the `vendor` and `version` fields in the template "Linux by Zabbix agent":
+
+![image](pics/linux_change.png)
+
+We can import the change into zabbix using the `zabbixci pull -v --config ./config.yaml` command:
+
+```console
+2025-01-17 16:23:30,600 [zabbixci.zabbixci]  [INFO]: Found 282 templates in Zabbix
+2025-01-17 16:23:30,600 [zabbixci.zabbixci]  [INFO]: Processing batch 1/57
+2025-01-17 16:23:31,840 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template MikroTik RB2011iL-IN by SNMP
+2025-01-17 16:23:32,154 [zabbixci.zabbixci]  [INFO]: Exported Zabbix template Brocade_Foundry Nonstackable by SNMP
+
+...
+2025-01-17 16:25:32,998 [zabbixci.zabbixci]  [INFO]: Detected local file changes, detecting changes for zabbix sync
+2025-01-17 16:25:33,449 [zabbixci.zabbixci]  [INFO]: Detected change in Linux by Zabbix agent
+2025-01-17 16:25:33,449 [zabbixci.zabbixci]  [INFO]: Importing Linux by Zabbix agent, level 1
+2025-01-17 16:25:35,018 [zabbixci.zabbixci]  [INFO]: Zabbix state has been synchronized, imported 1 templates and deleted 0 templates
+user@localhost:~/zabbixci$
+```
+
+Zabbix will now have the updated template:
+
+![image](pics/zabbix_template_version.png)
+
+
+## Conclusion
+
+Congratulations, in this tutorial you've learned the basic workings of ZabbixCI!
+Please refer to the [docs](https://github.com/retigra/ZabbixCI/tree/main/docs) for further information.
