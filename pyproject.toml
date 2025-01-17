@@ -60,6 +60,7 @@ build-backend = "setuptools.build_meta"
 include = ["zabbixci", "zabbixci.*"]
 
 [tool.setuptools_scm]
+version_file = "zabbixci/_version.py"
 
 [tool.isort]
 profile = "black"
