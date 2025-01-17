@@ -34,7 +34,7 @@ dependencies = [
     "aiohttp>=3.11.11",
     "pygit2>=1.17.0",
     "regex>=2024.11.6",
-    "ruamel-base>=1.0.0",
+    "ruamel.yaml>=0.18.10",
     "zabbix_utils>=2.0.2",
 ]
 license = { file = "LICENSE.txt" }
