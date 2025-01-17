@@ -21,6 +21,28 @@ servers.
 > [!NOTE]
 > ZabbixCI has no affiliation with [Zabbix SIA](https://www.zabbix.com).
 
+## Features
+
+ZabbixCI provides the following features:
+
+* Easily installable through pip or docker, depending on your need
+* Export templates from Zabbix and push them to Git
+* Pull templates from Git and import them in Zabbix
+* Only changed or new templates will be processed during Git push or Zabbix import actions
+* Removes deleted templates automatically (unless black- or whitelisting is used)
+* Fully configurable through cli arguments, config file or environment variables
+* Supports HTTP(S) and SSH auth for Git
+* Build with parallelization in mind to speed up the process
+* Batch sizes can be scaled to best suite your Zabbix environment
+* Version protection; only allows the import of Zabbix templates matching the version of your Zabbix server by default
+* Use dry runs to verify behavior without changes to Zabbix or Git
+* (Optional) Support for private CA servers to verify certificates
+* (Optional) Allow black-/whitelisting of templates
+* (Optional) Use separate branches for push and pull transactions
+* (Optional) Allow automatic versioning of exported templates based on timestamps
+* (Optional) Automatically populate vendor field in templates
+
+
 ## Installation
 
 ZabbixCI is available on [PyPI](https://pypi.org/project/zabbixci/) and can be
