@@ -2,7 +2,9 @@ import argparse
 import asyncio
 import logging
 import logging.config
+from sys import version_info
 
+from zabbixci._version import __version__
 from zabbixci.settings import Settings
 from zabbixci.zabbixci import ZabbixCI
 
@@ -19,7 +21,7 @@ def read_args():
     parser.add_argument(
         "action",
         help="The action to perform",
-        choices=["push", "pull", "clearcache"],
+        choices=["push", "pull", "clearcache", "version"],
     )
 
     # Provide configuration as file
@@ -211,15 +213,33 @@ def parse_cli():
 
 
 async def run_zabbixci(action: str):
-    try:
-        zabbixci = ZabbixCI()
-        await zabbixci.create_zabbix()
+    zabbixci = ZabbixCI()
 
-        if action == "push":
+    try:
+        if action == "version":
+            zapi_version = "Unknown"
+            try:
+                await zabbixci.create_zabbix()
+            except Exception:
+                pass
+
+            if zabbixci._zabbix:
+                zapi_version = str(zabbixci._zabbix.zapi.version)
+
+            print(f"ZabbixCI version {__version__}")
+            print(f"ZabbixAPI version {zapi_version}")
+            print(
+                f"Python version {version_info.major}.{version_info.minor}.{version_info.micro}"
+            )
+
+        elif action == "push":
+            await zabbixci.create_zabbix()
             await zabbixci.push()
 
         elif action == "pull":
+            await zabbixci.create_zabbix()
             await zabbixci.pull()
+
     except KeyboardInterrupt:
         logger.error("Interrupted by user")
     except SystemExit as e:
