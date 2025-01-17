@@ -466,7 +466,13 @@ class ZabbixCI:
         """
         Export Zabbix templates to the cache
         """
-        templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
+        templates = []
+        if Settings.TEMPLATE_WHITELIST:
+            templates = self._zabbix.get_templates_filtered(
+                [Settings.ROOT_TEMPLATE_GROUP], Settings.TEMPLATE_WHITELIST
+            )
+        else:
+            templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
 
         self.logger.info(f"Found {len(templates)} templates in Zabbix")
         self.logger.debug(f"Found Zabbix templates: {[t['host'] for t in templates]}")
