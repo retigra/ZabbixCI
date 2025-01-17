@@ -178,7 +178,7 @@ class ZabbixCI:
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
             self.logger.info("No changes detected")
-            return
+            return False
 
         self.logger.info("Remote differs from local state, preparing to push")
         change_amount = len(self._git.status())
@@ -251,6 +251,8 @@ class ZabbixCI:
             self.logger.info(
                 f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
             )
+
+        return change_amount > 0
 
     async def pull(self):
         """
@@ -417,6 +419,8 @@ class ZabbixCI:
 
         # clean local changes
         self._git.clean()
+
+        return len(templates) > 0 or len(deletion_queue) > 0
 
     async def zabbix_export(self, templates: list[dict]):
         batches = [
