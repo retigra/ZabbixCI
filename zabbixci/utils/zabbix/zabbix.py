@@ -40,6 +40,17 @@ class Zabbix:
             "template.get", {"groupids": template_group_ids}
         )["result"]
 
+    def get_templates_filtered(
+        self, template_group_names: list[dict], filter: list[str]
+    ):
+        ids = self._get_template_group(template_group_names)
+
+        template_group_ids = [group["groupid"] for group in ids]
+
+        return self.zapi.send_sync_request(
+            "template.get", {"groupids": template_group_ids, "filter": {"host": filter}}
+        )["result"]
+
     def set_template(self, template_id: int, dict: dict):
         return self.zapi.send_sync_request(
             "template.update", {"templateid": template_id, **dict}

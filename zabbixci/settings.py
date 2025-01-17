@@ -17,8 +17,8 @@ class Settings:
     PULL_BRANCH = "main"
     PUSH_BRANCH = "main"
     TEMPLATE_PREFIX_PATH = ""
-    TEMPLATE_WHITELIST = []
-    TEMPLATE_BLACKLIST = []
+    TEMPLATE_WHITELIST = str
+    TEMPLATE_BLACKLIST = str
     CACHE_PATH = "./cache"
     BATCH_SIZE = 5
     IGNORE_TEMPLATE_VERSION = False
@@ -32,6 +32,14 @@ class Settings:
     DRY_RUN = False
     VENDOR = None
     SET_VERSION = False
+
+    @classmethod
+    def get_template_whitelist(cls):
+        return cls.TEMPLATE_WHITELIST.split(",")
+
+    @classmethod
+    def get_template_blacklist(cls):
+        return cls.TEMPLATE_BLACKLIST.split(",")
 
     @classmethod
     def from_env(cls):

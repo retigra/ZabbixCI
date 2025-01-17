@@ -178,7 +178,7 @@ class ZabbixCI:
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
             self.logger.info("No changes detected")
-            return
+            return False
 
         self.logger.info("Remote differs from local state, preparing to push")
         change_amount = len(self._git.status())
@@ -251,6 +251,8 @@ class ZabbixCI:
             self.logger.info(
                 f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
             )
+
+        return change_amount > 0
 
     async def pull(self):
         """
@@ -418,6 +420,8 @@ class ZabbixCI:
         # clean local changes
         self._git.clean()
 
+        return len(templates) > 0 or len(deletion_queue) > 0
+
     async def zabbix_export(self, templates: list[dict]):
         batches = [
             templates[i : i + Settings.BATCH_SIZE]
@@ -466,7 +470,13 @@ class ZabbixCI:
         """
         Export Zabbix templates to the cache
         """
-        templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
+        templates = []
+        if Settings.get_template_whitelist():
+            templates = self._zabbix.get_templates_filtered(
+                [Settings.ROOT_TEMPLATE_GROUP], Settings.get_template_whitelist()
+            )
+        else:
+            templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
 
         self.logger.info(f"Found {len(templates)} templates in Zabbix")
         self.logger.debug(f"Found Zabbix templates: {[t['host'] for t in templates]}")
@@ -508,13 +518,13 @@ class ZabbixCI:
         """
         Returns true if template should be ignored because of the blacklist or whitelist
         """
-        if template_name in Settings.TEMPLATE_BLACKLIST:
+        if template_name in Settings.get_template_blacklist():
             cls.logger.debug(f"Skipping blacklisted template {template_name}")
             return True
 
         if (
-            len(Settings.TEMPLATE_WHITELIST)
-            and template_name not in Settings.TEMPLATE_WHITELIST
+            len(Settings.get_template_whitelist())
+            and template_name not in Settings.get_template_whitelist()
         ):
             cls.logger.debug(f"Skipping non whitelisted template {template_name}")
             return True
