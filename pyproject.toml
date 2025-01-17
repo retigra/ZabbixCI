@@ -30,7 +30,13 @@ maintainers = [
     { name = "Raymond Kuiper", email = "raymond.kuiper@retigra.nl" },
 ]
 
-dependencies = ["zabbix-utils", "ruamel.yaml", "regex", "pygit2", "aiohttp"]
+dependencies = [
+    "aiohttp>=3.11.11",
+    "pygit2>=1.17.0",
+    "regex>=2024.11.6",
+    "ruamel-base>=1.0.0",
+    "zabbix_utils>=2.0.2",
+]
 license = { file = "LICENSE.txt" }
 
 [project.urls]
@@ -39,6 +45,12 @@ Repository = "https://github.com/retigra/zabbixci"
 Issues = "https://github.com/retigra/zabbixci/issues"
 Changelog = "https://github.com/retigra/zabbixci/releases"
 Discussions = "https://github.com/retigra/ZabbixCI/discussions"
+
+[project.scripts]
+zabbixci = "zabbixci.cli:parse_cli"
+
+[project.optional-dependencies]
+dev = ["black>=24.10.0", "isort>=5.13.2", "flake8>=7.1.1"]
 
 [build-system]
 requires = ["setuptools>=64", "setuptools_scm>=8"]
@@ -49,5 +61,9 @@ include = ["zabbixci", "zabbixci.*"]
 
 [tool.setuptools_scm]
 
-[project.scripts]
-zabbixci = "zabbixci.cli:parse_cli"
+[tool.isort]
+profile = "black"
+
+[tool.black]
+include = '\.pyi?$'
+exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist)/'

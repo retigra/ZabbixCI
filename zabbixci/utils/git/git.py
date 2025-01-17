@@ -128,7 +128,7 @@ class Git:
         """
         Fetch the changes from the remote repository
         """
-        if not "origin" in self._repository.remotes.names():
+        if "origin" not in self._repository.remotes.names():
             self._repository.remotes.create("origin", remote_url)
 
         remote = self._repository.remotes["origin"]
@@ -210,7 +210,7 @@ class Git:
         merge_result, merge_pref = self._repository.merge_analysis(remote_id)
 
         if merge_result & MergeAnalysis.UP_TO_DATE:
-            logger.info("Already up to date")
+            logger.debug("Already up to date")
             return
 
         if merge_result & MergeAnalysis.FASTFORWARD:

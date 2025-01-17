@@ -21,6 +21,9 @@ class Template:
     _export: dict
     _level: int = None
 
+    new_version = False
+    new_vendor = False
+
     @property
     def is_template(self):
         return "templates" in self._export
@@ -35,7 +38,7 @@ class Template:
 
     @property
     def name(self):
-        return self._template["name"]
+        return self._template["template"]
 
     @property
     def uuid(self):
@@ -61,7 +64,7 @@ class Template:
         # specifying the lowest child in the hierarchy
         for group in self._template["groups"]:
             name: str = group["name"]
-            if not Settings.ROOT_TEMPLATE_GROUP in name:
+            if Settings.ROOT_TEMPLATE_GROUP not in name:
                 continue
 
             split = regex.split(r"\/+", name)
@@ -96,6 +99,43 @@ class Template:
     def zabbix_version(self):
         return self._export["version"]
 
+    @property
+    def vendor(self):
+        if "vendor" not in self._template:
+            return ""
+
+        return (
+            self._template["vendor"]["name"]
+            if "name" in self._template["vendor"]
+            else ""
+        )
+
+    @property
+    def version(self):
+        if "vendor" not in self._template:
+            return ""
+
+        return (
+            self._template["vendor"]["version"]
+            if "version" in self._template["vendor"]
+            else ""
+        )
+
+    @property
+    def updated_items(self):
+        """
+        dict containg the new vendor and or version
+        """
+        updates = {}
+
+        if self.new_vendor:
+            updates["vendor_name"] = self.vendor
+
+        if self.new_version:
+            updates["vendor_version"] = self.version
+
+        return updates
+
     def __init__(self, export: dict):
         self._export = export
 
@@ -108,6 +148,38 @@ class Template:
         """
         yaml.dump({"zabbix_export": self._export}, stream)
 
+    def _insert_vendor_dict(self):
+        """
+        Insert vendor dict into export.
+        Vendor needs to be positioned after description
+        to match the Zabbix export format
+        """
+        description_index = list(self._template.keys()).index("description")
+
+        items = list(self._template.items())
+        items.insert(description_index + 1, ("vendor", {}))
+        self._export["templates"][0] = dict(items)
+
+    def set_vendor(self, vendor: str):
+        """
+        Set the vendor of the template
+        """
+        if "vendor" not in self._export["templates"][0]:
+            self._insert_vendor_dict()
+
+        self._export["templates"][0]["vendor"]["name"] = vendor
+        self.new_vendor = True
+
+    def set_version(self, version: str):
+        """
+        Set the version of the template
+        """
+        if "vendor" not in self._export["templates"][0]:
+            self._insert_vendor_dict()
+
+        self._export["templates"][0]["vendor"]["version"] = version
+        self.new_version = True
+
     def save(self):
         """
         Save the template to the cache
@@ -118,7 +190,7 @@ class Template:
         )
 
         with open(
-            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['name']}.yaml",
+            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['template']}.yaml",
             "w",
         ) as file:
             self._yaml_dump(file)
