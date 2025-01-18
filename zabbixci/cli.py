@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import logging
 import logging.config
 
@@ -12,9 +13,7 @@ logger = logging.getLogger(__name__)
 
 def read_args():
     parser = argparse.ArgumentParser(
-        description="""ZabbixCI is a tool to manage Zabbix templates in a Git repository.
-        
-        ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.""",
+        description="ZabbixCI is a tool to manage Zabbix templates in a Git repository. ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.",
         prog="zabbixci",
     )
     parser.add_argument(
@@ -108,6 +107,17 @@ def read_args():
         action="store_true",
         default=None,
     )
+    parser.add_argument(
+        "--vendor",
+        help="Vendor name for templates",
+        default=None,
+    )
+    parser.add_argument(
+        "--set-version",
+        help="Set version on import",
+        action="store_true",
+        default=None,
+    )
 
     # ZabbixCI advanced
     parser.add_argument(
@@ -194,16 +204,34 @@ def parse_cli():
 
     logger.debug(f"Settings: {settings_debug}")
 
-    if args.action == "push":
-        zabbixci = ZabbixCI()
-        zabbixci.push()
-
-    elif args.action == "pull":
-        zabbixci = ZabbixCI()
-        zabbixci.pull()
-
-    elif args.action == "clearcache":
+    if args.action == "clearcache":
         ZabbixCI.cleanup_cache(full=True)
+    else:
+        asyncio.run(run_zabbixci(args.action))
+
+
+async def run_zabbixci(action: str):
+    try:
+        zabbixci = ZabbixCI()
+        await zabbixci.create_zabbix()
+
+        if action == "push":
+            await zabbixci.push()
+
+        elif action == "pull":
+            await zabbixci.pull()
+    except KeyboardInterrupt:
+        logger.error("Interrupted by user")
+    except SystemExit as e:
+        logger.debug(f"Script exited with code {e.code}")
+    except Exception:
+        logger.error("Unexpected error:", exc_info=True)
+    finally:
+        await zabbixci._zabbix.zapi.logout()
+
+        # Close custom session, if it exists
+        if zabbixci._zabbix._client_session:
+            await zabbixci._zabbix._client_session.close()
 
 
 if __name__ == "__main__":

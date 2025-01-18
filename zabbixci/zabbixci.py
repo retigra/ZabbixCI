@@ -1,8 +1,9 @@
+import asyncio
 import logging
 import os
 import ssl
-import timeit
 import urllib.error
+from datetime import datetime, timezone
 from io import StringIO
 from urllib.request import Request, urlopen
 
@@ -37,7 +38,6 @@ class ZabbixCI:
             self.logger = logger
 
         self.create_git_callback()
-        self.create_zabbix()
         self.create_git()
 
     def validate_ssl_cert(self, cert: None, valid: bool, hostname: bytes):
@@ -84,12 +84,12 @@ class ZabbixCI:
         :param settings: Settings object
         """
         if self._settings.GIT_USERNAME and self._settings.GIT_PASSWORD:
-            self.logger.info("Using username and password for authentication")
+            self.logger.debug("Using username and password for Git authentication")
             credentials = pygit2.UserPass(
                 self._settings.GIT_USERNAME, self._settings.GIT_PASSWORD
             )
         elif self._settings.GIT_PUBKEY and self._settings.GIT_PRIVKEY:
-            self.logger.info("Using SSH keypair for authentication")
+            self.logger.debug("Using SSH keypair for Git authentication")
             credentials = pygit2.Keypair(
                 self._settings.GIT_USERNAME,
                 self._settings.GIT_PUBKEY,
@@ -97,7 +97,7 @@ class ZabbixCI:
                 self._settings.GIT_KEYPASSPHRASE,
             )
         else:
-            self.logger.info("Using SSH agent for authentication")
+            self.logger.debug("Using SSH agent for Git authentication")
             credentials = pygit2.KeypairFromAgent(self._settings.GIT_USERNAME)
 
         self._git_cb = pygit2.RemoteCallbacks(credentials=credentials)
@@ -109,7 +109,7 @@ class ZabbixCI:
             # Validate certificates with the provided CA bundle
             self._git_cb.certificate_check = self.validate_ssl_cert
 
-    def create_zabbix(self):
+    async def create_zabbix(self):
         """
         Create a Zabbix object with the appropriate credentials
         """
@@ -121,12 +121,24 @@ class ZabbixCI:
 
         self._zabbix = Zabbix(
             url=self._settings.ZABBIX_URL,
-            user=self._settings.ZABBIX_USER,
-            password=self._settings.ZABBIX_PASSWORD,
-            token=self._settings.ZABBIX_TOKEN,
             validate_certs=not self._settings.INSECURE_SSL_VERIFY,
             ssl_context=self._ssl_context,
         )
+
+        if self._settings.ZABBIX_USER and self._settings.ZABBIX_PASSWORD:
+            self.logger.debug("Using username and password for Zabbix authentication")
+            await self._zabbix.zapi.login(
+                user=self._settings.ZABBIX_USER, password=self._settings.ZABBIX_PASSWORD
+            )
+        elif self._settings.ZABBIX_TOKEN:
+            self.logger.debug("Using token for Zabbix authentication")
+            await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
+
+        if self._zabbix.zapi.version < 7.0:
+            self.logger.error(
+                f"Zabbix server version {self._zabbix.zapi.version} is not supported (7.0+ required)"
+            )
+            raise SystemExit(1)
 
     def create_git(self):
         """
@@ -134,7 +146,7 @@ class ZabbixCI:
         """
         self._git = Git(self._settings.CACHE_PATH, self._git_cb)
 
-    def push(self):
+    async def push(self):
         """
         Fetch Zabbix state and commit changes to git remote
         """
@@ -161,42 +173,86 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        self.zabbix_to_file()
+        templates = await self.zabbix_to_file()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
             self.logger.info("No changes detected")
-            exit()
+            return
 
         self.logger.info("Remote differs from local state, preparing to push")
+        change_amount = len(self._git.status())
 
-        # Commit and push the changes
-        self._git.add_all()
-
-        host = os.getenv(
-            "ZABBIX_HOST", search("https?://([^/]+)", self._zabbix.zapi.url).group(1)
-        )
-
+        # Check if we have any changes to commit. Otherwise, we just push the current state
         if self._git.has_changes:
             # Create a commit
-            changes = self._git.diff()
-            files = [patch.delta.new_file.path for patch in changes]
+            changes = self._git.status()
 
-            for file in files:
+            host = os.getenv(
+                "ZABBIX_HOST",
+                search("https?://([^/]+)", self._zabbix.zapi.url).group(1),
+            )
+
+            change_amount = len(changes)
+
+            for file, status in changes.items():
+                if status == FileStatus.WT_DELETED:
+                    self.logger.info(f"Detected deletion of {file}")
+                    continue
+
                 self.logger.info(f"Detected change in {file}")
 
-            # Generate commit message
-            self._git.commit(f"Committed Zabbix state from {host}")
-            self.logger.info(
-                f"Staged changes from {host} committed to {self._git.current_branch}"
-            )
+                template = Template.open(file)
+
+                if Settings.VENDOR and not template.vendor:
+                    set_vendor = Settings.VENDOR
+                    template.set_vendor(set_vendor)
+                    self.logger.debug(f"Setting vendor to {set_vendor}")
+
+                if Settings.SET_VERSION:
+                    new_version = datetime.now(timezone.utc).strftime("%Y.%m.%d %H:%M")
+                    template.set_version(new_version)
+                    self.logger.debug(f"Setting version to {new_version}")
+
+                if (template.new_version or template.new_vendor) and (
+                    template.vendor and template.version
+                ):
+                    template.save()
+
+                    if not Settings.DRY_RUN:
+                        self.logger.debug(
+                            f"Updating template metadata for {template.name}"
+                        )
+                        self._zabbix.set_template(
+                            next(
+                                filter(lambda t: t["name"] == template.name, templates)
+                            )["templateid"],
+                            template.updated_items,
+                        )
+
+            # Commit and push the changes
+            self._git.add_all()
+
+            if not Settings.DRY_RUN:
+                # Generate commit message
+                self._git.commit(f"Committed Zabbix state from {host}")
+                self.logger.info(
+                    f"Staged changes from {host} committed to {self._git.current_branch}"
+                )
         else:
             self.logger.info("No staged changes, updating remote with current state")
 
         if not self._settings.DRY_RUN:
             self._git.push(Settings.REMOTE, self._git_cb)
+            self.logger.info(
+                f"Committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+            )
+        else:
+            self.logger.info(
+                f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+            )
 
-    def pull(self):
+    async def pull(self):
         """
         Pull current state from git remote and update Zabbix
         """
@@ -215,7 +271,7 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        self.zabbix_to_file()
+        template_objects = await self.zabbix_to_file()
 
         zabbix_version = self._zabbix.get_server_version()
 
@@ -230,12 +286,12 @@ class ZabbixCI:
 
         # Get the changed files, we compare the untracked changes with the desired.
         # When we have a new untracked file, that means it was deleted in the desired state.
-        files = [
+        files: list[str] = [
             path
             for path, flags in status.items()
             if flags in [FileStatus.WT_DELETED, FileStatus.WT_MODIFIED]
         ]
-        deleted_files = [
+        deleted_files: list[str] = [
             path for path, flags in status.items() if flags == FileStatus.WT_NEW
         ]
 
@@ -272,7 +328,7 @@ class ZabbixCI:
                 != zabbix_version.split(".")[0:2]
             ):
                 self.logger.warning(
-                    f"Template {template.name}: {template.zabbix_version} must match major Zabbix version {'.'.join(zabbix_version.split('.')[0:2])}"
+                    f"Template {template.name}: {template.zabbix_version} must match Zabbix release {'.'.join(zabbix_version.split('.')[0:2])}"
                 )
                 continue
 
@@ -280,24 +336,39 @@ class ZabbixCI:
             self.logger.info(f"Detected change in {template.name}")
 
         if len(templates):
-            tic = timeit.default_timer()
-
             # Group templates by level
             templates = sorted(
                 templates, key=lambda template: template.level(templates)
             )
 
-            toc = timeit.default_timer()
-            self.logger.info("Sorted templates in {:.2f}s".format(toc - tic))
+            failed_templates: list[Template] = []
 
             # Import the templates
             for template in templates:
                 self.logger.info(f"Importing {template.name}, level {template._level}")
 
                 if not self._settings.DRY_RUN:
-                    self._zabbix.import_template(template)
+                    try:
+                        self._zabbix.import_template(template)
+                    except Exception as e:
+                        self.logger.warning(
+                            f"Error importing template {template.name}, will try to import later"
+                        )
+                        self.logger.debug(f"Error details: {e}")
+                        failed_templates.append(template)
 
-        template_names = []
+            if len(failed_templates):
+                for template in failed_templates:
+                    try:
+                        self._zabbix.import_template(template)
+                    except Exception as e:
+                        self.logger.error(f"Error importing template {template}: {e}")
+
+        deletion_queue = []
+        imported_template_ids = []
+
+        for t in templates:
+            imported_template_ids.extend(t.template_ids)
 
         # Delete the deleted templates
         for file in deleted_files:
@@ -310,71 +381,98 @@ class ZabbixCI:
             if self.ignore_template(template.name):
                 continue
 
-            if template.uuid in [t.uuid for t in templates]:
+            if template.uuid in imported_template_ids:
                 self.logger.debug(
                     f"Template {template.name} is being imported under a different name or path, skipping deletion"
                 )
                 continue
 
-            template_names.append(template.name)
+            deletion_queue.append(template.name)
             self.logger.info(f"Added {template.name} to deletion queue")
 
-        if len(template_names):
-            self.logger.info(f"Deleting {len(template_names)} templates from Zabbix")
+        if len(deletion_queue):
+            self.logger.info(f"Deleting {len(deletion_queue)} templates from Zabbix")
             template_ids = [
-                t["templateid"] for t in self._zabbix.get_templates_name(template_names)
+                t["templateid"]
+                for t in list(
+                    filter(lambda t: t["name"] in deletion_queue, template_objects)
+                )
             ]
 
             if len(template_ids):
                 if not self._settings.DRY_RUN:
                     self._zabbix.delete_template(template_ids)
 
+        if Settings.DRY_RUN:
+            self.logger.info(
+                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(templates)} templates and deleted {len(deletion_queue)} templates"
+            )
+        else:
+            if len(deletion_queue) == 0 and len(templates) == 0:
+                self.logger.info("No changes detected, Zabbix is up to date")
+            else:
+                self.logger.info(
+                    f"Zabbix state has been synchronized, imported {len(templates)} templates and deleted {len(deletion_queue)} templates"
+                )
+
         # clean local changes
         self._git.clean()
 
-    def zabbix_to_file(self) -> None:
+    async def zabbix_export(self, templates: list[dict]):
+        batches = [
+            templates[i : i + Settings.BATCH_SIZE]
+            for i in range(0, len(templates), Settings.BATCH_SIZE)
+        ]
+
+        failed_exports = []
+
+        for index, batch in enumerate(batches):
+            self.logger.info(f"Processing batch {index + 1}/{len(batches)}")
+            coros = []
+            for t in batch:
+                coros.append(self._zabbix.export_template_async([t["templateid"]]))
+
+            responses = await asyncio.gather(*coros, return_exceptions=True)
+
+            for index, response in enumerate(responses):
+                if isinstance(response, Exception):
+                    self.logger.error(f"Error exporting template: {response}")
+
+                    # Retry the export
+                    failed_exports.append(batch[index])
+                    continue
+
+                export_yaml = self.yaml.load(StringIO(response["result"]))
+
+                if "templates" not in export_yaml["zabbix_export"]:
+                    self.logger.info("No templates found in Zabbix")
+                    return
+
+                zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
+
+                if self.ignore_template(zabbix_template.name):
+                    continue
+
+                zabbix_template.save()
+                self.logger.info(f"Exported Zabbix template {zabbix_template.name}")
+
+        if len(failed_exports):
+            self.logger.warning(
+                f"Failed to export {len(failed_exports)} templates, retrying"
+            )
+            await self.zabbix_export(failed_exports)
+
+    async def zabbix_to_file(self) -> list[str]:
         """
         Export Zabbix templates to the cache
         """
         templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
 
         self.logger.info(f"Found {len(templates)} templates in Zabbix")
-        self.logger.debug(f"Found Zabbix templates: {[t['name'] for t in templates]}")
+        self.logger.debug(f"Found Zabbix templates: {[t['host'] for t in templates]}")
 
-        # Split by Settings.BATCH_SIZE
-        batches = [
-            templates[i : i + Settings.BATCH_SIZE]
-            for i in range(0, len(templates), Settings.BATCH_SIZE)
-        ]
-
-        for index, batch in enumerate(batches):
-            self.logger.info(
-                f"Processing export batch {index + 1}/{len(batches)} [{(index * Settings.BATCH_SIZE) + 1}/{len(templates)}]"
-            )
-
-            # Get the templates
-            template_yaml = self._zabbix.export_template(
-                [template["templateid"] for template in batch]
-            )
-
-            export_yaml = self.yaml.load(StringIO(template_yaml))
-
-            if not "templates" in export_yaml["zabbix_export"]:
-                self.logger.info("No templates found in Zabbix")
-                return
-
-            # Write the templates to the cache
-            for template in export_yaml["zabbix_export"]["templates"]:
-                template = Template.from_zabbix(
-                    template,
-                    export_yaml["zabbix_export"]["template_groups"],
-                    export_yaml["zabbix_export"]["version"],
-                )
-
-                if self.ignore_template(template.name):
-                    continue
-
-                template.save()
+        await self.zabbix_export(templates)
+        return templates
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:

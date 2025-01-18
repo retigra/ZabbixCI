@@ -20,7 +20,7 @@ class Settings:
     TEMPLATE_WHITELIST = []
     TEMPLATE_BLACKLIST = []
     CACHE_PATH = "./cache"
-    BATCH_SIZE = 50
+    BATCH_SIZE = 5
     IGNORE_TEMPLATE_VERSION = False
     INSECURE_SSL_VERIFY = False
     GIT_USERNAME = "git"
@@ -30,6 +30,8 @@ class Settings:
     GIT_KEYPASSPHRASE = None
     CA_BUNDLE = None
     DRY_RUN = False
+    VENDOR = None
+    SET_VERSION = False
 
     @classmethod
     def from_env(cls):
