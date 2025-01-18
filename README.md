@@ -68,14 +68,8 @@ free to use the method that best suits your workflow.
 
 ## Usage
 
-Please see [Docs](https://github.com/retigra/ZabbixCI/tree/main/docs/README.md)
-for extended details on usage. The `zabbixci` command can be used to synchronize
-Zabbix templates with a Git repository. `--help` will give you an overview of
-the options.
-
-```bash
-zabbixci --help
-```
+We have a [quickstart tutorial](https://github.com/retigra/ZabbixCI/tree/main/docs/tutorials/quickstart.md) for first time users.
+Please see the [Docs](https://github.com/retigra/ZabbixCI/tree/main/docs/README.md) for extended details if needed. 
 
 # License
 
