@@ -97,6 +97,11 @@ class Zabbix:
                         "updateExisting": True,
                         "deleteMissing": True,
                     },
+                    "templateDashboards": {
+                        "createMissing": True,
+                        "updateExisting": True,
+                        "deleteMissing": True,
+                    },
                     "triggers": {
                         "createMissing": True,
                         "updateExisting": True,
