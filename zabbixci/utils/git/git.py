@@ -75,12 +75,6 @@ class Git:
         """
         return self._repository.head.target
 
-    def diff(self, *args: P.args, **kwargs: P.kwargs):
-        """
-        Get the diff of the changes
-        """
-        return self._repository.diff(*args, **kwargs)
-
     def status(self, *args: P.args, **kwargs: P.kwargs):
         """
         Get the status of the repository
@@ -134,6 +128,9 @@ class Git:
         remote = self._repository.remotes["origin"]
 
         remote.fetch(callbacks=callbacks)
+
+    def lookup_reference(self, name: str):
+        return self._repository.lookup_reference(name)
 
     def commit(self, message: str):
         """

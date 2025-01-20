@@ -40,13 +40,9 @@ class ZabbixCI:
         self.create_git_callback()
         self.create_git()
 
-    def validate_ssl_cert(self, cert: None, valid: bool, hostname: bytes):
+    def validate_ssl_cert(self, _cert: None, valid: bool, hostname: bytes):
         """
         Callback function for pygit2 RemoteCallbacks object to validate SSL certificates
-
-        :param cert: Certificate object (this is always None in pygit2)
-        :param valid: Whether the certificate is valid
-        :param hostname: Hostname of the certificate
         """
         hostname_str = hostname.decode("utf-8")
 
@@ -59,7 +55,7 @@ class ZabbixCI:
             return True
 
         # Check if the certificate matches in SSL context
-        # Certificate is not given by pygit2, so we request it ourself
+        # Certificate is not given by pygit2, so we request it ourselves
         # by making a request to the hostname with urllib
         try:
             req = Request(
@@ -80,8 +76,6 @@ class ZabbixCI:
         """
         Create a pygit2 RemoteCallbacks object with the appropriate credentials
         Handles both username/password and SSH keypair authentication
-
-        :param settings: Settings object
         """
         if self._settings.GIT_USERNAME and self._settings.GIT_PASSWORD:
             self.logger.debug("Using username and password for Git authentication")
@@ -263,7 +257,7 @@ class ZabbixCI:
         # Pull the latest remote state, untracked changes are preserved
         self._git.pull(Settings.REMOTE, self._git_cb)
         self._git.reset(
-            self._git._repository.lookup_reference(
+            self._git.lookup_reference(
                 f"refs/remotes/origin/{Settings.PULL_BRANCH}"
             ).target,
             ResetMode.HARD,
@@ -339,15 +333,15 @@ class ZabbixCI:
 
         if len(templates):
             # Group templates by level
-            templates = sorted(
-                templates, key=lambda template: template.level(templates)
-            )
+            templates = sorted(templates, key=lambda tl: tl.level(templates))
 
             failed_templates: list[Template] = []
 
             # Import the templates
             for template in templates:
-                self.logger.info(f"Importing {template.name}, level {template._level}")
+                self.logger.info(
+                    f"Importing {template.name}, level {template.level(templates)}"
+                )
 
                 if not self._settings.DRY_RUN:
                     try:
@@ -397,7 +391,7 @@ class ZabbixCI:
             template_ids = [
                 t["templateid"]
                 for t in list(
-                    filter(lambda t: t["name"] in deletion_queue, template_objects)
+                    filter(lambda dt: dt["name"] in deletion_queue, template_objects)
                 )
             ]
 
@@ -430,8 +424,8 @@ class ZabbixCI:
 
         failed_exports = []
 
-        for index, batch in enumerate(batches):
-            self.logger.info(f"Processing batch {index + 1}/{len(batches)}")
+        for batchIndex, batch in enumerate(batches):
+            self.logger.info(f"Processing batch {batchIndex + 1}/{len(batches)}")
             coros = []
             for t in batch:
                 coros.append(self._zabbix.export_template_async([t["templateid"]]))
@@ -439,7 +433,7 @@ class ZabbixCI:
             responses = await asyncio.gather(*coros, return_exceptions=True)
 
             for index, response in enumerate(responses):
-                if isinstance(response, Exception):
+                if isinstance(response, BaseException):
                     self.logger.error(f"Error exporting template: {response}")
 
                     # Retry the export
@@ -470,7 +464,6 @@ class ZabbixCI:
         """
         Export Zabbix templates to the cache
         """
-        templates = []
         if Settings.get_template_whitelist():
             templates = self._zabbix.get_templates_filtered(
                 [Settings.ROOT_TEMPLATE_GROUP], Settings.get_template_whitelist()

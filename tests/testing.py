@@ -53,17 +53,19 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
 
     async def test_template_change(self):
         # Rename a template
-        id = self.zci._zabbix.get_templates_name(["Windows by Zabbix agent"])[0][
-            "templateid"
-        ]
-        self.zci._zabbix.set_template(id, {"name": "Windows by Zabbix agent (renamed)"})
+        template_id = self.zci._zabbix.get_templates_name(["Windows by Zabbix agent"])[
+            0
+        ]["templateid"]
+        self.zci._zabbix.set_template(
+            template_id, {"name": "Windows by Zabbix agent (renamed)"}
+        )
 
         # Push changes to git
         changed = await self.zci.push()
         self.assertTrue(changed, "Template change not detected")
 
         # Revert changes in Zabbix
-        self.zci._zabbix.set_template(id, {"name": "Windows by Zabbix agent"})
+        self.zci._zabbix.set_template(template_id, {"name": "Windows by Zabbix agent"})
 
         # Restore to Git version
         changed = await self.zci.pull()
@@ -84,17 +86,17 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
 
     async def test_template_rename(self):
         # Rename a template
-        id = self.zci._zabbix.get_templates_name(["Linux by Zabbix agent"])[0][
+        template_id = self.zci._zabbix.get_templates_name(["Linux by Zabbix agent"])[0][
             "templateid"
         ]
-        self.zci._zabbix.set_template(id, {"host": "Linux by Zabbix 00000"})
+        self.zci._zabbix.set_template(template_id, {"host": "Linux by Zabbix 00000"})
 
         # Push changes to git
         changed = await self.zci.push()
         self.assertTrue(changed, "Renaming not detected")
 
         # Make changes in Zabbix
-        self.zci._zabbix.set_template(id, {"host": "Linux by Zabbix agent"})
+        self.zci._zabbix.set_template(template_id, {"host": "Linux by Zabbix agent"})
 
         # Restore to Git version
         changed = await self.zci.pull()
@@ -110,10 +112,10 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
 
     async def test_template_delete(self):
         # Delete a template
-        id = self.zci._zabbix.get_templates_name(
+        template_id = self.zci._zabbix.get_templates_name(
             ["Acronis Cyber Protect Cloud by HTTP"]
         )[0]["templateid"]
-        self.zci._zabbix.delete_template([id])
+        self.zci._zabbix.delete_template([template_id])
 
         # Push changes to git
         changed = await self.zci.push()
