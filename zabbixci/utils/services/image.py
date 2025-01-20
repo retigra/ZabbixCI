@@ -1,3 +1,4 @@
+import os
 from base64 import b64decode, b64encode
 
 
@@ -15,6 +16,8 @@ class Image:
         return b64encode(self.image).decode()
 
     def save(self, path: str):
+        os.makedirs(path, exist_ok=True)
+
         with open(f"{path}/{self.name}.png", "wb") as file:
             file.write(self.image)
 

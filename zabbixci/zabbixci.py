@@ -12,6 +12,7 @@ from ruamel.yaml import YAML
 from zabbixci.settings import Settings
 from zabbixci.utils.git import Git, GitCredentials
 from zabbixci.utils.services import Template
+from zabbixci.utils.services.image import Image
 from zabbixci.utils.zabbix import Zabbix
 
 
@@ -100,6 +101,8 @@ class ZabbixCI:
         self.cleanup_cache()
         templates = await self.zabbix_to_file()
 
+        self.images_to_cache()
+
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
             self.logger.info("No changes detected")
@@ -126,6 +129,10 @@ class ZabbixCI:
                     continue
 
                 self.logger.info(f"Detected change in {file}")
+
+                if not file.endswith(".yaml"):
+                    # TODO create proper split of images and templates
+                    continue
 
                 template = Template.open(file)
 
@@ -407,6 +414,18 @@ class ZabbixCI:
 
         await self.zabbix_export(templates)
         return templates
+
+    def images_to_cache(self) -> list[str]:
+        """
+        Export Zabbix images to the cache
+        """
+        images = self._zabbix.get_images()
+
+        self.logger.info(f"Found {len(images)} images in Zabbix")
+
+        for image in images:
+            image_object = Image.from_zabbix(image)
+            image_object.save(f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}")
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:
