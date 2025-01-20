@@ -333,15 +333,15 @@ class ZabbixCI:
 
         if len(templates):
             # Group templates by level
-            templates = sorted(
-                templates, key=lambda tl: tl.level(templates)
-            )
+            templates = sorted(templates, key=lambda tl: tl.level(templates))
 
             failed_templates: list[Template] = []
 
             # Import the templates
             for template in templates:
-                self.logger.info(f"Importing {template.name}, level {template.level(templates)}")
+                self.logger.info(
+                    f"Importing {template.name}, level {template.level(templates)}"
+                )
 
                 if not self._settings.DRY_RUN:
                     try:

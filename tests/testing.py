@@ -53,10 +53,12 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
 
     async def test_template_change(self):
         # Rename a template
-        template_id = self.zci._zabbix.get_templates_name(["Windows by Zabbix agent"])[0][
-            "templateid"
-        ]
-        self.zci._zabbix.set_template(template_id, {"name": "Windows by Zabbix agent (renamed)"})
+        template_id = self.zci._zabbix.get_templates_name(["Windows by Zabbix agent"])[
+            0
+        ]["templateid"]
+        self.zci._zabbix.set_template(
+            template_id, {"name": "Windows by Zabbix agent (renamed)"}
+        )
 
         # Push changes to git
         changed = await self.zci.push()
