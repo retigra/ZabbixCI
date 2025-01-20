@@ -124,7 +124,7 @@ class Template:
     @property
     def updated_items(self):
         """
-        dict containg the new vendor and or version
+        dict contains the new vendor and or version
         """
         updates = {}
 
