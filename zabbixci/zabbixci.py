@@ -98,7 +98,7 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        templates = await self.zabbix_to_file()
+        templates = await self.templates_to_cache()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -198,7 +198,7 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        template_objects = await self.zabbix_to_file()
+        template_objects = await self.templates_to_cache()
 
         zabbix_version = self._zabbix.get_server_version()
 
@@ -391,7 +391,7 @@ class ZabbixCI:
             )
             await self.zabbix_export(failed_exports)
 
-    async def zabbix_to_file(self) -> list[str]:
+    async def templates_to_cache(self) -> list[str]:
         """
         Export Zabbix templates to the cache
         """
