@@ -4,7 +4,7 @@ import aiohttp
 from ruamel.yaml import YAML
 from zabbix_utils import AsyncZabbixAPI
 
-from zabbixci.utils.template import Template
+from zabbixci.utils.services import Template
 
 yaml = YAML()
 
@@ -62,6 +62,16 @@ class Zabbix:
             "configuration.export",
             {"options": {"templates": template_ids}, "format": "yaml"},
         )
+
+    def get_images(self):
+        """
+        Export all images from Zabbix
+
+        TODO: Add batching for large number of images
+        """
+        return self.zapi.send_sync_request(
+            "image.get", {"output": "extend", "select_image": True}
+        )["result"]
 
     def import_template(self, template: Template):
         export = template.export()
