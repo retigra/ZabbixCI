@@ -33,10 +33,6 @@ class Template:
         return self._export["templates"][0]
 
     @property
-    def groups(self):
-        return map(lambda group: group["name"], self._template["groups"])
-
-    @property
     def name(self):
         return self._template["template"]
 
@@ -45,11 +41,10 @@ class Template:
         return self._template["uuid"]
 
     @property
-    def template_id(self):
-        return self._template["templateid"]
-
-    @property
     def template_ids(self):
+        """
+        List of UUIDs that are included in this Zabbix export
+        """
         return [template["uuid"] for template in self._export["templates"]]
 
     @property
@@ -80,7 +75,6 @@ class Template:
         """
         The primary group of the template, without the root group
         """
-        # split = regex.split(fr'{PARENT_GROUP}\/+', self.primary_group)
         match_group = regex.match(
             rf"{Settings.ROOT_TEMPLATE_GROUP}\/+(.+)", self.primary_group
         )
@@ -124,7 +118,7 @@ class Template:
     @property
     def updated_items(self):
         """
-        dict containg the new vendor and or version
+        Dict containing the new vendor and or version
         """
         updates = {}
 
@@ -228,7 +222,7 @@ class Template:
     @staticmethod
     def from_zabbix(export: dict):
         """
-        Create a individual template from a bulk Zabbix export
+        Create an individual template from a bulk Zabbix export
         """
         # TODO: Prepare dict for export, otherwise remove this method and use the constructor directly
 
