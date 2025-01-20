@@ -130,7 +130,7 @@ class Git:
         remote.fetch(callbacks=callbacks)
 
     def lookup_reference(self, name: str):
-        self._repository.lookup_reference(name)
+        return self._repository.lookup_reference(name)
 
     def commit(self, message: str):
         """
