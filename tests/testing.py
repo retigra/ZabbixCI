@@ -115,7 +115,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         template_id = self.zci._zabbix.get_templates_name(
             ["Acronis Cyber Protect Cloud by HTTP"]
         )[0]["templateid"]
-        self.zci._zabbix.delete_template([template_id])
+        self.zci._zabbix.delete_templates([template_id])
 
         # Push changes to git
         changed = await self.zci.push()

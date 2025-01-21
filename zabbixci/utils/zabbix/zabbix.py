@@ -135,5 +135,5 @@ class Zabbix:
             "result"
         ]
 
-    def delete_template(self, template_ids: list[int]):
+    def delete_templates(self, template_ids: list[int]):
         return self.zapi.send_sync_request("template.delete", template_ids)["result"]
