@@ -2,19 +2,16 @@ import asyncio
 import logging
 import os
 import ssl
-import urllib.error
 from datetime import datetime, timezone
 from io import StringIO
-from urllib.request import Request, urlopen
 
-import pygit2
 from pygit2.enums import FileStatus, ResetMode
 from regex import search
 from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
-from zabbixci.utils.git import Git
-from zabbixci.utils.template import Template
+from zabbixci.utils.git import Git, GitCredentials
+from zabbixci.utils.services import Template
 from zabbixci.utils.zabbix import Zabbix
 
 
@@ -22,14 +19,11 @@ class ZabbixCI:
     logger = logging.getLogger(__name__)
     yaml = YAML()
 
-    _settings = None
-    _git_cb = None
-
     _zabbix = None
     _git = None
+    _git_cb = None
 
     _ssl_context = None
-    _ssl_valid = False
 
     def __init__(self, settings=Settings, logger=None):
         self._settings = settings
@@ -37,71 +31,7 @@ class ZabbixCI:
         if logger:
             self.logger = logger
 
-        self.create_git_callback()
-        self.create_git()
-
-    def validate_ssl_cert(self, _cert: None, valid: bool, hostname: bytes):
-        """
-        Callback function for pygit2 RemoteCallbacks object to validate SSL certificates
-        """
-        hostname_str = hostname.decode("utf-8")
-
-        if valid:
-            # If native SSL validation is successful, we can skip the custom check
-            return True
-
-        if self._ssl_valid:
-            # If the certificate has already been validated, we can skip the check
-            return True
-
-        # Check if the certificate matches in SSL context
-        # Certificate is not given by pygit2, so we request it ourselves
-        # by making a request to the hostname with urllib
-        try:
-            req = Request(
-                f"https://{hostname_str}",
-                method="GET",
-            )
-            resp = urlopen(req, context=self._ssl_context)
-
-            self.logger.debug(f"Response from {hostname_str}: {resp.status}")
-
-            self._ssl_valid = True
-            return True
-        except urllib.error.URLError as e:
-            self.logger.error(f"Error validating SSL certificate: {e}")
-            return False
-
-    def create_git_callback(self):
-        """
-        Create a pygit2 RemoteCallbacks object with the appropriate credentials
-        Handles both username/password and SSH keypair authentication
-        """
-        if self._settings.GIT_USERNAME and self._settings.GIT_PASSWORD:
-            self.logger.debug("Using username and password for Git authentication")
-            credentials = pygit2.UserPass(
-                self._settings.GIT_USERNAME, self._settings.GIT_PASSWORD
-            )
-        elif self._settings.GIT_PUBKEY and self._settings.GIT_PRIVKEY:
-            self.logger.debug("Using SSH keypair for Git authentication")
-            credentials = pygit2.Keypair(
-                self._settings.GIT_USERNAME,
-                self._settings.GIT_PUBKEY,
-                self._settings.GIT_PRIVKEY,
-                self._settings.GIT_KEYPASSPHRASE,
-            )
-        else:
-            self.logger.debug("Using SSH agent for Git authentication")
-            credentials = pygit2.KeypairFromAgent(self._settings.GIT_USERNAME)
-
-        self._git_cb = pygit2.RemoteCallbacks(credentials=credentials)
-
-        if self._settings.INSECURE_SSL_VERIFY:
-            # Accept all certificates
-            self._git_cb.certificate_check = lambda cert, valid, hostname: True
-        elif self._settings.CA_BUNDLE:
-            # Validate certificates with the provided CA bundle
-            self._git_cb.certificate_check = self.validate_ssl_cert
+        self.create_git(GitCredentials().create_git_callback())
 
     async def create_zabbix(self):
         """
@@ -134,10 +64,11 @@ class ZabbixCI:
             )
             raise SystemExit(1)
 
-    def create_git(self):
+    def create_git(self, git_cb):
         """
         Create a Git object with the appropriate credentials
         """
+        self._git_cb = git_cb
         self._git = Git(self._settings.CACHE_PATH, self._git_cb)
 
     async def push(self):
@@ -167,7 +98,7 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        templates = await self.zabbix_to_file()
+        templates = await self.templates_to_cache()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -267,7 +198,7 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        template_objects = await self.zabbix_to_file()
+        template_objects = await self.templates_to_cache()
 
         zabbix_version = self._zabbix.get_server_version()
 
@@ -460,7 +391,7 @@ class ZabbixCI:
             )
             await self.zabbix_export(failed_exports)
 
-    async def zabbix_to_file(self) -> list[str]:
+    async def templates_to_cache(self) -> list[str]:
         """
         Export Zabbix templates to the cache
         """

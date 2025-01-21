@@ -4,7 +4,7 @@ import aiohttp
 from ruamel.yaml import YAML
 from zabbix_utils import AsyncZabbixAPI
 
-from zabbixci.utils.template import Template
+from zabbixci.utils.services import Template
 
 yaml = YAML()
 
