@@ -11,6 +11,7 @@ from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
 from zabbixci.utils.git import Git, GitCredentials
+from zabbixci.utils.handers.image import ImageHandler
 from zabbixci.utils.handers.template import TemplateHandler
 from zabbixci.utils.services import Template
 from zabbixci.utils.services.image import Image
@@ -217,7 +218,7 @@ class ZabbixCI:
 
         # Get the changed files, we compare the untracked changes with the desired.
         # When we have a new untracked file, that means it was deleted in the desired state.
-        files: list[str] = [
+        changed_files: list[str] = [
             path
             for path, flags in status.items()
             if flags in [FileStatus.WT_DELETED, FileStatus.WT_MODIFIED]
@@ -226,29 +227,32 @@ class ZabbixCI:
             path for path, flags in status.items() if flags == FileStatus.WT_NEW
         ]
 
-        self.logger.debug(f"Following files have changed on Git: {files}")
+        self.logger.debug(f"Following files have changed on Git: {changed_files}")
         self.logger.debug(f"Following files are deleted from Git {deleted_files}")
 
         # Sync the file cache with the desired git state
         self._git.reset(current_revision, ResetMode.HARD)
 
         template_handler = TemplateHandler(self._zabbix)
-        imported_template_ids = template_handler.import_file_changes(files)
+        imported_template_ids = template_handler.import_file_changes(changed_files)
         deleted_template_names = template_handler.delete_file_changes(
             deleted_files, imported_template_ids, template_objects
         )
 
+        image_handler = ImageHandler(self._zabbix)
+        imported_images = image_handler.import_file_changes(changed_files)
+
         # Inform user about the changes
         if Settings.DRY_RUN:
             self.logger.info(
-                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates"
+                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Would have imported {len(imported_images)} images"
             )
         else:
             if len(deleted_template_names) == 0 and len(imported_template_ids) == 0:
                 self.logger.info("No changes detected, Zabbix is up to date")
             else:
                 self.logger.info(
-                    f"Zabbix state has been synchronized, imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates"
+                    f"Zabbix state has been synchronized, imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images"
                 )
 
         # clean local changes
@@ -326,7 +330,7 @@ class ZabbixCI:
 
         for image in images:
             image_object = Image.from_zabbix(image)
-            image_object.save(f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}")
+            image_object.save(Settings.IMAGE_PREFIX_PATH)
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:
@@ -343,6 +347,24 @@ class ZabbixCI:
 
             for name in files:
                 if name.endswith(".yaml") or full:
+                    os.remove(os.path.join(root, name))
+
+            for name in dirs:
+                if name == ".git" and root == Settings.CACHE_PATH and not full:
+                    continue
+
+                # Remove empty directories
+                if not os.listdir(os.path.join(root, name)):
+                    os.rmdir(os.path.join(root, name))
+
+        for root, dirs, files in os.walk(
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}", topdown=False
+        ):
+            if f"{Settings.CACHE_PATH}/.git" in root and not full:
+                continue
+
+            for name in files:
+                if name.endswith(".png") or full:
                     os.remove(os.path.join(root, name))
 
             for name in dirs:

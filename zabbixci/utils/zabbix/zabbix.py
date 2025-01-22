@@ -73,6 +73,9 @@ class Zabbix:
             "image.get", {"output": "extend", "select_image": True}
         )["result"]
 
+    def import_image(self, image: dict):
+        return self.zapi.send_sync_request("image.create", image)["result"]
+
     def import_template(self, template: Template):
         export = template.export()
 
