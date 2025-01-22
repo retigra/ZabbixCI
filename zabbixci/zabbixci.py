@@ -219,7 +219,7 @@ class ZabbixCI:
                         )
                         self._zabbix.set_template(
                             next(
-                                filter(lambda t: t["name"] == template.name, templates)
+                                filter(lambda t: t["host"] == template.name, templates)
                             )["templateid"],
                             template.updated_items,
                         )
