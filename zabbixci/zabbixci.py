@@ -208,7 +208,7 @@ class ZabbixCI:
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
         template_objects = await self.templates_to_cache()
-        self.images_to_cache()
+        image_objects = self.images_to_cache()
 
         # Check if there are any changes to commit
         if self._git.has_changes:
@@ -240,7 +240,9 @@ class ZabbixCI:
         )
 
         image_handler = ImageHandler(self._zabbix)
-        imported_images = image_handler.import_file_changes(changed_files)
+        imported_images = image_handler.import_file_changes(
+            changed_files, image_objects
+        )
 
         # Inform user about the changes
         if Settings.DRY_RUN:
@@ -331,6 +333,8 @@ class ZabbixCI:
         for image in images:
             image_object = Image.from_zabbix(image)
             image_object.save(Settings.IMAGE_PREFIX_PATH)
+
+        return images
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:

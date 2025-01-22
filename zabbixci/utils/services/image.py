@@ -15,7 +15,7 @@ class Image:
         self.type = type
 
     def __str__(self):
-        return b64encode(self.image).decode()
+        return f"{self.name} ({self.type})"
 
     def save(self, path: str):
         os.makedirs(path, exist_ok=True)
@@ -46,4 +46,5 @@ class Image:
     @classmethod
     def open(cls, path: str):
         with open(f"{Settings.CACHE_PATH}/{path}", "rb") as file:
-            return cls(b64encode(file.read()).decode(), path.split("/")[-1])
+            filename = path.split("/")[-1].split(".")[0]
+            return cls(b64encode(file.read()).decode(), filename)

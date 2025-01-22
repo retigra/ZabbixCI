@@ -73,8 +73,14 @@ class Zabbix:
             "image.get", {"output": "extend", "select_image": True}
         )["result"]
 
-    def import_image(self, image: dict):
+    def create_image(self, image: dict):
         return self.zapi.send_sync_request("image.create", image)["result"]
+
+    def update_image(self, image: dict):
+        return self.zapi.send_sync_request("image.update", image)["result"]
+
+    def delete_images(self, image_ids: list[int]):
+        return self.zapi.send_sync_request("image.delete", image_ids)["result"]
 
     def import_template(self, template: Template):
         export = template.export()

@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class ImageHandler:
     """
-    Handler for importing templates into Zabbix based on changed files. Includes validation steps based on settings.
+    Handler for importing images into Zabbix based on changed files. Includes validation steps based on settings.
 
     :param zabbix: Zabbix instance
     """
@@ -33,12 +33,18 @@ class ImageHandler:
 
         return True
 
-    def import_file_changes(self, changed_files: list[str]) -> list[str]:
+    def _image_validation(self, image: Image) -> bool:
+        return True
+
+    def import_file_changes(
+        self, changed_files: list[str], image_objects: list[dict]
+    ) -> list[str]:
         """
         Import images into Zabbix based on changed files.
         Changes are parsed and validated before importing.
 
         :param changed_files: List of changed files
+        :param image_objects: List of image objects from Zabbix, needed for choice between creation or update
 
         :return: List of imported image UUIDs
         """
@@ -53,16 +59,32 @@ class ImageHandler:
             images.append(image)
             logger.info(f"Detected change in image: {image.name}")
 
-        # Group templates by level
+        # Group images by level
         failed_images: list[Image] = []
 
-        # Import the templates
-        for image in images:
-            logger.info(f"Importing {image.name}")
+        def __import_image(image: Image):
+            if image.name in [t["name"] for t in image_objects]:
+                logger.info(f"Updating {image.name}")
 
+                old_image = next(
+                    filter(lambda dt: dt["name"] == image.name, image_objects)
+                )
+
+                return self._zabbix.update_image(
+                    {
+                        "imageid": old_image["imageid"],
+                        "image": image.as_zabbix_dict()["image"],
+                    }
+                )
+            else:
+                logger.info(f"Creating {image.name}")
+                return self._zabbix.create_image(image.as_zabbix_dict())
+
+        # Import the images
+        for image in images:
             if not Settings.DRY_RUN:
                 try:
-                    self._zabbix.import_image(image.as_zabbix_dict())
+                    __import_image(image)
                 except Exception as e:
                     logger.warning(
                         f"Error importing image {image.name}, will try to import later"
@@ -73,7 +95,7 @@ class ImageHandler:
         if len(failed_images):
             for image in failed_images:
                 try:
-                    self._zabbix.import_image(image.as_zabbix_dict())
+                    __import_image(image)
                 except Exception as e:
                     logger.error(f"Error importing image {image}: {e}")
 
@@ -82,57 +104,57 @@ class ImageHandler:
     def delete_file_changes(
         self,
         deleted_files: list[str],
-        imported_template_ids: list[str],
-        template_objects: list[dict],
+        imported_image_names: list[str],
+        image_objects: list[dict],
     ):
         """
-        Delete templates from Zabbix based on deleted files.
+        Delete images from Zabbix based on deleted files.
 
         :param deleted_files: List of deleted files
-        :param imported_template_ids: List of imported template UUIDs
-        :param template_objects: List of template objects from Zabbix needed for deletion in current Zabbix instance
+        :param imported_image_names: List of imported image names
+        :param image_objects: List of image objects from Zabbix needed for deletion in current Zabbix instance
 
-        :return: List of deleted template names
+        :return: List of deleted image names
         """
         deletion_queue: list[str] = []
 
-        # Check if deleted files are templates and if they are imported, if not add to deletion queue
+        # Check if deleted files are images and if they are imported, if not add to deletion queue
         for file in deleted_files:
             if not self._read_validation(file):
                 continue
 
-            template = Template.open(file)
+            image = Image.open(file)
 
-            if not template or not template.is_template:
+            if not image:
                 logger.warning(f"Could not open to be deleted file {file}")
                 continue
 
-            if not self._template_validation(template):
+            if not self._image_validation(image):
                 continue
 
-            if template.uuid in imported_template_ids:
+            if image.name in imported_image_names:
                 logger.debug(
-                    f"Template {template.name} is being imported under a different name or path, skipping deletion"
+                    f"Image {image.name} is being imported under a different name or path, skipping deletion"
                 )
                 continue
 
-            deletion_queue.append(template.name)
-            logger.info(f"Added {template.name} to deletion queue")
+            deletion_queue.append(image.name)
+            logger.info(f"Added {image.name} to deletion queue")
 
-        # Delete templates in deletion queue
+        # Delete images in deletion queue
         if len(deletion_queue):
-            template_ids = [
-                # Get template IDs from Zabbix
-                t["templateid"]
+            image_ids = [
+                # Get image IDs from Zabbix
+                t["imageid"]
                 for t in list(
-                    filter(lambda dt: dt["name"] in deletion_queue, template_objects)
+                    filter(lambda dt: dt["name"] in deletion_queue, image_objects)
                 )
             ]
 
-            logger.info(f"Deleting {len(template_ids)} templates from Zabbix")
+            logger.info(f"Deleting {len(image_ids)} images from Zabbix")
 
-            if len(template_ids):
+            if len(image_ids):
                 if not Settings.DRY_RUN:
-                    self._zabbix.delete_templates(template_ids)
+                    self._zabbix.delete_images(image_ids)
 
         return deletion_queue
