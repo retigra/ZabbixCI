@@ -163,7 +163,7 @@ class TemplateHandler:
                 # Get template IDs from Zabbix
                 t["templateid"]
                 for t in list(
-                    filter(lambda dt: dt["name"] in deletion_queue, template_objects)
+                    filter(lambda dt: dt["host"] in deletion_queue, template_objects)
                 )
             ]
 
