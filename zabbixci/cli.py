@@ -120,6 +120,18 @@ def read_args():
         action="store_true",
         default=None,
     )
+    parser.add_argument(
+        "--sync-icons",
+        help="Synchronize icons between Zabbix and git",
+        action="store_true",
+        default=None,
+    )
+    parser.add_argument(
+        "--sync-backgrounds",
+        help="Synchronize background images between Zabbix and git",
+        action="store_true",
+        default=None,
+    )
 
     # ZabbixCI advanced
     parser.add_argument(

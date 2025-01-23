@@ -33,6 +33,9 @@ class Settings:
     DRY_RUN = False
     VENDOR = None
     SET_VERSION = False
+    SYNC_ICONS = False
+    SYNC_BACKGROUNDS = False
+    SYNC_TEMPLATES = True
 
     @classmethod
     def get_template_whitelist(cls):

@@ -23,12 +23,19 @@ class ImageHandler:
         """
         Export Zabbix images to the cache
         """
+        if not Settings.SYNC_ICONS and not Settings.SYNC_BACKGROUNDS:
+            return []
+
         images = self._zabbix.get_images()
 
         logger.info(f"Found {len(images)} images in Zabbix")
 
         for image in images:
             image_object = Image.from_zabbix(image)
+
+            if not self._image_validation(image_object):
+                continue
+
             image_object.save()
 
         return images
@@ -51,6 +58,14 @@ class ImageHandler:
         if not image:
             return False
 
+        if not Settings.SYNC_BACKGROUNDS and image.type == "background":
+            logger.debug(f"Skipping background image {image.name}")
+            return False
+
+        if not Settings.SYNC_ICONS and image.type == "icon":
+            logger.debug(f"Skipping icon image {image.name}")
+            return False
+
         return True
 
     def import_file_changes(
@@ -66,6 +81,9 @@ class ImageHandler:
         :return: List of imported image UUIDs
         """
         images: list[Image] = []
+
+        if not Settings.SYNC_ICONS and not Settings.SYNC_BACKGROUNDS:
+            return []
 
         for file in changed_files:
             if not self._read_validation(file):
