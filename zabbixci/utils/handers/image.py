@@ -1,5 +1,4 @@
 import logging
-import os
 
 from zabbixci.settings import Settings
 from zabbixci.utils.services.image import Image
