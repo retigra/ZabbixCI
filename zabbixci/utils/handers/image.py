@@ -158,9 +158,7 @@ class ImageHandler:
                 continue
 
             if image.name in imported_image_names:
-                logger.debug(
-                    f"Image {image.name} is being imported under a different name or path, skipping deletion"
-                )
+                logger.debug(f"Image {image.name} was just imported, skipping deletion")
                 continue
 
             deletion_queue.append(image.name)
