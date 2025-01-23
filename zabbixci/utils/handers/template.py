@@ -1,10 +1,15 @@
+import asyncio
 import logging
+from io import StringIO
+
+from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
 from zabbixci.utils.services.template import Template
 from zabbixci.utils.zabbix.zabbix import Zabbix
 
 logger = logging.getLogger(__name__)
+yaml = YAML()
 
 
 class TemplateHandler:
@@ -18,6 +23,67 @@ class TemplateHandler:
 
     def __init__(self, zabbix: Zabbix):
         self._zabbix = zabbix
+
+    async def zabbix_export(self, templates: list[dict]):
+        batches = [
+            templates[i : i + Settings.BATCH_SIZE]
+            for i in range(0, len(templates), Settings.BATCH_SIZE)
+        ]
+
+        failed_exports = []
+
+        for batchIndex, batch in enumerate(batches):
+            logger.info(f"Processing batch {batchIndex + 1}/{len(batches)}")
+            coros = []
+            for t in batch:
+                coros.append(self._zabbix.export_template_async([t["templateid"]]))
+
+            responses = await asyncio.gather(*coros, return_exceptions=True)
+
+            for index, response in enumerate(responses):
+                if isinstance(response, BaseException):
+                    logger.error(f"Error exporting template: {response}")
+
+                    # Retry the export
+                    failed_exports.append(batch[index])
+                    continue
+
+                export_yaml = yaml.load(StringIO(response["result"]))
+
+                if "templates" not in export_yaml["zabbix_export"]:
+                    logger.info("No templates found in Zabbix")
+                    return
+
+                zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
+
+                if not self._template_validation(zabbix_template):
+                    continue
+
+                zabbix_template.save()
+                logger.info(f"Exported Zabbix template {zabbix_template.name}")
+
+        if len(failed_exports):
+            logger.warning(
+                f"Failed to export {len(failed_exports)} templates, retrying"
+            )
+            await self.zabbix_export(failed_exports)
+
+    async def templates_to_cache(self) -> list[dict]:
+        """
+        Export Zabbix templates to the cache
+        """
+        if Settings.get_template_whitelist():
+            templates = self._zabbix.get_templates_filtered(
+                [Settings.ROOT_TEMPLATE_GROUP], Settings.get_template_whitelist()
+            )
+        else:
+            templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
+
+        logger.info(f"Found {len(templates)} templates in Zabbix")
+        logger.debug(f"Found Zabbix templates: {[t['host'] for t in templates]}")
+
+        await self.zabbix_export(templates)
+        return templates
 
     def _read_validation(self, changed_file: str) -> bool:
         """

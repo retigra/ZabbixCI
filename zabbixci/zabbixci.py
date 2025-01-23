@@ -1,9 +1,7 @@
-import asyncio
 import logging
 import os
 import ssl
 from datetime import datetime, timezone
-from io import StringIO
 
 from pygit2.enums import FileStatus, ResetMode
 from regex import search
@@ -14,7 +12,6 @@ from zabbixci.utils.git import Git, GitCredentials
 from zabbixci.utils.handers.image import ImageHandler
 from zabbixci.utils.handers.template import TemplateHandler
 from zabbixci.utils.services import Template
-from zabbixci.utils.services.image import Image
 from zabbixci.utils.zabbix import Zabbix
 
 
@@ -101,9 +98,12 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        templates = await self.templates_to_cache()
 
-        self.images_to_cache()
+        template_handler = TemplateHandler(self._zabbix)
+        image_handler = ImageHandler(self._zabbix)
+
+        template_objects = await template_handler.templates_to_cache()
+        image_handler.images_to_cache()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -159,7 +159,10 @@ class ZabbixCI:
                         )
                         self._zabbix.set_template(
                             next(
-                                filter(lambda t: t["host"] == template.name, templates)
+                                filter(
+                                    lambda t: t["host"] == template.name,
+                                    template_objects,
+                                )
                             )["templateid"],
                             template.updated_items,
                         )
@@ -207,8 +210,12 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         self.cleanup_cache()
-        template_objects = await self.templates_to_cache()
-        image_objects = self.images_to_cache()
+
+        template_handler = TemplateHandler(self._zabbix)
+        image_handler = ImageHandler(self._zabbix)
+
+        template_objects = await template_handler.templates_to_cache()
+        image_objects = image_handler.images_to_cache()
 
         # Check if there are any changes to commit
         if self._git.has_changes:
@@ -233,13 +240,11 @@ class ZabbixCI:
         # Sync the file cache with the desired git state
         self._git.reset(current_revision, ResetMode.HARD)
 
-        template_handler = TemplateHandler(self._zabbix)
         imported_template_ids = template_handler.import_file_changes(changed_files)
         deleted_template_names = template_handler.delete_file_changes(
             deleted_files, imported_template_ids, template_objects
         )
 
-        image_handler = ImageHandler(self._zabbix)
         imported_images = image_handler.import_file_changes(
             changed_files, image_objects
         )
@@ -264,85 +269,6 @@ class ZabbixCI:
         # clean local changes
         self._git.clean()
         return len(imported_template_ids) > 0 or len(deleted_template_names) > 0
-
-    async def zabbix_export(self, templates: list[dict]):
-        batches = [
-            templates[i : i + Settings.BATCH_SIZE]
-            for i in range(0, len(templates), Settings.BATCH_SIZE)
-        ]
-
-        failed_exports = []
-
-        for batchIndex, batch in enumerate(batches):
-            self.logger.info(f"Processing batch {batchIndex + 1}/{len(batches)}")
-            coros = []
-            for t in batch:
-                coros.append(self._zabbix.export_template_async([t["templateid"]]))
-
-            responses = await asyncio.gather(*coros, return_exceptions=True)
-
-            for index, response in enumerate(responses):
-                if isinstance(response, BaseException):
-                    self.logger.error(f"Error exporting template: {response}")
-
-                    # Retry the export
-                    failed_exports.append(batch[index])
-                    continue
-
-                export_yaml = self.yaml.load(StringIO(response["result"]))
-
-                if "templates" not in export_yaml["zabbix_export"]:
-                    self.logger.info("No templates found in Zabbix")
-                    return
-
-                zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
-
-                if self.ignore_template(zabbix_template.name):
-                    continue
-
-                zabbix_template.save()
-                self.logger.info(f"Exported Zabbix template {zabbix_template.name}")
-
-        if len(failed_exports):
-            self.logger.warning(
-                f"Failed to export {len(failed_exports)} templates, retrying"
-            )
-            await self.zabbix_export(failed_exports)
-
-    async def templates_to_cache(self) -> list[dict]:
-        """
-        Export Zabbix templates to the cache
-        """
-        if Settings.get_template_whitelist():
-            templates = self._zabbix.get_templates_filtered(
-                [Settings.ROOT_TEMPLATE_GROUP], Settings.get_template_whitelist()
-            )
-        else:
-            templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
-
-        self.logger.info(f"Found {len(templates)} templates in Zabbix")
-        self.logger.debug(f"Found Zabbix templates: {[t['host'] for t in templates]}")
-
-        await self.zabbix_export(templates)
-        return templates
-
-    def images_to_cache(self) -> list[str]:
-        """
-        Export Zabbix images to the cache
-        """
-        images = self._zabbix.get_images()
-
-        self.logger.info(f"Found {len(images)} images in Zabbix")
-
-        os.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}", exist_ok=True
-        )
-
-        for image in images:
-            image_object = Image.from_zabbix(image)
-            image_object.save()
-
-        return images
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:
@@ -390,21 +316,3 @@ class ZabbixCI:
         if full:
             os.rmdir(Settings.CACHE_PATH)
             cls.logger.info("Cache directory cleared")
-
-    @classmethod
-    def ignore_template(cls, template_name: str) -> bool:
-        """
-        Returns true if template should be ignored because of the blacklist or whitelist
-        """
-        if template_name in Settings.get_template_blacklist():
-            cls.logger.debug(f"Skipping blacklisted template {template_name}")
-            return True
-
-        if (
-            len(Settings.get_template_whitelist())
-            and template_name not in Settings.get_template_whitelist()
-        ):
-            cls.logger.debug(f"Skipping non whitelisted template {template_name}")
-            return True
-
-        return False

@@ -1,6 +1,5 @@
 import logging
-
-import regex
+import os
 
 from zabbixci.settings import Settings
 from zabbixci.utils.services.image import Image
@@ -20,6 +19,24 @@ class ImageHandler:
 
     def __init__(self, zabbix: Zabbix):
         self._zabbix = zabbix
+
+    def images_to_cache(self) -> list[str]:
+        """
+        Export Zabbix images to the cache
+        """
+        images = self._zabbix.get_images()
+
+        logger.info(f"Found {len(images)} images in Zabbix")
+
+        os.makedirs(
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}", exist_ok=True
+        )
+
+        for image in images:
+            image_object = Image.from_zabbix(image)
+            image_object.save()
+
+        return images
 
     def _read_validation(self, changed_file: str) -> bool:
         """
