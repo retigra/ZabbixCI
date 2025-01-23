@@ -250,7 +250,11 @@ class ZabbixCI:
                 f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Would have imported {len(imported_images)} images"
             )
         else:
-            if len(deleted_template_names) == 0 and len(imported_template_ids) == 0:
+            if (
+                len(deleted_template_names) == 0
+                and len(imported_template_ids) == 0
+                and len(imported_images) == 0
+            ):
                 self.logger.info("No changes detected, Zabbix is up to date")
             else:
                 self.logger.info(
@@ -336,7 +340,7 @@ class ZabbixCI:
 
         for image in images:
             image_object = Image.from_zabbix(image)
-            image_object.save(Settings.IMAGE_PREFIX_PATH)
+            image_object.save()
 
         return images
 

@@ -1,7 +1,12 @@
+import logging
 import os
 from base64 import b64decode, b64encode
 
+import regex
+
 from zabbixci.settings import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class Image:
@@ -17,10 +22,20 @@ class Image:
     def __str__(self):
         return f"{self.name} ({self.type})"
 
-    def save(self, path: str):
-        os.makedirs(path, exist_ok=True)
+    @property
+    def parent_folder(self):
+        return "icons" if self.type == "icon" else "backgrounds"
 
-        with open(f"{Settings.CACHE_PATH}/{path}/{self.name}.png", "wb") as file:
+    def save(self):
+        os.makedirs(
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self.parent_folder}",
+            exist_ok=True,
+        )
+
+        with open(
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self.parent_folder}/{self.name}.png",
+            "wb",
+        ) as file:
             file.write(self.image)
 
     def load(self, path: str):
@@ -41,10 +56,23 @@ class Image:
 
         See: https://www.zabbix.com/documentation/7.0/en/manual/api/reference/image/object
         """
-        return cls(image["image"], image["name"])
+        return cls(
+            image["image"],
+            image["name"],
+            "icon" if image["imagetype"] == "1" else "background",
+        )
 
     @classmethod
     def open(cls, path: str):
         with open(f"{Settings.CACHE_PATH}/{path}", "rb") as file:
-            filename = path.split("/")[-1].split(".")[0]
-            return cls(b64encode(file.read()).decode(), filename)
+            # TODO: Validation of path ending with /
+            matches = regex.match(
+                f"{Settings.IMAGE_PREFIX_PATH}/(icons|backgrounds)/(.*).png", path
+            )
+
+            if not matches:
+                logger.debug(f"Skipping invalid image path {path}")
+                return None
+
+            type = "icon" if matches[1] == "icons" else "background"
+            return cls(b64encode(file.read()).decode(), matches[2], type)

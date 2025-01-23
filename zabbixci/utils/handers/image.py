@@ -1,5 +1,7 @@
 import logging
 
+import regex
+
 from zabbixci.settings import Settings
 from zabbixci.utils.services.image import Image
 from zabbixci.utils.zabbix.zabbix import Zabbix
@@ -33,7 +35,10 @@ class ImageHandler:
 
         return True
 
-    def _image_validation(self, image: Image) -> bool:
+    def _image_validation(self, image: Image | None) -> bool:
+        if not image:
+            return False
+
         return True
 
     def import_file_changes(
@@ -55,6 +60,9 @@ class ImageHandler:
                 continue
 
             image = Image.open(file)
+
+            if not self._image_validation(image):
+                continue
 
             images.append(image)
             logger.info(f"Detected change in image: {image.name}")
