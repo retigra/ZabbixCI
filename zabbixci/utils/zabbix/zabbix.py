@@ -63,15 +63,20 @@ class Zabbix:
             {"options": {"templates": template_ids}, "format": "yaml"},
         )
 
-    def get_images(self):
+    def get_images(self, search: list[str] = None):
         """
         Export all images from Zabbix
 
         TODO: Add batching for large number of images
         """
-        return self.zapi.send_sync_request(
-            "image.get", {"output": "extend", "select_image": True}
-        )["result"]
+        if not search:
+            return self.zapi.send_sync_request(
+                "image.get", {"output": "extend", "select_image": True}
+            )["result"]
+        else:
+            return self.zapi.send_sync_request(
+                "image.get", {"output": "extend", "filter": {"name": search}}
+            )["result"]
 
     def create_image(self, image: dict):
         return self.zapi.send_sync_request("image.create", image)["result"]

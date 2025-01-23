@@ -26,7 +26,11 @@ class ImageHandler:
         if not Settings.SYNC_ICONS and not Settings.SYNC_BACKGROUNDS:
             return []
 
-        images = self._zabbix.get_images()
+        search = (
+            Settings.get_image_whitelist() if Settings.get_image_whitelist() else None
+        )
+
+        images = self._zabbix.get_images(search)
 
         logger.info(f"Found {len(images)} images in Zabbix")
 
@@ -64,6 +68,20 @@ class ImageHandler:
 
         if not Settings.SYNC_ICONS and image.type == "icon":
             logger.debug(f"Skipping icon image {image.name}")
+            return False
+
+        if (
+            Settings.get_image_whitelist()
+            and image.name not in Settings.get_image_whitelist()
+        ):
+            logger.debug(f"Skipping image {image.name} not in whitelist")
+            return False
+
+        if (
+            Settings.get_image_blacklist()
+            and image.name in Settings.get_image_blacklist()
+        ):
+            logger.debug(f"Skipping image {image.name} in blacklist")
             return False
 
         return True

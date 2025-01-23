@@ -36,6 +36,8 @@ class Settings:
     SYNC_ICONS = False
     SYNC_BACKGROUNDS = False
     SYNC_TEMPLATES = True
+    IMAGE_WHITELIST = ""
+    IMAGE_BLACKLIST = ""
 
     @classmethod
     def get_template_whitelist(cls):
@@ -44,6 +46,14 @@ class Settings:
     @classmethod
     def get_template_blacklist(cls):
         return cls.TEMPLATE_BLACKLIST.split(",") if cls.TEMPLATE_BLACKLIST else []
+
+    @classmethod
+    def get_image_whitelist(cls):
+        return cls.IMAGE_WHITELIST.split(",") if cls.IMAGE_WHITELIST else []
+
+    @classmethod
+    def get_image_blacklist(cls):
+        return cls.IMAGE_BLACKLIST.split(",") if cls.IMAGE_BLACKLIST else []
 
     @classmethod
     def from_env(cls):
