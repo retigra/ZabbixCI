@@ -28,10 +28,6 @@ class ImageHandler:
 
         logger.info(f"Found {len(images)} images in Zabbix")
 
-        os.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}", exist_ok=True
-        )
-
         for image in images:
             image_object = Image.from_zabbix(image)
             image_object.save()

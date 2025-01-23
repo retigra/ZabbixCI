@@ -23,17 +23,19 @@ class Image:
         return f"{self.name} ({self.type})"
 
     @property
-    def parent_folder(self):
+    def _type_folder(self):
         return "icons" if self.type == "icon" else "backgrounds"
 
     def save(self):
+        name_folders = self.name.split("/")[0:-1]
+
         os.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self.parent_folder}",
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self._type_folder}/{'/'.join(name_folders)}",
             exist_ok=True,
         )
 
         with open(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self.parent_folder}/{self.name}.png",
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self._type_folder}/{self.name}.png",
             "wb",
         ) as file:
             file.write(self.image)
