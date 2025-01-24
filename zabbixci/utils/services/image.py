@@ -1,5 +1,7 @@
 from base64 import b64decode, b64encode
 
+from zabbixci.utils.cache.cache import Cache
+
 
 class Image:
     image: bytes
@@ -15,11 +17,11 @@ class Image:
         return b64encode(self.image).decode()
 
     def save(self, path: str):
-        with open(f"{path}/{self.name}.png", "wb") as file:
+        with Cache.open(f"{path}/{self.name}.png", "wb") as file:
             file.write(self.image)
 
     def load(self, path: str):
-        with open(f"{path}/{self.name}.png", "rb") as file:
+        with Cache.open(f"{path}/{self.name}.png", "rb") as file:
             self.image = file.read()
 
     @classmethod
