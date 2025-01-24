@@ -10,6 +10,7 @@ from regex import search
 from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
 from zabbixci.utils.git import Git, GitCredentials
 from zabbixci.utils.services import Template
 from zabbixci.utils.zabbix import Zabbix
@@ -97,7 +98,7 @@ class ZabbixCI:
                 self._git.switch_branch(Settings.PUSH_BRANCH)
 
         # Reflect current Zabbix state in the cache
-        self.cleanup_cache()
+        Cache.cleanup_cache()
         templates = await self.templates_to_cache()
 
         # Check if there are any changes to commit
@@ -197,7 +198,7 @@ class ZabbixCI:
         current_revision = self._git.get_current_revision()
 
         # Reflect current Zabbix state in the cache
-        self.cleanup_cache()
+        Cache.cleanup_cache()
         template_objects = await self.templates_to_cache()
 
         zabbix_version = self._zabbix.get_server_version()
@@ -407,35 +408,6 @@ class ZabbixCI:
 
         await self.zabbix_export(templates)
         return templates
-
-    @classmethod
-    def cleanup_cache(cls, full: bool = False) -> None:
-        """
-        Clean all .yaml (template) files from the cache directory
-
-        If full is True, also remove the .git directory and all other files
-        """
-        for root, dirs, files in os.walk(
-            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}", topdown=False
-        ):
-            if f"{Settings.CACHE_PATH}/.git" in root and not full:
-                continue
-
-            for name in files:
-                if name.endswith(".yaml") or full:
-                    os.remove(os.path.join(root, name))
-
-            for name in dirs:
-                if name == ".git" and root == Settings.CACHE_PATH and not full:
-                    continue
-
-                # Remove empty directories
-                if not os.listdir(os.path.join(root, name)):
-                    os.rmdir(os.path.join(root, name))
-
-        if full:
-            os.rmdir(Settings.CACHE_PATH)
-            cls.logger.info("Cache directory cleared")
 
     @classmethod
     def ignore_template(cls, template_name: str) -> bool:
