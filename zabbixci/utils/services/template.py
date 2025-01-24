@@ -134,7 +134,7 @@ class Template:
         self._export = export
 
     def __str__(self):
-        return self._template["name"]
+        return self.name
 
     def _yaml_dump(self, stream: TextIO):
         """

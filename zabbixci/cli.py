@@ -121,6 +121,26 @@ def read_args():
         action="store_true",
         default=None,
     )
+    parser.add_argument(
+        "--sync-icons",
+        help="Synchronize icons between Zabbix and git",
+        action="store_true",
+        default=None,
+    )
+    parser.add_argument(
+        "--sync-backgrounds",
+        help="Synchronize background images between Zabbix and git",
+        action="store_true",
+        default=None,
+    )
+    parser.add_argument(
+        "--image-whitelist",
+        help="Comma separated list of images to include",
+    )
+    parser.add_argument(
+        "--image-blacklist",
+        help="Comma separated list of images to exclude",
+    )
 
     # ZabbixCI advanced
     parser.add_argument(

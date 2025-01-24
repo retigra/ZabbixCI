@@ -16,7 +16,8 @@ class Settings:
     GIT_AUTHOR_EMAIL = "zabbixci@localhost"
     PULL_BRANCH = "main"
     PUSH_BRANCH = "main"
-    TEMPLATE_PREFIX_PATH = ""
+    TEMPLATE_PREFIX_PATH = "templates"
+    IMAGE_PREFIX_PATH = "images"
     TEMPLATE_WHITELIST = ""
     TEMPLATE_BLACKLIST = ""
     CACHE_PATH = "./cache"
@@ -32,6 +33,11 @@ class Settings:
     DRY_RUN = False
     VENDOR = None
     SET_VERSION = False
+    SYNC_ICONS = False
+    SYNC_BACKGROUNDS = False
+    SYNC_TEMPLATES = True
+    IMAGE_WHITELIST = ""
+    IMAGE_BLACKLIST = ""
 
     @classmethod
     def get_template_whitelist(cls):
@@ -40,6 +46,14 @@ class Settings:
     @classmethod
     def get_template_blacklist(cls):
         return cls.TEMPLATE_BLACKLIST.split(",") if cls.TEMPLATE_BLACKLIST else []
+
+    @classmethod
+    def get_image_whitelist(cls):
+        return cls.IMAGE_WHITELIST.split(",") if cls.IMAGE_WHITELIST else []
+
+    @classmethod
+    def get_image_blacklist(cls):
+        return cls.IMAGE_BLACKLIST.split(",") if cls.IMAGE_BLACKLIST else []
 
     @classmethod
     def from_env(cls):

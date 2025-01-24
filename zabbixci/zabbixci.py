@@ -1,9 +1,7 @@
-import asyncio
 import logging
 import os
 import ssl
 from datetime import datetime, timezone
-from io import StringIO
 
 from pygit2.enums import FileStatus, ResetMode
 from regex import search
@@ -12,6 +10,8 @@ from ruamel.yaml import YAML
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
 from zabbixci.utils.git import Git, GitCredentials
+from zabbixci.utils.handers.image import ImageHandler
+from zabbixci.utils.handers.template import TemplateHandler
 from zabbixci.utils.services import Template
 from zabbixci.utils.zabbix import Zabbix
 
@@ -99,7 +99,12 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         Cache.cleanup_cache()
-        templates = await self.templates_to_cache()
+
+        template_handler = TemplateHandler(self._zabbix)
+        image_handler = ImageHandler(self._zabbix)
+
+        template_objects = await template_handler.templates_to_cache()
+        image_handler.images_to_cache()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -128,6 +133,10 @@ class ZabbixCI:
 
                 self.logger.info(f"Detected change in {file}")
 
+                if not file.endswith(".yaml"):
+                    # TODO create proper split of images and templates
+                    continue
+
                 template = Template.open(file)
 
                 if Settings.VENDOR and not template.vendor:
@@ -151,7 +160,10 @@ class ZabbixCI:
                         )
                         self._zabbix.set_template(
                             next(
-                                filter(lambda t: t["name"] == template.name, templates)
+                                filter(
+                                    lambda t: t["host"] == template.name,
+                                    template_objects,
+                                )
                             )["templateid"],
                             template.updated_items,
                         )
@@ -199,22 +211,22 @@ class ZabbixCI:
 
         # Reflect current Zabbix state in the cache
         Cache.cleanup_cache()
-        template_objects = await self.templates_to_cache()
 
-        zabbix_version = self._zabbix.get_server_version()
+        template_handler = TemplateHandler(self._zabbix)
+        image_handler = ImageHandler(self._zabbix)
 
-        # Check for untracked changes, if there are any, we know Zabbix is out of
-        # sync
+        template_objects = await template_handler.templates_to_cache()
+        image_objects = image_handler.images_to_cache()
+
+        # Check if there are any changes to commit
         if self._git.has_changes:
-            self.logger.info(
-                "Detected local file changes, detecting changes for zabbix sync"
-            )
+            self.logger.info("Zabbix state is out of sync, syncing")
 
         status = self._git.status()
 
         # Get the changed files, we compare the untracked changes with the desired.
         # When we have a new untracked file, that means it was deleted in the desired state.
-        files: list[str] = [
+        changed_files: list[str] = [
             path
             for path, flags in status.items()
             if flags in [FileStatus.WT_DELETED, FileStatus.WT_MODIFIED]
@@ -223,206 +235,41 @@ class ZabbixCI:
             path for path, flags in status.items() if flags == FileStatus.WT_NEW
         ]
 
-        self.logger.debug(f"Following templates have changed on Git: {files}")
-        self.logger.debug(f"Following templates are deleted from Git {deleted_files}")
+        self.logger.debug(f"Following files have changed on Git: {changed_files}")
+        self.logger.debug(f"Following files are deleted from Git {deleted_files}")
 
         # Sync the file cache with the desired git state
         self._git.reset(current_revision, ResetMode.HARD)
 
-        templates: list[Template] = []
+        imported_template_ids = template_handler.import_file_changes(changed_files)
+        deleted_template_names = template_handler.delete_file_changes(
+            deleted_files, imported_template_ids, template_objects
+        )
 
-        # Open the changed files
-        for file in files:
-            if not file.endswith(".yaml"):
-                continue
+        imported_images = image_handler.import_file_changes(
+            changed_files, image_objects
+        )
+        deleted_image_names = image_handler.delete_file_changes(
+            deleted_files, imported_images, image_objects
+        )
 
-            # Check if file is within the desired path
-            if not file.startswith(Settings.TEMPLATE_PREFIX_PATH):
-                self.logger.debug(f"Skipping .yaml file {file} outside of prefix path")
-                continue
-
-            template = Template.open(file)
-
-            if not template or not template.is_template:
-                self.logger.warning(f"Could load file {file} as a template")
-                continue
-
-            if self.ignore_template(template.name):
-                continue
-
-            if (
-                not Settings.IGNORE_TEMPLATE_VERSION
-                and template.zabbix_version.split(".")[0:2]
-                != zabbix_version.split(".")[0:2]
-            ):
-                self.logger.warning(
-                    f"Template {template.name}: {template.zabbix_version} must match Zabbix release {'.'.join(zabbix_version.split('.')[0:2])}"
-                )
-                continue
-
-            templates.append(template)
-            self.logger.info(f"Detected change in {template.name}")
-
-        if len(templates):
-            # Group templates by level
-            templates = sorted(templates, key=lambda tl: tl.level(templates))
-
-            failed_templates: list[Template] = []
-
-            # Import the templates
-            for template in templates:
-                self.logger.info(
-                    f"Importing {template.name}, level {template.level(templates)}"
-                )
-
-                if not self._settings.DRY_RUN:
-                    try:
-                        self._zabbix.import_template(template)
-                    except Exception as e:
-                        self.logger.warning(
-                            f"Error importing template {template.name}, will try to import later"
-                        )
-                        self.logger.debug(f"Error details: {e}")
-                        failed_templates.append(template)
-
-            if len(failed_templates):
-                for template in failed_templates:
-                    try:
-                        self._zabbix.import_template(template)
-                    except Exception as e:
-                        self.logger.error(f"Error importing template {template}: {e}")
-
-        deletion_queue = []
-        imported_template_ids = []
-
-        for t in templates:
-            imported_template_ids.extend(t.template_ids)
-
-        # Delete the deleted templates
-        for file in deleted_files:
-            template = Template.open(file)
-
-            if not template or not template.is_template:
-                self.logger.warning(f"Could not open to be deleted file {file}")
-                continue
-
-            if self.ignore_template(template.name):
-                continue
-
-            if template.uuid in imported_template_ids:
-                self.logger.debug(
-                    f"Template {template.name} is being imported under a different name or path, skipping deletion"
-                )
-                continue
-
-            deletion_queue.append(template.name)
-            self.logger.info(f"Added {template.name} to deletion queue")
-
-        if len(deletion_queue):
-            self.logger.info(f"Deleting {len(deletion_queue)} templates from Zabbix")
-            template_ids = [
-                t["templateid"]
-                for t in list(
-                    filter(lambda dt: dt["name"] in deletion_queue, template_objects)
-                )
-            ]
-
-            if len(template_ids):
-                if not self._settings.DRY_RUN:
-                    self._zabbix.delete_template(template_ids)
-
+        # Inform user about the changes
         if Settings.DRY_RUN:
             self.logger.info(
-                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(templates)} templates and deleted {len(deletion_queue)} templates"
+                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Would have imported {len(imported_images)} images and deleted {len(deleted_image_names)} images"
             )
         else:
-            if len(deletion_queue) == 0 and len(templates) == 0:
+            if (
+                len(deleted_template_names) == 0
+                and len(imported_template_ids) == 0
+                and len(imported_images) == 0
+            ):
                 self.logger.info("No changes detected, Zabbix is up to date")
             else:
                 self.logger.info(
-                    f"Zabbix state has been synchronized, imported {len(templates)} templates and deleted {len(deletion_queue)} templates"
+                    f"Zabbix state has been synchronized, imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images"
                 )
 
         # clean local changes
         self._git.clean()
-
-        return len(templates) > 0 or len(deletion_queue) > 0
-
-    async def zabbix_export(self, templates: list[dict]):
-        batches = [
-            templates[i : i + Settings.BATCH_SIZE]
-            for i in range(0, len(templates), Settings.BATCH_SIZE)
-        ]
-
-        failed_exports = []
-
-        for batchIndex, batch in enumerate(batches):
-            self.logger.info(f"Processing batch {batchIndex + 1}/{len(batches)}")
-            coros = []
-            for t in batch:
-                coros.append(self._zabbix.export_template_async([t["templateid"]]))
-
-            responses = await asyncio.gather(*coros, return_exceptions=True)
-
-            for index, response in enumerate(responses):
-                if isinstance(response, BaseException):
-                    self.logger.error(f"Error exporting template: {response}")
-
-                    # Retry the export
-                    failed_exports.append(batch[index])
-                    continue
-
-                export_yaml = self.yaml.load(StringIO(response["result"]))
-
-                if "templates" not in export_yaml["zabbix_export"]:
-                    self.logger.info("No templates found in Zabbix")
-                    return
-
-                zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
-
-                if self.ignore_template(zabbix_template.name):
-                    continue
-
-                zabbix_template.save()
-                self.logger.info(f"Exported Zabbix template {zabbix_template.name}")
-
-        if len(failed_exports):
-            self.logger.warning(
-                f"Failed to export {len(failed_exports)} templates, retrying"
-            )
-            await self.zabbix_export(failed_exports)
-
-    async def templates_to_cache(self) -> list[str]:
-        """
-        Export Zabbix templates to the cache
-        """
-        if Settings.get_template_whitelist():
-            templates = self._zabbix.get_templates_filtered(
-                [Settings.ROOT_TEMPLATE_GROUP], Settings.get_template_whitelist()
-            )
-        else:
-            templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
-
-        self.logger.info(f"Found {len(templates)} templates in Zabbix")
-        self.logger.debug(f"Found Zabbix templates: {[t['host'] for t in templates]}")
-
-        await self.zabbix_export(templates)
-        return templates
-
-    @classmethod
-    def ignore_template(cls, template_name: str) -> bool:
-        """
-        Returns true if template should be ignored because of the blacklist or whitelist
-        """
-        if template_name in Settings.get_template_blacklist():
-            cls.logger.debug(f"Skipping blacklisted template {template_name}")
-            return True
-
-        if (
-            len(Settings.get_template_whitelist())
-            and template_name not in Settings.get_template_whitelist()
-        ):
-            cls.logger.debug(f"Skipping non whitelisted template {template_name}")
-            return True
-
-        return False
+        return len(imported_template_ids) > 0 or len(deleted_template_names) > 0

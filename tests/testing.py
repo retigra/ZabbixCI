@@ -5,6 +5,7 @@ from os import getenv
 
 from zabbixci import ZabbixCI
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
 
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
@@ -13,8 +14,10 @@ DEV_GIT_REMOTE = getenv("REMOTE")
 
 class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
+        self.cache = Cache(Settings.CACHE_PATH)
+
         if os.path.exists(".cache"):
-            ZabbixCI.cleanup_cache(full=True)
+            Cache.cleanup_cache(full=True)
 
         logging.basicConfig(
             level=logging.ERROR,
@@ -29,7 +32,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         self.zci = ZabbixCI()
 
     async def restoreState(self):
-        ZabbixCI.cleanup_cache()
+        Cache.cleanup_cache()
 
         # Restore Zabbix to initial testing state
         Settings.PULL_BRANCH = "test"
@@ -115,7 +118,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         template_id = self.zci._zabbix.get_templates_name(
             ["Acronis Cyber Protect Cloud by HTTP"]
         )[0]["templateid"]
-        self.zci._zabbix.delete_template([template_id])
+        self.zci._zabbix.delete_templates([template_id])
 
         # Push changes to git
         changed = await self.zci.push()
