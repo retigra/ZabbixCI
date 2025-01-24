@@ -6,6 +6,7 @@ from sys import version_info
 
 from zabbixci._version import __version__
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
 from zabbixci.zabbixci import ZabbixCI
 
 # Read command line arguments to fill the settings
@@ -226,8 +227,10 @@ def parse_cli():
 
     logger.debug(f"Settings: {settings_debug}")
 
+    Cache(Settings.CACHE_PATH)
+
     if args.action == "clearcache":
-        ZabbixCI.cleanup_cache(full=True)
+        Cache.cleanup_cache(full=True)
     else:
         asyncio.run(run_zabbixci(args.action))
 

@@ -1,10 +1,10 @@
 import logging
-import os
 from base64 import b64decode, b64encode
 
 import regex
 
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
 
 logger = logging.getLogger(__name__)
 
@@ -29,19 +29,18 @@ class Image:
     def save(self):
         name_folders = self.name.split("/")[0:-1]
 
-        os.makedirs(
+        Cache.makedirs(
             f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self._type_folder}/{'/'.join(name_folders)}",
-            exist_ok=True,
         )
 
-        with open(
+        with Cache.open(
             f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self._type_folder}/{self.name}.png",
             "wb",
         ) as file:
             file.write(self.image)
 
     def load(self, path: str):
-        with open(f"{Settings.CACHE_PATH}/{path}/{self.name}.png", "rb") as file:
+        with Cache.open(f"{Settings.CACHE_PATH}/{path}/{self.name}.png", "rb") as file:
             self.image = file.read()
 
     def as_zabbix_dict(self):
@@ -66,7 +65,7 @@ class Image:
 
     @classmethod
     def open(cls, path: str):
-        with open(f"{Settings.CACHE_PATH}/{path}", "rb") as file:
+        with Cache.open(f"{Settings.CACHE_PATH}/{path}", "rb") as file:
             # TODO: Validation of path ending with /
             matches = regex.match(
                 f"{Settings.IMAGE_PREFIX_PATH}/(icons|backgrounds)/(.*).png", path

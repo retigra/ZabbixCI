@@ -1,5 +1,4 @@
 import logging
-import os
 from io import StringIO
 from typing import TextIO
 
@@ -7,6 +6,7 @@ import regex
 from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
+from zabbixci.utils.cache import Cache
 
 yaml = YAML()
 
@@ -178,12 +178,11 @@ class Template:
         """
         Save the template to the cache
         """
-        os.makedirs(
+        Cache.makedirs(
             f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}",
-            exist_ok=True,
         )
 
-        with open(
+        with Cache.open(
             f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['template']}.yaml",
             "w",
         ) as file:
@@ -216,7 +215,7 @@ class Template:
         """
         Open a template from the cache
         """
-        with open(f"{Settings.CACHE_PATH}/{path}", "r") as file:
+        with Cache.open(f"{Settings.CACHE_PATH}/{path}", "r") as file:
             return Template(yaml.load(file)["zabbix_export"])
 
     @staticmethod

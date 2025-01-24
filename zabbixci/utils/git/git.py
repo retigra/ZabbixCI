@@ -6,6 +6,7 @@ import pygit2
 from pygit2.enums import MergeAnalysis
 
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class Git:
         """
 
         if not os.path.exists(path):
-            os.makedirs(path)
+            Cache.makedirs(path)
 
             self._repository = pygit2.clone_repository(
                 Settings.REMOTE,
