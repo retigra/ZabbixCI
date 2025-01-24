@@ -107,6 +107,49 @@ dry_run: false
 # Default:
 set_version: false
 
+### Option: sync_icons
+# Synchronize Zabbix icons
+#
+# Mandatory: no
+# Default:
+sync_icons: false
+
+
+### Option: sync_backgrounds
+# Synchronize Zabbix backgrounds
+#
+# Mandatory: no
+# Default:
+sync_backgrounds: false
+
+
+### Option: sync_templates
+# Synchronize Zabbix templates
+#
+# Mandatory: no
+# Default:
+sync_templates: true
+
+
+### Option: image_whitelist
+# Comma separated list of image names
+# to synchronize explicitly.
+# If set, all other image will be ignored.
+#
+# Mandatory: no
+# Default:
+image_whitelist: ""
+
+### Option: image_blacklist
+# Comma separated list of image names
+# to ignore during synchronization.
+# All other image will be synced.
+#
+# Mandatory: no
+# Default:
+image_blacklist: ""
+
+
 #### ZABBIX CONFIGURATION ####
 
 ### Option: zabbix_url
