@@ -38,6 +38,7 @@ class Settings:
     SYNC_TEMPLATES = True
     IMAGE_WHITELIST = ""
     IMAGE_BLACKLIST = ""
+    IMAGE_SIZES = ""
 
     @classmethod
     def get_template_whitelist(cls):
@@ -54,6 +55,11 @@ class Settings:
     @classmethod
     def get_image_blacklist(cls):
         return cls.IMAGE_BLACKLIST.split(",") if cls.IMAGE_BLACKLIST else []
+
+    @classmethod
+    def get_image_sizes(cls):
+        size_strings = cls.IMAGE_SIZES.split(",") if cls.IMAGE_SIZES else []
+        return [tuple(map(int, size.split("x"))) for size in size_strings]
 
     @classmethod
     def from_env(cls):
