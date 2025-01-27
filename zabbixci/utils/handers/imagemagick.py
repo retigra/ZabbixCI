@@ -7,10 +7,6 @@ logger = logging.getLogger(__name__)
 
 
 class Image:
-    """
-    Dummy wand image class
-    """
-
     pass
 
 
@@ -20,7 +16,7 @@ class ImagemagickHandler:
     """
 
     @classmethod
-    def _convert(cls, image: Image, size: tuple[int, int], format: str) -> Image:
+    def _convert(cls, image: Image, size: int, format: str) -> Image:
         """
         Convert an image to a different size and format
 
@@ -29,7 +25,12 @@ class ImagemagickHandler:
         :param format: Format to convert to
         :return: Converted image
         """
-        image.resize(size[0], size[1])
+        # Calculate scale factor by width
+        width, height = image.size
+        scale = size / width
+
+        # Resize image
+        image.resize(width=size, height=int(height * scale))
         image.format = format
 
         return image
@@ -39,7 +40,7 @@ class ImagemagickHandler:
         """
         Get the sizes to convert images to
         """
-        return Settings.get_image_sizes()
+        return Settings.get_ICON_SIZES()
 
     @classmethod
     def create_sized(cls, image_path: str, destination: str, base_name: str):
@@ -55,8 +56,7 @@ class ImagemagickHandler:
             image = Image(file=file)
 
             for size in cls._get_sizes():
-                avg_size = int((size[0] + size[1]) / 2)
-                file_name = f"{base_name}_({avg_size}).png"
+                file_name = f"{base_name}_({size}).png"
 
                 converted_image = cls._convert(image.clone(), size, "png")
                 with Cache.open(f"{destination}/{file_name}", "wb") as file:

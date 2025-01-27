@@ -38,7 +38,7 @@ class Settings:
     SYNC_TEMPLATES = True
     IMAGE_WHITELIST = ""
     IMAGE_BLACKLIST = ""
-    IMAGE_SIZES = "24x24,48x48,64x64,128x128"
+    ICON_SIZES = "24,48,64,128"
     IMAGEMAGICK_ENABLED = False
 
     @classmethod
@@ -58,9 +58,9 @@ class Settings:
         return cls.IMAGE_BLACKLIST.split(",") if cls.IMAGE_BLACKLIST else []
 
     @classmethod
-    def get_image_sizes(cls):
-        size_strings = cls.IMAGE_SIZES.split(",") if cls.IMAGE_SIZES else []
-        return [tuple(map(int, size.split("x"))) for size in size_strings]
+    def get_ICON_SIZES(cls):
+        size_strings = cls.ICON_SIZES.split(",") if cls.ICON_SIZES else []
+        return [int(size) for size in size_strings]
 
     @classmethod
     def from_env(cls):
