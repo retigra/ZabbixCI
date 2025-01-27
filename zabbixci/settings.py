@@ -38,7 +38,8 @@ class Settings:
     SYNC_TEMPLATES = True
     IMAGE_WHITELIST = ""
     IMAGE_BLACKLIST = ""
-    IMAGE_SIZES = ""
+    IMAGE_SIZES = "24x24,48x48,64x64,128x128"
+    IMAGEMAGICK_ENABLED = False
 
     @classmethod
     def get_template_whitelist(cls):

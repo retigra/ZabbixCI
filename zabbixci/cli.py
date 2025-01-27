@@ -183,6 +183,12 @@ def read_args():
         "--ca-bundle",
         help="Path to CA bundle for SSL verification",
     )
+    parser.add_argument(
+        "--imagemagick-enabled",
+        help="Enable ImageMagick for image conversion",
+        action="store_true",
+        default=None,
+    )
 
     return parser.parse_args()
 
