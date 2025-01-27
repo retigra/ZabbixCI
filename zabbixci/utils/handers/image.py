@@ -1,6 +1,10 @@
 import logging
 
+import regex
+
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.handers.imagemagick import ImagemagickHandler
 from zabbixci.utils.services.image import Image
 from zabbixci.utils.zabbix.zabbix import Zabbix
 
@@ -43,6 +47,42 @@ class ImageHandler:
             image_object.save()
 
         return images
+
+    def import_dynamic_images(self) -> list[str]:
+        """
+        Read images from dynamic dir and create different sizes for Zabbix.
+        """
+        if not Settings.SYNC_ICONS:
+            return []
+
+        if not Cache.exists(
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic"
+        ):
+            logger.info("No dynamic images found")
+            return []
+
+        file_paths = Cache.get_files(
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic"
+        )
+        destination = f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/icons"
+        file_name = regex.compile(r"([^/]+)\.png")
+
+        changed_files = []
+
+        for path in file_paths:
+            relative_path = (
+                f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic/{path}"
+            )
+
+            created_paths = ImagemagickHandler.create_sized(
+                relative_path,
+                destination,
+                file_name.search(path).group(1),
+            )
+
+            changed_files.extend(created_paths)
+
+        return changed_files
 
     def _read_validation(self, changed_file: str) -> bool:
         """

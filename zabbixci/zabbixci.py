@@ -250,8 +250,16 @@ class ZabbixCI:
             deleted_files, imported_template_ids, template_objects
         )
 
+        created_images = []
+        if Settings.IMAGEMAGICK_ENABLED:
+            created_images = image_handler.import_dynamic_images()
+
+            self.logger.warning(
+                "Dynamic image creation enabled, rendered images are always imported into Zabbix"
+            )
+
         imported_images = image_handler.import_file_changes(
-            changed_files, image_objects
+            [*changed_files, *created_images], image_objects
         )
         deleted_image_names = image_handler.delete_file_changes(
             deleted_files, imported_images, image_objects
