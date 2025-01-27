@@ -52,7 +52,9 @@ class ImageHandler:
             return False
 
         # Check if file is within the desired path
-        if not changed_file.startswith(Settings.IMAGE_PREFIX_PATH):
+        if not Cache.is_within(
+            changed_file, f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}"
+        ):
             logger.debug(f"Skipping .png file {changed_file} outside of prefix path")
             return False
 

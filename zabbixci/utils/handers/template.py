@@ -5,6 +5,7 @@ from io import StringIO
 from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
 from zabbixci.utils.services.template import Template
 from zabbixci.utils.zabbix.zabbix import Zabbix
 
@@ -93,7 +94,9 @@ class TemplateHandler:
             return False
 
         # Check if file is within the desired path
-        if not changed_file.startswith(Settings.TEMPLATE_PREFIX_PATH):
+        if not Cache.is_within(
+            changed_file, f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}"
+        ):
             logger.debug(f"Skipping .yaml file {changed_file} outside of prefix path")
             return False
 

@@ -65,10 +65,10 @@ class Image:
 
     @classmethod
     def open(cls, path: str):
-        with Cache.open(f"{Settings.CACHE_PATH}/{path}", "rb") as file:
+        with Cache.open(path, "rb") as file:
             # TODO: Validation of path ending with /
             matches = regex.match(
-                f"{Settings.IMAGE_PREFIX_PATH}/(icons|backgrounds)/(.*).png", path
+                f".*/{Settings.IMAGE_PREFIX_PATH}/(icons|backgrounds)/(.*).png", path
             )
 
             if not matches:
