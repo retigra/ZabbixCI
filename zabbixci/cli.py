@@ -5,6 +5,7 @@ import logging.config
 from sys import version_info
 
 from zabbixci._version import __version__
+from zabbixci.logging import CustomFormatter
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
 from zabbixci.zabbixci import ZabbixCI
@@ -204,9 +205,13 @@ def parse_cli():
         else logging.INFO if args.verbose else logging.WARN
     )
 
+    ch = logging.StreamHandler()
+
+    ch.setFormatter(CustomFormatter())
+
     logging.basicConfig(
-        format="%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s",
         level=global_level,
+        handlers=[ch],
     )
 
     zabbixci_logger = logging.getLogger("zabbixci")
