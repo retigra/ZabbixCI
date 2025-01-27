@@ -64,20 +64,39 @@ class ImageHandler:
         file_paths = Cache.get_files(
             f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic"
         )
-        destination = f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/icons"
-        file_name = regex.compile(r"([^/]+)\.png")
 
         changed_files = []
+        full_cache_path = Cache.real_path(Settings.CACHE_PATH)
 
         for path in file_paths:
-            relative_path = (
-                f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic/{path}"
+            # Skip non-png files in the dynamic directory
+            if not path.endswith(".png"):
+                continue
+
+            match_groups = regex.match(
+                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/dynamic\/?.*)/(.+)\.png",
+                path,
             )
 
+            if not match_groups:
+                logger.warning(
+                    f"Could not extract destination and file name from {path}"
+                )
+                continue
+
+            destination = match_groups.group(1).replace("dynamic", "icons")
+            file_name = match_groups.group(2)
+
+            if not file_name:
+                logger.warning(f"Could not extract file name from {path}")
+                continue
+
+            Cache.makedirs(destination)
+
             created_paths = ImagemagickHandler.create_sized(
-                relative_path,
+                path,
                 destination,
-                file_name.search(path).group(1),
+                file_name,
             )
 
             changed_files.extend(created_paths)
