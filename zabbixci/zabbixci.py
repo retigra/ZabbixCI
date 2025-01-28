@@ -126,7 +126,9 @@ class ZabbixCI:
 
             change_amount = len(changes)
 
-            for file, status in changes.items():
+            for relative_path, status in changes.items():
+                file = f"{Settings.CACHE_PATH}/{relative_path}"
+
                 if status == FileStatus.WT_DELETED:
                     self.logger.info(f"Detected deletion of {file}")
                     continue
@@ -227,12 +229,14 @@ class ZabbixCI:
         # Get the changed files, we compare the untracked changes with the desired.
         # When we have a new untracked file, that means it was deleted in the desired state.
         changed_files: list[str] = [
-            path
+            f"{Settings.CACHE_PATH}/{path}"
             for path, flags in status.items()
             if flags in [FileStatus.WT_DELETED, FileStatus.WT_MODIFIED]
         ]
         deleted_files: list[str] = [
-            path for path, flags in status.items() if flags == FileStatus.WT_NEW
+            f"{Settings.CACHE_PATH}/{path}"
+            for path, flags in status.items()
+            if flags == FileStatus.WT_NEW
         ]
 
         self.logger.debug(f"Following files have changed on Git: {changed_files}")
@@ -246,8 +250,16 @@ class ZabbixCI:
             deleted_files, imported_template_ids, template_objects
         )
 
+        created_images = []
+        if Settings.IMAGEMAGICK_ENABLED:
+            created_images = image_handler.import_dynamic_images()
+
+            self.logger.warning(
+                "Dynamic image creation enabled, rendered images are always imported into Zabbix"
+            )
+
         imported_images = image_handler.import_file_changes(
-            changed_files, image_objects
+            [*changed_files, *created_images], image_objects
         )
         deleted_image_names = image_handler.delete_file_changes(
             deleted_files, imported_images, image_objects

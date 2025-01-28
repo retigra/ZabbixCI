@@ -1,0 +1,68 @@
+import logging
+
+from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
+
+logger = logging.getLogger(__name__)
+
+
+class Image:
+    pass
+
+
+class ImagemagickHandler:
+    """
+    Wand / ImageMagick wrapper for ZabbixCI, coverts images (icons) to different sizes and formats.
+    """
+
+    @classmethod
+    def _convert(cls, image: Image, size: int, format: str) -> Image:
+        """
+        Convert an image to a different size and format
+
+        :param image: Image to convert
+        :param size: Size to convert to
+        :param format: Format to convert to
+        :return: Converted image
+        """
+        # Calculate scale factor by width
+        width, height = image.size
+        scale = size / width
+
+        # Resize image
+        image.resize(width=size, height=int(height * scale))
+        image.format = format
+
+        return image
+
+    @classmethod
+    def _get_sizes(cls):
+        """
+        Get the sizes to convert images to
+        """
+        return Settings.get_ICON_SIZES()
+
+    @classmethod
+    def create_sized(cls, image_path: str, destination: str, base_name: str):
+        """
+        Create sized images based on the sizes in the settings
+
+        :param image_path: Path to the image
+        """
+        from wand.image import Image
+
+        files: list[str] = []
+        with Cache.open(image_path, "rb") as file:
+            image = Image(file=file)
+
+            for size in cls._get_sizes():
+                file_name = f"{base_name}_({size}).png"
+
+                converted_image = cls._convert(image.clone(), size, "png")
+                with Cache.open(f"{destination}/{file_name}", "wb") as file:
+                    converted_image.save(file=file)
+
+                logger.info(f"Created {file_name}")
+                files.append(f"{destination}/{file_name}")
+
+        return files
