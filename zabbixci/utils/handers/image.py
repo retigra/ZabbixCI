@@ -48,13 +48,10 @@ class ImageHandler:
 
         return images
 
-    def import_dynamic_images(self) -> list[str]:
+    def generate_images(self) -> list[str]:
         """
         Read images from dynamic dir and create different sizes for Zabbix.
         """
-        if not Settings.SYNC_ICONS:
-            return []
-
         if not Cache.exists(
             f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic"
         ):
