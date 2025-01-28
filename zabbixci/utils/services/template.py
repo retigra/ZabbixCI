@@ -145,13 +145,13 @@ class Template:
     def _insert_vendor_dict(self):
         """
         Insert vendor dict into export.
-        Vendor needs to be positioned after description
+        Vendor needs to be positioned before groups
         to match the Zabbix export format
         """
-        description_index = list(self._template.keys()).index("description")
+        groups_index = list(self._template.keys()).index("groups")
 
         items = list(self._template.items())
-        items.insert(description_index + 1, ("vendor", {}))
+        items.insert(groups_index, ("vendor", {}))
         self._export["templates"][0] = dict(items)
 
     def set_vendor(self, vendor: str):
