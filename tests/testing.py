@@ -24,6 +24,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         Settings.ZABBIX_URL = DEV_ZABBIX_URL
         Settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
         Settings.REMOTE = DEV_GIT_REMOTE
+        Settings.SET_VERSION = True
         Settings.TEMPLATE_WHITELIST = "Linux by Zabbix agent,Linux by Zabbix 00000,Windows by Zabbix agent,Acronis Cyber Protect Cloud by HTTP,Kubernetes API server by HTTP,Kubernetes cluster state by HTTP"
 
         self.zci = ZabbixCI()
