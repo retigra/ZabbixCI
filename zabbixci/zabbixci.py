@@ -126,7 +126,9 @@ class ZabbixCI:
 
             change_amount = len(changes)
 
-            for file, status in changes.items():
+            for relative_path, status in changes.items():
+                file = f"{Settings.CACHE_PATH}/{relative_path}"
+
                 if status == FileStatus.WT_DELETED:
                     self.logger.info(f"Detected deletion of {file}")
                     continue
@@ -227,12 +229,14 @@ class ZabbixCI:
         # Get the changed files, we compare the untracked changes with the desired.
         # When we have a new untracked file, that means it was deleted in the desired state.
         changed_files: list[str] = [
-            path
+            f"{Settings.CACHE_PATH}/{path}"
             for path, flags in status.items()
             if flags in [FileStatus.WT_DELETED, FileStatus.WT_MODIFIED]
         ]
         deleted_files: list[str] = [
-            path for path, flags in status.items() if flags == FileStatus.WT_NEW
+            f"{Settings.CACHE_PATH}/{path}"
+            for path, flags in status.items()
+            if flags == FileStatus.WT_NEW
         ]
 
         self.logger.debug(f"Following files have changed on Git: {changed_files}")
@@ -273,3 +277,67 @@ class ZabbixCI:
         # clean local changes
         self._git.clean()
         return len(imported_template_ids) > 0 or len(deleted_template_names) > 0
+
+    def generate_images(self):
+        """
+        Generate icons from Zabbix and save them to the cache
+        """
+        self._git.fetch(Settings.REMOTE, self._git_cb)
+
+        self.logger.info("Generating icons from Zabbix")
+
+        icon_handler = ImageHandler(self._zabbix)
+        icon_handler.generate_images()
+
+        if not self._git.is_empty:
+            # If the repository is empty, new branches can't be created. But it is
+            # safe to push to the default branch
+            self._git.switch_branch(Settings.PUSH_BRANCH)
+
+            # Pull the latest remote state
+            try:
+                self._git.pull(Settings.REMOTE, self._git_cb)
+            except KeyError:
+                self.logger.info(
+                    f"Remote branch does not exist, using state from branch {Settings.PULL_BRANCH}"
+                )
+                # Remote branch does not exist, we pull the default branch and create a new branch
+                self._git.switch_branch(Settings.PULL_BRANCH)
+                self._git.pull(Settings.REMOTE, self._git_cb)
+
+                # Create a new branch
+                self._git.switch_branch(Settings.PUSH_BRANCH)
+
+        # Check if there are any changes to commit
+        if not self._git.has_changes and not self._git.ahead_of_remote:
+            self.logger.info("No changes detected")
+            return False
+
+        self.logger.info("Remote differs from local state, preparing to push")
+        change_amount = len(self._git.status())
+
+        # Check if we have any changes to commit. Otherwise, we just push the current state
+        if self._git.has_changes:
+            # Commit and push the changes
+            self._git.add_all()
+
+            if not Settings.DRY_RUN:
+                # Generate commit message
+                self._git.commit("Generated icons from dynamic items")
+                self.logger.info(
+                    f"Staged changes from generated icons committed to {self._git.current_branch}"
+                )
+        else:
+            self.logger.info("No staged changes, updating remote with current state")
+
+        if not self._settings.DRY_RUN:
+            self._git.push(Settings.REMOTE, self._git_cb)
+            self.logger.info(
+                f"Committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+            )
+        else:
+            self.logger.info(
+                f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+            )
+
+        return change_amount > 0

@@ -38,6 +38,7 @@ class Settings:
     SYNC_TEMPLATES = True
     IMAGE_WHITELIST = ""
     IMAGE_BLACKLIST = ""
+    ICON_SIZES = "24,48,64,128"
 
     @classmethod
     def get_template_whitelist(cls):
@@ -54,6 +55,11 @@ class Settings:
     @classmethod
     def get_image_blacklist(cls):
         return cls.IMAGE_BLACKLIST.split(",") if cls.IMAGE_BLACKLIST else []
+
+    @classmethod
+    def get_ICON_SIZES(cls):
+        size_strings = cls.ICON_SIZES.split(",") if cls.ICON_SIZES else []
+        return [int(size) for size in size_strings]
 
     @classmethod
     def from_env(cls):

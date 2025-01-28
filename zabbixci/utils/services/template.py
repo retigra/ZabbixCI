@@ -215,7 +215,7 @@ class Template:
         """
         Open a template from the cache
         """
-        with Cache.open(f"{Settings.CACHE_PATH}/{path}", "r") as file:
+        with Cache.open(path, "r") as file:
             return Template(yaml.load(file)["zabbix_export"])
 
     @staticmethod

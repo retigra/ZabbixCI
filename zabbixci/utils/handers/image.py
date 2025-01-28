@@ -1,6 +1,10 @@
 import logging
 
+import regex
+
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.handers.imagemagick import ImagemagickHandler
 from zabbixci.utils.services.image import Image
 from zabbixci.utils.zabbix.zabbix import Zabbix
 
@@ -44,6 +48,58 @@ class ImageHandler:
 
         return images
 
+    def generate_images(self) -> list[str]:
+        """
+        Read images from dynamic dir and create different sizes for Zabbix.
+        """
+        if not Cache.exists(
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic"
+        ):
+            logger.info("No dynamic images found")
+            return []
+
+        file_paths = Cache.get_files(
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic"
+        )
+
+        changed_files = []
+        full_cache_path = Cache.real_path(Settings.CACHE_PATH)
+
+        for path in file_paths:
+            # Skip non-png files in the dynamic directory
+            if not path.endswith(".png"):
+                continue
+
+            match_groups = regex.match(
+                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/dynamic\/?.*)/(.+)\.png",
+                path,
+            )
+
+            if not match_groups:
+                logger.warning(
+                    f"Could not extract destination and file name from {path}"
+                )
+                continue
+
+            destination = match_groups.group(1).replace("dynamic", "icons")
+            file_name = match_groups.group(2)
+
+            if not file_name:
+                logger.warning(f"Could not extract file name from {path}")
+                continue
+
+            Cache.makedirs(destination)
+
+            created_paths = ImagemagickHandler.create_sized(
+                path,
+                destination,
+                file_name,
+            )
+
+            changed_files.extend(created_paths)
+
+        return changed_files
+
     def _read_validation(self, changed_file: str) -> bool:
         """
         Validation steps to perform on a changed file before it is processed as a image
@@ -52,7 +108,9 @@ class ImageHandler:
             return False
 
         # Check if file is within the desired path
-        if not changed_file.startswith(Settings.IMAGE_PREFIX_PATH):
+        if not Cache.is_within(
+            changed_file, f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}"
+        ):
             logger.debug(f"Skipping .png file {changed_file} outside of prefix path")
             return False
 
