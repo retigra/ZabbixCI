@@ -1,5 +1,5 @@
 .env*
-cache
+/cache
 __pycache__
 build
 *.egg-info
