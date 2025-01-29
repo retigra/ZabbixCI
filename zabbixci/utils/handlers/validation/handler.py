@@ -10,11 +10,11 @@ logger = logging.getLogger(__name__)
 
 class Handler(object, metaclass=ABCMeta):
     @abstractmethod
-    def _get_whitelist(self) -> list[str] | str:
+    def get_whitelist(self) -> list[str] | str:
         raise NotImplementedError()
 
     @abstractmethod
-    def _get_blacklist(self) -> list[str] | str:
+    def get_blacklist(self) -> list[str] | str:
         raise NotImplementedError()
 
     def _use_regex(self) -> bool:
@@ -27,14 +27,14 @@ class Handler(object, metaclass=ABCMeta):
         :param query: Query to match
         :return: True when the template was blocked, False when the template was allowed
         """
-        if not self._get_whitelist():
+        if not self.get_whitelist():
             return False
 
         if self._use_regex():
-            pattern = regex.compile(self._get_whitelist())
+            pattern = regex.compile(self.get_whitelist())
             return pattern.fullmatch(query) is None
         else:
-            return query not in self._get_whitelist()
+            return query not in self.get_whitelist()
 
     def enforce_blacklist(self, query: str):
         """
@@ -43,11 +43,11 @@ class Handler(object, metaclass=ABCMeta):
         :param query: Query to match
         :return: True when the template was blocked, False when the template was allowed
         """
-        if not self._get_blacklist():
+        if not self.get_blacklist():
             return False
 
         if self._use_regex():
-            pattern = regex.compile(self._get_blacklist())
+            pattern = regex.compile(self.get_blacklist())
             return pattern.fullmatch(query) is not None
         else:
-            return query in self._get_blacklist()
+            return query in self.get_blacklist()

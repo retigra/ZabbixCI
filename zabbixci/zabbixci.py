@@ -10,8 +10,8 @@ from ruamel.yaml import YAML
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
 from zabbixci.utils.git import Git, GitCredentials
-from zabbixci.utils.handers.image import ImageHandler
-from zabbixci.utils.handers.template import TemplateHandler
+from zabbixci.utils.handlers.synchronization.image import ImageHandler
+from zabbixci.utils.handlers.synchronization.template import TemplateHandler
 from zabbixci.utils.services import Template
 from zabbixci.utils.zabbix import Zabbix
 

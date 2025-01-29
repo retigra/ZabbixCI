@@ -4,8 +4,10 @@ import os.path
 
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.filesystem import Filesystem
-from zabbixci.utils.handers.image_validation import ImageValidationHandler
-from zabbixci.utils.handers.template_validation import TemplateValidationHandler
+from zabbixci.utils.handlers.validation import (
+    ImageValidationHandler,
+    TemplateValidationHandler,
+)
 
 
 class Cache(Filesystem):

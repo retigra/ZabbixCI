@@ -1,7 +1,7 @@
 import logging
 
 from zabbixci.settings import Settings
-from zabbixci.utils.handers.handler import Handler
+from zabbixci.utils.handlers.validation import Handler
 
 logger = logging.getLogger(__name__)
 

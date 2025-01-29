@@ -6,7 +6,9 @@ from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
-from zabbixci.utils.handers.template_validation import TemplateValidationHandler
+from zabbixci.utils.handlers.validation.template_validation import (
+    TemplateValidationHandler,
+)
 from zabbixci.utils.services.template import Template
 from zabbixci.utils.zabbix.zabbix import Zabbix
 
@@ -75,8 +77,8 @@ class TemplateHandler(TemplateValidationHandler):
         Export Zabbix templates to the cache
         """
         search = (
-            self._get_whitelist()
-            if not self._use_regex() and self._get_whitelist()
+            self.get_whitelist()
+            if not self._use_regex() and self.get_whitelist()
             else None
         )
         templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP], search)

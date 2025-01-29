@@ -3,7 +3,7 @@ import logging
 from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
-from zabbixci.utils.handers.handler import Handler
+from zabbixci.utils.handlers.validation import Handler
 
 logger = logging.getLogger(__name__)
 yaml = YAML()

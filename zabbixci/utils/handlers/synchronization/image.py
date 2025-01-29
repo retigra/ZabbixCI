@@ -4,8 +4,8 @@ import regex
 
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
-from zabbixci.utils.handers.image_validation import ImageValidationHandler
-from zabbixci.utils.handers.imagemagick import ImagemagickHandler
+from zabbixci.utils.handlers.synchronization.imagemagick import ImagemagickHandler
+from zabbixci.utils.handlers.validation.image_validation import ImageValidationHandler
 from zabbixci.utils.services.image import Image
 from zabbixci.utils.zabbix.zabbix import Zabbix
 
