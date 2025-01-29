@@ -38,7 +38,9 @@ class ImageHandler(Handler):
             return []
 
         search = (
-            Settings.get_image_whitelist() if Settings.get_image_whitelist() else None
+            self._get_whitelist()
+            if not self._use_regex() and self._get_whitelist()
+            else None
         )
 
         images = self._zabbix.get_images(search)

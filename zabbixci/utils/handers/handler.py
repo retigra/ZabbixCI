@@ -17,6 +17,9 @@ class Handler(object, metaclass=ABCMeta):
     def _get_blacklist(self) -> list[str] | str:
         raise NotImplementedError()
 
+    def _use_regex(self) -> bool:
+        return Settings.REGEX_MATCHING
+
     def _enforce_whitelist(self, query: str):
         """
         Match a query against the whitelist, if no whitelist is set all queries are allowed.
@@ -27,7 +30,7 @@ class Handler(object, metaclass=ABCMeta):
         if not self._get_whitelist():
             return False
 
-        if Settings.REGEX_MATCHING:
+        if self._use_regex():
             pattern = regex.compile(self._get_whitelist())
             return pattern.fullmatch(query) is None
         else:
@@ -43,7 +46,7 @@ class Handler(object, metaclass=ABCMeta):
         if not self._get_blacklist():
             return False
 
-        if Settings.REGEX_MATCHING:
+        if self._use_regex():
             pattern = regex.compile(self._get_blacklist())
             return pattern.fullmatch(query) is not None
         else:

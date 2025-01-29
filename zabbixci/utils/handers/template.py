@@ -80,12 +80,12 @@ class TemplateHandler(Handler):
         """
         Export Zabbix templates to the cache
         """
-        if Settings.get_template_whitelist():
-            templates = self._zabbix.get_templates_filtered(
-                [Settings.ROOT_TEMPLATE_GROUP], Settings.get_template_whitelist()
-            )
-        else:
-            templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP])
+        search = (
+            self._get_whitelist()
+            if not self._use_regex() and self._get_whitelist()
+            else None
+        )
+        templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP], search)
 
         logger.info(f"Found {len(templates)} templates in Zabbix")
         logger.debug(f"Found Zabbix templates: {[t['host'] for t in templates]}")
