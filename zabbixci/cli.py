@@ -45,6 +45,10 @@ def read_args():
         help="The path in the git repository, used to store the templates",
     )
     zabbixci_group.add_argument(
+        "--image-prefix-path",
+        help="The path in the git repository, used to store the images",
+    )
+    zabbixci_group.add_argument(
         "--template-whitelist",
         help="Comma separated list of templates to include",
     )
