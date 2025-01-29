@@ -82,7 +82,7 @@ class Cache(Filesystem):
         """
         Check if a file is an image file that should be cleaned up
         """
-        is_image = name in Settings._DYN_IMG_EXT and (
+        is_image = name.split(".")[-1].lower() in Settings._DYN_IMG_EXT and (
             Filesystem.is_within(
                 root,
                 f"{Cache._instance._cache_dir}/{Settings.IMAGE_PREFIX_PATH}/icons",
