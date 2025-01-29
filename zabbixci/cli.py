@@ -74,6 +74,12 @@ def read_args():
         default=None,
     )
     zabbixci_group.add_argument(
+        "--sync-templates",
+        help="Synchronize templates between Zabbix and git",
+        action="store_true",
+        default=None,
+    )
+    zabbixci_group.add_argument(
         "--sync-icons",
         help="Synchronize icons between Zabbix and git",
         action="store_true",

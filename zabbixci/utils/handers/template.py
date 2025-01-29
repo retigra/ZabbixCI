@@ -146,6 +146,9 @@ class TemplateHandler(Handler):
         """
         templates: list[Template] = []
 
+        if Settings.SYNC_TEMPLATES is False:
+            return []
+
         for file in changed_files:
             if not self._read_validation(file):
                 continue
@@ -205,6 +208,9 @@ class TemplateHandler(Handler):
 
         :return: List of deleted template names
         """
+        if Settings.SYNC_TEMPLATES is False:
+            return []
+
         deletion_queue: list[str] = []
 
         # Check if deleted files are templates and if they are imported, if not add to deletion queue

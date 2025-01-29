@@ -233,6 +233,9 @@ class ImageHandler(Handler):
         """
         deletion_queue: list[str] = []
 
+        if not Settings.SYNC_ICONS and not Settings.SYNC_BACKGROUNDS:
+            return []
+
         # Check if deleted files are images and if they are imported, if not add to deletion queue
         for file in deleted_files:
             if not self._read_validation(file):
