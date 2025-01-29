@@ -4,7 +4,7 @@ import regex
 
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
-from zabbixci.utils.handers.handler import Handler
+from zabbixci.utils.handers.image_validation import ImageValidationHandler
 from zabbixci.utils.handers.imagemagick import ImagemagickHandler
 from zabbixci.utils.services.image import Image
 from zabbixci.utils.zabbix.zabbix import Zabbix
@@ -12,7 +12,7 @@ from zabbixci.utils.zabbix.zabbix import Zabbix
 logger = logging.getLogger(__name__)
 
 
-class ImageHandler(Handler):
+class ImageHandler(ImageValidationHandler):
     """
     Handler for importing images into Zabbix based on changed files. Includes validation steps based on settings.
 
@@ -23,12 +23,6 @@ class ImageHandler(Handler):
 
     def __init__(self, zabbix: Zabbix):
         self._zabbix = zabbix
-
-    def _get_whitelist(self):
-        return Settings.get_image_whitelist()
-
-    def _get_blacklist(self):
-        return Settings.get_image_blacklist()
 
     def images_to_cache(self) -> list[str]:
         """
@@ -76,12 +70,12 @@ class ImageHandler(Handler):
 
         for path in file_paths:
             # Skip non-png files in the dynamic directory
-            if not (path.lower().endswith(".png") or path.lower().endswith(".svg")):
+            if not self.is_image(path):
                 logger.warning(f"Skipping non-png file {path}")
                 continue
 
             match_groups = regex.match(
-                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/dynamic\/?.*)/(.+)\.(png|svg)",
+                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/dynamic\/?.*)/(.+)\.\w+",
                 path,
             )
 
@@ -116,7 +110,7 @@ class ImageHandler(Handler):
         """
         Validation steps to perform on a changed file before it is processed as a image
         """
-        if not changed_file.endswith(".png"):
+        if not self.is_image(changed_file):
             return False
 
         # Check if file is within the desired path
@@ -140,11 +134,11 @@ class ImageHandler(Handler):
             logger.debug(f"Skipping icon image {image.name}")
             return False
 
-        if self._enforce_whitelist(image.name):
+        if self.enforce_whitelist(image.name):
             logger.debug(f"Skipping image {image.name} not in whitelist")
             return False
 
-        if self._enforce_blacklist(image.name):
+        if self.enforce_blacklist(image.name):
             logger.debug(f"Skipping image {image.name} in blacklist")
             return False
 

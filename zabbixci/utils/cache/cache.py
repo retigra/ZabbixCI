@@ -4,6 +4,8 @@ import os.path
 
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.filesystem import Filesystem
+from zabbixci.utils.handers.image_validation import ImageValidationHandler
+from zabbixci.utils.handers.template_validation import TemplateValidationHandler
 
 
 class Cache(Filesystem):
@@ -67,8 +69,15 @@ class Cache(Filesystem):
 
     @classmethod
     def match_template_cleanup(cls, root: str, name: str):
-        return name.endswith(".yaml") and cls.is_within(
-            root, f"{cls._instance._cache_dir}/{Settings.TEMPLATE_PREFIX_PATH}"
+        template_validation_handler = TemplateValidationHandler()
+
+        return (
+            name.endswith(".yaml")
+            and cls.is_within(
+                root, f"{cls._instance._cache_dir}/{Settings.TEMPLATE_PREFIX_PATH}"
+            )
+            and not template_validation_handler.enforce_whitelist(name)
+            and not template_validation_handler.enforce_blacklist(name)
         )
 
     @classmethod
@@ -76,8 +85,9 @@ class Cache(Filesystem):
         """
         Check if a file is an image file that should be cleaned up
         """
+        image_validation_handler = ImageValidationHandler()
 
-        return name.endswith(".png") and (
+        return name in Settings._DYN_IMG_EXT and (
             Filesystem.is_within(
                 root,
                 f"{Cache._instance._cache_dir}/{Settings.IMAGE_PREFIX_PATH}/icons",
@@ -86,6 +96,8 @@ class Cache(Filesystem):
                 root,
                 f"{Cache._instance._cache_dir}/{Settings.IMAGE_PREFIX_PATH}/backgrounds",
             )
+            and not image_validation_handler.enforce_whitelist(name)
+            and not image_validation_handler.enforce_blacklist(name)
         )
 
     @classmethod

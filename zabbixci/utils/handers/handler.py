@@ -20,7 +20,7 @@ class Handler(object, metaclass=ABCMeta):
     def _use_regex(self) -> bool:
         return Settings.REGEX_MATCHING
 
-    def _enforce_whitelist(self, query: str):
+    def enforce_whitelist(self, query: str):
         """
         Match a query against the whitelist, if no whitelist is set all queries are allowed.
 
@@ -36,7 +36,7 @@ class Handler(object, metaclass=ABCMeta):
         else:
             return query not in self._get_whitelist()
 
-    def _enforce_blacklist(self, query: str):
+    def enforce_blacklist(self, query: str):
         """
         Match a query against the blacklist, if no blacklist is set all queries are allowed.
 
