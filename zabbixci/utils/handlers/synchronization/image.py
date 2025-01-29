@@ -32,8 +32,8 @@ class ImageHandler(ImageValidationHandler):
             return []
 
         search = (
-            self._get_whitelist()
-            if not self._use_regex() and self._get_whitelist()
+            self.get_whitelist()
+            if not self._use_regex() and self.get_whitelist()
             else None
         )
 

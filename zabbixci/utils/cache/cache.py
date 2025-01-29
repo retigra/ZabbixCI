@@ -71,25 +71,18 @@ class Cache(Filesystem):
 
     @classmethod
     def match_template_cleanup(cls, root: str, name: str):
-        template_validation_handler = TemplateValidationHandler()
-
-        return (
-            name.endswith(".yaml")
-            and cls.is_within(
-                root, f"{cls._instance._cache_dir}/{Settings.TEMPLATE_PREFIX_PATH}"
-            )
-            and not template_validation_handler.enforce_whitelist(name)
-            and not template_validation_handler.enforce_blacklist(name)
+        is_template = name.endswith(".yaml") and cls.is_within(
+            root, f"{cls._instance._cache_dir}/{Settings.TEMPLATE_PREFIX_PATH}"
         )
+
+        return is_template
 
     @classmethod
     def match_image_cleanup(cls, root: str, name: str):
         """
         Check if a file is an image file that should be cleaned up
         """
-        image_validation_handler = ImageValidationHandler()
-
-        return name in Settings._DYN_IMG_EXT and (
+        is_image = name in Settings._DYN_IMG_EXT and (
             Filesystem.is_within(
                 root,
                 f"{Cache._instance._cache_dir}/{Settings.IMAGE_PREFIX_PATH}/icons",
@@ -98,9 +91,9 @@ class Cache(Filesystem):
                 root,
                 f"{Cache._instance._cache_dir}/{Settings.IMAGE_PREFIX_PATH}/backgrounds",
             )
-            and not image_validation_handler.enforce_whitelist(name)
-            and not image_validation_handler.enforce_blacklist(name)
         )
+
+        return is_image
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:

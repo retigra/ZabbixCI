@@ -79,7 +79,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(changed, "Template was not restored")
 
         # Assert Git version is imported back into Zabbix
-        matches = self.zci._zabbix.get_templates_filtered(
+        matches = self.zci._zabbix.get_templates(
             [Settings.ROOT_TEMPLATE_GROUP], ["Windows by Zabbix agent"]
         )
         self.assertEqual(len(matches), 1, "Template not found")
@@ -110,7 +110,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(changed, "Template was not restored")
 
         # Assert Git version is restored
-        matches = self.zci._zabbix.get_templates_filtered(
+        matches = self.zci._zabbix.get_templates(
             [Settings.ROOT_TEMPLATE_GROUP], ["Linux by Zabbix 00000"]
         )
         self.assertEqual(len(matches), 1, "Template not found")
