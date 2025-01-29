@@ -76,11 +76,12 @@ class ImageHandler(Handler):
 
         for path in file_paths:
             # Skip non-png files in the dynamic directory
-            if not path.endswith(".png"):
+            if not (path.lower().endswith(".png") or path.lower().endswith(".svg")):
+                logger.warning(f"Skipping non-png file {path}")
                 continue
 
             match_groups = regex.match(
-                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/dynamic\/?.*)/(.+)\.png",
+                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/dynamic\/?.*)/(.+)\.(png|svg)",
                 path,
             )
 
@@ -92,6 +93,7 @@ class ImageHandler(Handler):
 
             destination = match_groups.group(1).replace("dynamic", "icons")
             file_name = match_groups.group(2)
+            file_type = match_groups.group(3)
 
             if not file_name:
                 logger.warning(f"Could not extract file name from {path}")
@@ -103,6 +105,7 @@ class ImageHandler(Handler):
                 path,
                 destination,
                 file_name,
+                file_type,
             )
 
             changed_files.extend(created_paths)

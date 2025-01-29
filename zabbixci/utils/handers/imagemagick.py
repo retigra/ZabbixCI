@@ -29,9 +29,10 @@ class ImagemagickHandler:
         width, height = image.size
         scale = size / width
 
+        image.format = format
+
         # Resize image
         image.resize(width=size, height=int(height * scale))
-        image.format = format
 
         return image
 
@@ -43,7 +44,9 @@ class ImagemagickHandler:
         return Settings.get_ICON_SIZES()
 
     @classmethod
-    def create_sized(cls, image_path: str, destination: str, base_name: str):
+    def create_sized(
+        cls, image_path: str, destination: str, base_name: str, file_type: str
+    ):
         """
         Create sized images based on the sizes in the settings
 
@@ -52,15 +55,18 @@ class ImagemagickHandler:
         from wand.image import Image
 
         files: list[str] = []
-        with Cache.open(image_path, "rb") as file:
-            image = Image(file=file)
+
+        if not Cache.is_within_cache(image_path):
+            logger.error(f"Image {image_path} is not within the cache")
+            return files
+
+        with Image(filename=image_path) as image:
 
             for size in cls._get_sizes():
                 file_name = f"{base_name}_({size}).png"
 
                 converted_image = cls._convert(image.clone(), size, "png")
-                with Cache.open(f"{destination}/{file_name}", "wb") as file:
-                    converted_image.save(file=file)
+                converted_image.save(filename=f"{destination}/{file_name}")
 
                 logger.info(f"Created {file_name}")
                 files.append(f"{destination}/{file_name}")

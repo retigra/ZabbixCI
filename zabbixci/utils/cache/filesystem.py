@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class Filesystem:
     @classmethod
-    def get_files(cls, path: str):
+    def get_files(cls, path: str) -> list[str]:
         """
         Wrapped get_files function that ensures that the path is within the cache directory
         """
