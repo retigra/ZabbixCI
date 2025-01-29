@@ -39,6 +39,7 @@ class Settings:
     IMAGE_WHITELIST = ""
     IMAGE_BLACKLIST = ""
     ICON_SIZES = "24,48,64,128"
+    REGEX_MATCHING = False
 
     @classmethod
     def get_template_whitelist(cls):
