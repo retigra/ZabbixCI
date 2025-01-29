@@ -25,7 +25,7 @@ class Handler(object, metaclass=ABCMeta):
         :return: True when the template was blocked, False when the template was allowed
         """
         if not self._get_whitelist():
-            return True
+            return False
 
         if Settings.REGEX_MATCHING:
             pattern = regex.compile(self._get_whitelist())
