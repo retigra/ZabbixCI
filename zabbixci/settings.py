@@ -6,6 +6,7 @@ yaml = YAML()
 
 
 class Settings:
+    _DYN_IMG_EXT = [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg"]
     ZABBIX_URL = "http://localhost:8080"
     ZABBIX_USER = None
     ZABBIX_PASSWORD = None
