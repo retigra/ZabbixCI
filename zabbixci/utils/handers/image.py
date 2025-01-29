@@ -4,6 +4,7 @@ import regex
 
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.handers.handler import Handler
 from zabbixci.utils.handers.imagemagick import ImagemagickHandler
 from zabbixci.utils.services.image import Image
 from zabbixci.utils.zabbix.zabbix import Zabbix
@@ -11,7 +12,7 @@ from zabbixci.utils.zabbix.zabbix import Zabbix
 logger = logging.getLogger(__name__)
 
 
-class ImageHandler:
+class ImageHandler(Handler):
     """
     Handler for importing images into Zabbix based on changed files. Includes validation steps based on settings.
 
@@ -22,6 +23,12 @@ class ImageHandler:
 
     def __init__(self, zabbix: Zabbix):
         self._zabbix = zabbix
+
+    def _get_whitelist(self):
+        return Settings.get_image_whitelist()
+
+    def _get_blacklist(self):
+        return Settings.get_image_blacklist()
 
     def images_to_cache(self) -> list[str]:
         """
@@ -128,17 +135,11 @@ class ImageHandler:
             logger.debug(f"Skipping icon image {image.name}")
             return False
 
-        if (
-            Settings.get_image_whitelist()
-            and image.name not in Settings.get_image_whitelist()
-        ):
+        if self._enforce_whitelist(image.name):
             logger.debug(f"Skipping image {image.name} not in whitelist")
             return False
 
-        if (
-            Settings.get_image_blacklist()
-            and image.name in Settings.get_image_blacklist()
-        ):
+        if self._enforce_blacklist(image.name):
             logger.debug(f"Skipping image {image.name} in blacklist")
             return False
 

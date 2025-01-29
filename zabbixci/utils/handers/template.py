@@ -6,6 +6,7 @@ from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.handers.handler import Handler
 from zabbixci.utils.services.template import Template
 from zabbixci.utils.zabbix.zabbix import Zabbix
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 yaml = YAML()
 
 
-class TemplateHandler:
+class TemplateHandler(Handler):
     """
     Handler for importing templates into Zabbix based on changed files. Includes validation steps based on settings.
 
@@ -24,6 +25,12 @@ class TemplateHandler:
 
     def __init__(self, zabbix: Zabbix):
         self._zabbix = zabbix
+
+    def _get_whitelist(self):
+        return Settings.get_template_whitelist()
+
+    def _get_blacklist(self):
+        return Settings.get_template_blacklist()
 
     async def zabbix_export(self, templates: list[dict]):
         batches = [
@@ -106,14 +113,11 @@ class TemplateHandler:
         """
         Validation steps to perform on a template before it is imported into Zabbix
         """
-        if template.name in Settings.get_template_blacklist():
+        if self._enforce_blacklist(template.name):
             logger.debug(f"Skipping blacklisted template {template.name}")
             return False
 
-        if (
-            len(Settings.get_template_whitelist())
-            and template.name not in Settings.get_template_whitelist()
-        ):
+        if self._enforce_whitelist(template.name):
             logger.debug(f"Skipping non whitelisted template {template.name}")
             return False
 
