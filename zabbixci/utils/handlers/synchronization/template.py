@@ -5,7 +5,6 @@ from io import StringIO
 from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cache import Cache
 from zabbixci.utils.handlers.validation.template_validation import (
     TemplateValidationHandler,
 )
@@ -60,7 +59,7 @@ class TemplateHandler(TemplateValidationHandler):
 
                 zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
 
-                if not self._template_validation(zabbix_template):
+                if not self.template_validation(zabbix_template):
                     continue
 
                 zabbix_template.save()
@@ -89,32 +88,11 @@ class TemplateHandler(TemplateValidationHandler):
         await self.zabbix_export(templates)
         return templates
 
-    def _read_validation(self, changed_file: str) -> bool:
-        """
-        Validation steps to perform on a changed file before it is processed as a template
-        """
-        if not changed_file.endswith(".yaml"):
-            return False
-
-        # Check if file is within the desired path
-        if not Cache.is_within(
-            changed_file, f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}"
-        ):
-            logger.debug(f"Skipping .yaml file {changed_file} outside of prefix path")
-            return False
-
-        return True
-
-    def _template_validation(self, template: Template) -> bool:
+    def template_validation(self, template) -> bool:
         """
         Validation steps to perform on a template before it is imported into Zabbix
         """
-        if self.enforce_blacklist(template.name):
-            logger.debug(f"Skipping blacklisted template {template.name}")
-            return False
-
-        if self.enforce_whitelist(template.name):
-            logger.debug(f"Skipping non whitelisted template {template.name}")
+        if not super().template_validation(template):
             return False
 
         zabbix_version = self._zabbix.get_server_version()
@@ -146,7 +124,7 @@ class TemplateHandler(TemplateValidationHandler):
             return []
 
         for file in changed_files:
-            if not self._read_validation(file):
+            if not self.read_validation(file):
                 continue
 
             template = Template.open(file)
@@ -155,7 +133,7 @@ class TemplateHandler(TemplateValidationHandler):
                 logger.warning(f"Could load file {file} as a template")
                 continue
 
-            if not self._template_validation(template):
+            if not self.template_validation(template):
                 continue
 
             templates.append(template)
@@ -211,7 +189,7 @@ class TemplateHandler(TemplateValidationHandler):
 
         # Check if deleted files are templates and if they are imported, if not add to deletion queue
         for file in deleted_files:
-            if not self._read_validation(file):
+            if not self.read_validation(file):
                 continue
 
             template = Template.open(file)
@@ -220,7 +198,7 @@ class TemplateHandler(TemplateValidationHandler):
                 logger.warning(f"Could not open to be deleted file {file}")
                 continue
 
-            if not self._template_validation(template):
+            if not self.template_validation(template):
                 continue
 
             if template.uuid in imported_template_ids:

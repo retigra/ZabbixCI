@@ -2,12 +2,7 @@ import logging
 import os
 import os.path
 
-from zabbixci.settings import Settings
 from zabbixci.utils.cache.filesystem import Filesystem
-from zabbixci.utils.handlers.validation import (
-    ImageValidationHandler,
-    TemplateValidationHandler,
-)
 
 
 class Cache(Filesystem):
@@ -68,60 +63,3 @@ class Cache(Filesystem):
         Check if a path is in the cache directory
         """
         return cls.is_within(path, cls._instance._cache_dir)
-
-    @classmethod
-    def match_template_cleanup(cls, root: str, name: str):
-        is_template = name.endswith(".yaml") and cls.is_within(
-            root, f"{cls._instance._cache_dir}/{Settings.TEMPLATE_PREFIX_PATH}"
-        )
-
-        return is_template
-
-    @classmethod
-    def match_image_cleanup(cls, root: str, name: str):
-        """
-        Check if a file is an image file that should be cleaned up
-        """
-        is_image = name.split(".")[-1].lower() in Settings._DYN_IMG_EXT and (
-            Filesystem.is_within(
-                root,
-                f"{Cache._instance._cache_dir}/{Settings.IMAGE_PREFIX_PATH}/icons",
-            )
-            or Filesystem.is_within(
-                root,
-                f"{Cache._instance._cache_dir}/{Settings.IMAGE_PREFIX_PATH}/backgrounds",
-            )
-        )
-
-        return is_image
-
-    @classmethod
-    def cleanup_cache(cls, full: bool = False) -> None:
-        """
-        Clean all .yaml (template) files from the cache directory
-
-        If full is True, also remove the .git directory and all other files
-        """
-        for root, dirs, files in os.walk(cls._instance._cache_dir, topdown=False):
-            if f"{cls._instance._cache_dir}/.git" in root and not full:
-                continue
-
-            for name in files:
-                if (
-                    cls.match_template_cleanup(root, name)
-                    or cls.match_image_cleanup(root, name)
-                    or full
-                ):
-                    os.remove(os.path.join(root, name))
-
-            for name in dirs:
-                if name == ".git" and root == cls._instance._cache_dir and not full:
-                    continue
-
-                # Remove empty directories
-                if not os.listdir(os.path.join(root, name)):
-                    os.rmdir(os.path.join(root, name))
-
-        if full and os.path.exists(cls._instance._cache_dir):
-            os.rmdir(cls._instance._cache_dir)
-            cls._instance._logger.info("Cache directory cleared")

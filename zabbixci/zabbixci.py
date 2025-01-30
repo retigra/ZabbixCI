@@ -8,7 +8,7 @@ from regex import search
 from ruamel.yaml import YAML
 
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.cache.cleanup import Cleanup
 from zabbixci.utils.git import Git, GitCredentials
 from zabbixci.utils.handlers.synchronization.image import ImageHandler
 from zabbixci.utils.handlers.synchronization.template import TemplateHandler
@@ -98,7 +98,7 @@ class ZabbixCI:
                 self._git.switch_branch(Settings.PUSH_BRANCH)
 
         # Reflect current Zabbix state in the cache
-        Cache.cleanup_cache()
+        Cleanup.cleanup_cache()
 
         template_handler = TemplateHandler(self._zabbix)
         image_handler = ImageHandler(self._zabbix)
@@ -212,7 +212,7 @@ class ZabbixCI:
         current_revision = self._git.get_current_revision()
 
         # Reflect current Zabbix state in the cache
-        Cache.cleanup_cache()
+        Cleanup.cleanup_cache()
 
         template_handler = TemplateHandler(self._zabbix)
         image_handler = ImageHandler(self._zabbix)

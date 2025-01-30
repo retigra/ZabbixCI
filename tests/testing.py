@@ -6,6 +6,7 @@ from os import getenv
 from zabbixci import ZabbixCI
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.cache.cleanup import Cleanup
 
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
@@ -17,7 +18,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         self.cache = Cache(Settings.CACHE_PATH)
 
         if os.path.exists(".cache"):
-            Cache.cleanup_cache(full=True)
+            Cleanup.cleanup_cache(full=True)
 
         logging.basicConfig(
             level=logging.ERROR,
@@ -36,7 +37,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         self.zci = ZabbixCI()
 
     async def restoreState(self):
-        Cache.cleanup_cache()
+        Cleanup.cleanup_cache()
 
         # Restore Zabbix to initial testing state
         Settings.PULL_BRANCH = "test"

@@ -39,12 +39,12 @@ class ImageHandler(ImageValidationHandler):
 
         images = self._zabbix.get_images(search)
 
-        logger.info(f"Found {len(images)} images in Zabbix")
+        logger.info(f"Found {len(images)} image(s) in Zabbix")
 
         for image in images:
             image_object = Image.from_zabbix(image)
 
-            if not self._image_validation(image_object):
+            if not self.image_validation(image_object):
                 continue
 
             image_object.save()
@@ -106,44 +106,6 @@ class ImageHandler(ImageValidationHandler):
 
         return changed_files
 
-    def _read_validation(self, changed_file: str) -> bool:
-        """
-        Validation steps to perform on a changed file before it is processed as a image
-        """
-        if not self.is_image(changed_file):
-            return False
-
-        # Check if file is within the desired path
-        if not Cache.is_within(
-            changed_file, f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}"
-        ):
-            logger.debug(f"Skipping .png file {changed_file} outside of prefix path")
-            return False
-
-        return True
-
-    def _image_validation(self, image: Image | None) -> bool:
-        if not image:
-            return False
-
-        if not Settings.SYNC_BACKGROUNDS and image.type == "background":
-            logger.debug(f"Skipping background image {image.name}")
-            return False
-
-        if not Settings.SYNC_ICONS and image.type == "icon":
-            logger.debug(f"Skipping icon image {image.name}")
-            return False
-
-        if self.enforce_whitelist(image.name):
-            logger.debug(f"Skipping image {image.name} not in whitelist")
-            return False
-
-        if self.enforce_blacklist(image.name):
-            logger.debug(f"Skipping image {image.name} in blacklist")
-            return False
-
-        return True
-
     def import_file_changes(
         self, changed_files: list[str], image_objects: list[dict]
     ) -> list[str]:
@@ -162,12 +124,12 @@ class ImageHandler(ImageValidationHandler):
             return []
 
         for file in changed_files:
-            if not self._read_validation(file):
+            if not self.read_validation(file):
                 continue
 
             image = Image.open(file)
 
-            if not self._image_validation(image):
+            if not self.image_validation(image):
                 continue
 
             images.append(image)
@@ -237,7 +199,7 @@ class ImageHandler(ImageValidationHandler):
 
         # Check if deleted files are images and if they are imported, if not add to deletion queue
         for file in deleted_files:
-            if not self._read_validation(file):
+            if not self.read_validation(file):
                 continue
 
             image = Image.open(file)
@@ -246,7 +208,7 @@ class ImageHandler(ImageValidationHandler):
                 logger.warning(f"Could not open to be deleted file {file}")
                 continue
 
-            if not self._image_validation(image):
+            if not self.image_validation(image):
                 continue
 
             if image.name in imported_image_names:

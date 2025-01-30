@@ -71,7 +71,8 @@ class Zabbix:
             )["result"]
         else:
             return self.zapi.send_sync_request(
-                "image.get", {"output": "extend", "filter": {"name": search}}
+                "image.get",
+                {"output": "extend", "select_image": True, "filter": {"name": search}},
             )["result"]
 
     def create_image(self, image: dict):
