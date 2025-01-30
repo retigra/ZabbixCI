@@ -6,34 +6,38 @@ from os import getenv
 from zabbixci import ZabbixCI
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.cache.cleanup import Cleanup
 
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
 DEV_GIT_REMOTE = getenv("REMOTE")
 
 
-class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
+class TestTemplates(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
+        Settings.CACHE_PATH = "/tmp/zabbixci"
         self.cache = Cache(Settings.CACHE_PATH)
 
-        if os.path.exists(".cache"):
-            Cache.cleanup_cache(full=True)
+        if os.path.exists(Settings.CACHE_PATH):
+            Cleanup.cleanup_cache(full=True)
 
         logging.basicConfig(
             level=logging.ERROR,
             format="%(asctime)s - %(name)s - %(message)s",
         )
 
+        zci_log = logging.getLogger("zabbixci")
+        zci_log.setLevel(logging.DEBUG)
+
         Settings.ZABBIX_URL = DEV_ZABBIX_URL
         Settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
         Settings.REMOTE = DEV_GIT_REMOTE
         Settings.SET_VERSION = True
-        Settings.TEMPLATE_WHITELIST = "Linux by Zabbix agent,Linux by Zabbix 00000,Windows by Zabbix agent,Acronis Cyber Protect Cloud by HTTP,Kubernetes API server by HTTP,Kubernetes cluster state by HTTP"
 
         self.zci = ZabbixCI()
 
     async def restoreState(self):
-        Cache.cleanup_cache()
+        Cleanup.cleanup_cache()
 
         # Restore Zabbix to initial testing state
         Settings.PULL_BRANCH = "test"
@@ -76,7 +80,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(changed, "Template was not restored")
 
         # Assert Git version is imported back into Zabbix
-        matches = self.zci._zabbix.get_templates_filtered(
+        matches = self.zci._zabbix.get_templates(
             [Settings.ROOT_TEMPLATE_GROUP], ["Windows by Zabbix agent"]
         )
         self.assertEqual(len(matches), 1, "Template not found")
@@ -107,7 +111,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(changed, "Template was not restored")
 
         # Assert Git version is restored
-        matches = self.zci._zabbix.get_templates_filtered(
+        matches = self.zci._zabbix.get_templates(
             [Settings.ROOT_TEMPLATE_GROUP], ["Linux by Zabbix 00000"]
         )
         self.assertEqual(len(matches), 1, "Template not found")

@@ -31,26 +31,22 @@ class Zabbix:
             "templategroup.get", {"search": {"name": template_group_names}}
         )["result"]
 
-    def get_templates(self, template_group_names: list[str]):
-        ids = self._get_template_group(template_group_names)
-
-        template_group_ids = [group["groupid"] for group in ids]
-
-        return self.zapi.send_sync_request(
-            "template.get", {"groupids": template_group_ids}
-        )["result"]
-
-    def get_templates_filtered(
-        self, template_group_names: list[str], filter_list: list[str]
+    def get_templates(
+        self, template_group_names: list[str], filter_list: list[str] = None
     ):
         ids = self._get_template_group(template_group_names)
 
         template_group_ids = [group["groupid"] for group in ids]
 
-        return self.zapi.send_sync_request(
-            "template.get",
-            {"groupids": template_group_ids, "filter": {"host": filter_list}},
-        )["result"]
+        if filter_list:
+            return self.zapi.send_sync_request(
+                "template.get",
+                {"groupids": template_group_ids, "filter": {"host": filter_list}},
+            )["result"]
+        else:
+            return self.zapi.send_sync_request(
+                "template.get", {"groupids": template_group_ids}
+            )["result"]
 
     def set_template(self, template_id: int, changes: dict):
         return self.zapi.send_sync_request(
@@ -75,7 +71,8 @@ class Zabbix:
             )["result"]
         else:
             return self.zapi.send_sync_request(
-                "image.get", {"output": "extend", "filter": {"name": search}}
+                "image.get",
+                {"output": "extend", "select_image": True, "filter": {"name": search}},
             )["result"]
 
     def create_image(self, image: dict):

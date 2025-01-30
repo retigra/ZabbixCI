@@ -6,6 +6,7 @@ yaml = YAML()
 
 
 class Settings:
+    _DYN_IMG_EXT = ["png", "jpg", "jpeg", "gif", "bmp", "svg"]
     ZABBIX_URL = "http://localhost:8080"
     ZABBIX_USER = None
     ZABBIX_PASSWORD = None
@@ -39,6 +40,7 @@ class Settings:
     IMAGE_WHITELIST = ""
     IMAGE_BLACKLIST = ""
     ICON_SIZES = "24,48,64,128"
+    REGEX_MATCHING = False
 
     @classmethod
     def get_template_whitelist(cls):

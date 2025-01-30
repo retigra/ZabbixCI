@@ -8,6 +8,7 @@ from zabbixci._version import __version__
 from zabbixci.logging import CustomFormatter
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.cache.cleanup import Cleanup
 from zabbixci.zabbixci import ZabbixCI
 
 # Read command line arguments to fill the settings
@@ -45,6 +46,10 @@ def read_args():
         help="The path in the git repository, used to store the templates",
     )
     zabbixci_group.add_argument(
+        "--image-prefix-path",
+        help="The path in the git repository, used to store the images",
+    )
+    zabbixci_group.add_argument(
         "--template-whitelist",
         help="Comma separated list of templates to include",
     )
@@ -70,6 +75,12 @@ def read_args():
     zabbixci_group.add_argument(
         "--set-version",
         help="Set version on import",
+        action="store_true",
+        default=None,
+    )
+    zabbixci_group.add_argument(
+        "--sync-templates",
+        help="Synchronize templates between Zabbix and git",
         action="store_true",
         default=None,
     )
@@ -244,7 +255,7 @@ def parse_cli():
     Cache(Settings.CACHE_PATH)
 
     if args.action == "clearcache":
-        Cache.cleanup_cache(full=True)
+        Cleanup.cleanup_cache(full=True)
     else:
         asyncio.run(run_zabbixci(args.action))
 

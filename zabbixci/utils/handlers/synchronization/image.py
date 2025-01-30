@@ -4,14 +4,15 @@ import regex
 
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
-from zabbixci.utils.handers.imagemagick import ImagemagickHandler
+from zabbixci.utils.handlers.synchronization.imagemagick import ImagemagickHandler
+from zabbixci.utils.handlers.validation.image_validation import ImageValidationHandler
 from zabbixci.utils.services.image import Image
 from zabbixci.utils.zabbix.zabbix import Zabbix
 
 logger = logging.getLogger(__name__)
 
 
-class ImageHandler:
+class ImageHandler(ImageValidationHandler):
     """
     Handler for importing images into Zabbix based on changed files. Includes validation steps based on settings.
 
@@ -31,17 +32,19 @@ class ImageHandler:
             return []
 
         search = (
-            Settings.get_image_whitelist() if Settings.get_image_whitelist() else None
+            self.get_whitelist()
+            if not self._use_regex() and self.get_whitelist()
+            else None
         )
 
         images = self._zabbix.get_images(search)
 
-        logger.info(f"Found {len(images)} images in Zabbix")
+        logger.info(f"Found {len(images)} image(s) in Zabbix")
 
         for image in images:
             image_object = Image.from_zabbix(image)
 
-            if not self._image_validation(image_object):
+            if not self.image_validation(image_object):
                 continue
 
             image_object.save()
@@ -67,11 +70,12 @@ class ImageHandler:
 
         for path in file_paths:
             # Skip non-png files in the dynamic directory
-            if not path.endswith(".png"):
+            if not self.is_image(path):
+                logger.warning(f"Skipping non-png file {path}")
                 continue
 
             match_groups = regex.match(
-                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/dynamic\/?.*)/(.+)\.png",
+                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/dynamic\/?.*)/(.+)\.(\w+)",
                 path,
             )
 
@@ -83,6 +87,7 @@ class ImageHandler:
 
             destination = match_groups.group(1).replace("dynamic", "icons")
             file_name = match_groups.group(2)
+            file_type = match_groups.group(3)
 
             if not file_name:
                 logger.warning(f"Could not extract file name from {path}")
@@ -94,55 +99,12 @@ class ImageHandler:
                 path,
                 destination,
                 file_name,
+                file_type,
             )
 
             changed_files.extend(created_paths)
 
         return changed_files
-
-    def _read_validation(self, changed_file: str) -> bool:
-        """
-        Validation steps to perform on a changed file before it is processed as a image
-        """
-        if not changed_file.endswith(".png"):
-            return False
-
-        # Check if file is within the desired path
-        if not Cache.is_within(
-            changed_file, f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}"
-        ):
-            logger.debug(f"Skipping .png file {changed_file} outside of prefix path")
-            return False
-
-        return True
-
-    def _image_validation(self, image: Image | None) -> bool:
-        if not image:
-            return False
-
-        if not Settings.SYNC_BACKGROUNDS and image.type == "background":
-            logger.debug(f"Skipping background image {image.name}")
-            return False
-
-        if not Settings.SYNC_ICONS and image.type == "icon":
-            logger.debug(f"Skipping icon image {image.name}")
-            return False
-
-        if (
-            Settings.get_image_whitelist()
-            and image.name not in Settings.get_image_whitelist()
-        ):
-            logger.debug(f"Skipping image {image.name} not in whitelist")
-            return False
-
-        if (
-            Settings.get_image_blacklist()
-            and image.name in Settings.get_image_blacklist()
-        ):
-            logger.debug(f"Skipping image {image.name} in blacklist")
-            return False
-
-        return True
 
     def import_file_changes(
         self, changed_files: list[str], image_objects: list[dict]
@@ -162,12 +124,12 @@ class ImageHandler:
             return []
 
         for file in changed_files:
-            if not self._read_validation(file):
+            if not self.read_validation(file):
                 continue
 
             image = Image.open(file)
 
-            if not self._image_validation(image):
+            if not self.image_validation(image):
                 continue
 
             images.append(image)
@@ -232,9 +194,12 @@ class ImageHandler:
         """
         deletion_queue: list[str] = []
 
+        if not Settings.SYNC_ICONS and not Settings.SYNC_BACKGROUNDS:
+            return []
+
         # Check if deleted files are images and if they are imported, if not add to deletion queue
         for file in deleted_files:
-            if not self._read_validation(file):
+            if not self.read_validation(file):
                 continue
 
             image = Image.open(file)
@@ -243,7 +208,7 @@ class ImageHandler:
                 logger.warning(f"Could not open to be deleted file {file}")
                 continue
 
-            if not self._image_validation(image):
+            if not self.image_validation(image):
                 continue
 
             if image.name in imported_image_names:
