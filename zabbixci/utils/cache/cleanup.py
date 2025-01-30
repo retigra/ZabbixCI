@@ -83,9 +83,9 @@ class Cleanup:
 
             for name in files:
                 if (
-                    cls.match_template_cleanup(root, name)
+                    full
+                    or cls.match_template_cleanup(root, name)
                     or cls.match_image_cleanup(root, name)
-                    or full
                 ):
                     os.remove(os.path.join(root, name))
 
