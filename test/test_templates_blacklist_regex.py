@@ -48,7 +48,7 @@ class TestTemplatesBlacklistRegex(TestTemplates):
         )[0]["templateid"]
         self.zci._zabbix.delete_templates([template_id])
 
-        Settings.TEMPLATE_BLACKLIST = "(Acronis Cyber Protect \w+ \w+ \w+)"
+        Settings.TEMPLATE_BLACKLIST = r"(Acronis Cyber Protect \w+ \w+ \w+)"
 
         # Push changes to git
         changed = await self.zci.push()
