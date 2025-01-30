@@ -31,7 +31,7 @@ class Handler(object, metaclass=ABCMeta):
             return False
 
         if self._use_regex():
-            pattern = regex.compile(self.get_whitelist())
+            pattern = regex.compile(self.get_whitelist()[0])
             return pattern.fullmatch(query) is None
         else:
             return query not in self.get_whitelist()
@@ -47,7 +47,7 @@ class Handler(object, metaclass=ABCMeta):
             return False
 
         if self._use_regex():
-            pattern = regex.compile(self.get_blacklist())
+            pattern = regex.compile(self.get_blacklist()[0])
             return pattern.fullmatch(query) is not None
         else:
             return query in self.get_blacklist()
