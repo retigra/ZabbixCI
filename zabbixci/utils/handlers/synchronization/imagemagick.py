@@ -1,6 +1,5 @@
 import logging
 
-from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
 
 logger = logging.getLogger(__name__)
@@ -37,15 +36,13 @@ class ImagemagickHandler:
         return image
 
     @classmethod
-    def _get_sizes(cls):
-        """
-        Get the sizes to convert images to
-        """
-        return Settings.get_ICON_SIZES()
-
-    @classmethod
     def create_sized(
-        cls, image_path: str, destination: str, base_name: str, file_type: str
+        cls,
+        image_path: str,
+        destination: str,
+        base_name: str,
+        file_type: str,
+        sizes: list[int],
     ):
         """
         Create sized images based on the sizes in the settings
@@ -62,7 +59,7 @@ class ImagemagickHandler:
 
         with Image(filename=image_path) as image:
 
-            for size in cls._get_sizes():
+            for size in sizes:
                 file_name = f"{base_name}_({size}).png"
 
                 converted_image = cls._convert(image.clone(), size, "png")

@@ -40,6 +40,7 @@ class Settings:
     IMAGE_WHITELIST = ""
     IMAGE_BLACKLIST = ""
     ICON_SIZES = "24,48,64,128"
+    BACKGROUND_SIZES = "480,720,1080"
     REGEX_MATCHING = False
 
     @classmethod
@@ -61,6 +62,11 @@ class Settings:
     @classmethod
     def get_ICON_SIZES(cls):
         size_strings = cls.ICON_SIZES.split(",") if cls.ICON_SIZES else []
+        return [int(size) for size in size_strings]
+
+    @classmethod
+    def get_BACKGROUND_SIZES(cls):
+        size_strings = cls.BACKGROUND_SIZES.split(",") if cls.BACKGROUND_SIZES else []
         return [int(size) for size in size_strings]
 
     @classmethod

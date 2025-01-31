@@ -278,16 +278,20 @@ class ZabbixCI:
         self._git.clean()
         return len(imported_template_ids) > 0 or len(deleted_template_names) > 0
 
-    def generate_images(self):
+    def generate_images(self, type: str):
         """
-        Generate icons from Zabbix and save them to the cache
+        Generate icons/backgrounds from Zabbix and save them to the cache
         """
         self._git.fetch(Settings.REMOTE, self._git_cb)
 
         self.logger.info("Generating icons from Zabbix")
 
-        icon_handler = ImageHandler(self._zabbix)
-        icon_handler.generate_images()
+        image_handler = ImageHandler(self._zabbix)
+
+        if type == "background":
+            image_handler.generate_backgrounds()
+        elif type == "icon":
+            image_handler.generate_icons()
 
         if not self._git.is_empty:
             # If the repository is empty, new branches can't be created. But it is
@@ -323,9 +327,9 @@ class ZabbixCI:
 
             if not Settings.DRY_RUN:
                 # Generate commit message
-                self._git.commit("Generated icons from dynamic items")
+                self._git.commit(f"Generated {type}(s) from source files")
                 self.logger.info(
-                    f"Staged changes from generated icons committed to {self._git.current_branch}"
+                    f"Staged changes from generated images committed to {self._git.current_branch}"
                 )
         else:
             self.logger.info("No staged changes, updating remote with current state")
