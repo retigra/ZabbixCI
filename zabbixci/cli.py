@@ -16,6 +16,17 @@ from zabbixci.zabbixci import ZabbixCI
 logger = logging.getLogger(__name__)
 
 
+def str2bool(value: str):
+    """Convert various string representations of boolean values."""
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ("true", "1", "yes", "y"):
+        return True
+    elif value.lower() in ("false", "0", "no", "n", "f"):
+        return False
+    raise argparse.ArgumentTypeError(f"Invalid boolean value: {value}")
+
+
 def read_args():
     method_parser = argparse.ArgumentParser(
         description="ZabbixCI is a tool to manage Zabbix templates in a Git repository. ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.",
@@ -71,8 +82,10 @@ def read_args():
     zabbixci_group.add_argument(
         "--dry-run",
         help="Dry run, only show changes",
-        action="store_true",
+        const=True,
         default=None,
+        type=str2bool,
+        nargs="?",
     )
     zabbixci_group.add_argument(
         "--vendor",
@@ -82,26 +95,34 @@ def read_args():
     zabbixci_group.add_argument(
         "--set-version",
         help="Set version on import",
-        action="store_true",
+        const=True,
         default=None,
+        type=str2bool,
+        nargs="?",
     )
     zabbixci_group.add_argument(
         "--sync-templates",
         help="Synchronize templates between Zabbix and git",
-        action="store_true",
+        const=True,
         default=None,
+        type=str2bool,
+        nargs="?",
     )
     zabbixci_group.add_argument(
         "--sync-icons",
         help="Synchronize icons between Zabbix and git",
-        action="store_true",
+        const=True,
         default=None,
+        type=str2bool,
+        nargs="?",
     )
     zabbixci_group.add_argument(
         "--sync-backgrounds",
         help="Synchronize background images between Zabbix and git",
-        action="store_true",
+        const=True,
         default=None,
+        type=str2bool,
+        nargs="?",
     )
     zabbixci_group.add_argument(
         "--image-whitelist",
@@ -110,6 +131,14 @@ def read_args():
     zabbixci_group.add_argument(
         "--image-blacklist",
         help="Comma separated list of images to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--icon-sizes",
+        help="Comma separated list of icon sizes to generate",
+    )
+    zabbixci_group.add_argument(
+        "--background-sizes",
+        help="Comma separated list of background sizes to generate",
     )
 
     zabbix_group = method_parser.add_argument_group("Zabbix")
@@ -174,22 +203,31 @@ def read_args():
     zabbixci_advanced_group.add_argument(
         "-v",
         help="Enable verbose logging",
-        action="store_true",
         dest="verbose",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
     )
     zabbixci_advanced_group.add_argument(
         "-vv",
         "--debug",
         help="Enable debug logging",
-        action="store_true",
         dest="debug",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
     )
     zabbixci_advanced_group.add_argument(
         "-vvv",
         "--debug-all",
         help="Enable debug logging for all modules",
-        action="store_true",
         dest="debug_all",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
     )
     zabbixci_advanced_group.add_argument(
         "--batch-size",
@@ -204,12 +242,22 @@ def read_args():
     zabbixci_advanced_group.add_argument(
         "--insecure-ssl-verify",
         help="Disable SSL verification for Zabbix API and git, only use for testing",
-        action="store_true",
+        const=True,
         default=None,
+        type=str2bool,
+        nargs="?",
     )
     zabbixci_advanced_group.add_argument(
         "--ca-bundle",
         help="Path to CA bundle for SSL verification",
+    )
+    zabbixci_advanced_group.add_argument(
+        "--regex-matching",
+        help="Use regex matching for template and image whitelists and blacklists",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
     )
 
     return method_parser.parse_args()
