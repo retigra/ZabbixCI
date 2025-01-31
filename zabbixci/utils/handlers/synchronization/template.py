@@ -75,6 +75,9 @@ class TemplateHandler(TemplateValidationHandler):
         """
         Export Zabbix templates to the cache
         """
+        if not Settings.SYNC_TEMPLATES:
+            return []
+
         search = (
             self.get_whitelist()
             if not self._use_regex() and self.get_whitelist()
