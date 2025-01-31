@@ -51,31 +51,31 @@ class ImageHandler(ImageValidationHandler):
 
         return images
 
-    def generate_images(self) -> list[str]:
+    def _generate_images(self, source_type: str) -> list[str]:
         """
-        Read images from dynamic dir and create different sizes for Zabbix.
+        Read icons from source dir and create different sizes for Zabbix.
         """
         if not Cache.exists(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic"
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/source-{source_type}"
         ):
-            logger.info("No dynamic images found")
+            logger.info(f"No {source_type} icons found")
             return []
 
         file_paths = Cache.get_files(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/dynamic"
+            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/source-{source_type}"
         )
 
         changed_files = []
         full_cache_path = Cache.real_path(Settings.CACHE_PATH)
 
         for path in file_paths:
-            # Skip non-png files in the dynamic directory
+            # Skip non-image files
             if not self.is_image(path):
-                logger.warning(f"Skipping non-png file {path}")
+                logger.warning(f"Skipping non-image source file {path}")
                 continue
 
             match_groups = regex.match(
-                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/dynamic\/?.*)/(.+)\.(\w+)",
+                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/source-{source_type}\/?.*)/(.+)\.(\w+)",
                 path,
             )
 
@@ -85,7 +85,9 @@ class ImageHandler(ImageValidationHandler):
                 )
                 continue
 
-            destination = match_groups.group(1).replace("dynamic", "icons")
+            destination = match_groups.group(1).replace(
+                f"source-{source_type}", source_type
+            )
             file_name = match_groups.group(2)
             file_type = match_groups.group(3)
 
@@ -100,11 +102,28 @@ class ImageHandler(ImageValidationHandler):
                 destination,
                 file_name,
                 file_type,
+                (
+                    Settings.get_ICON_SIZES()
+                    if source_type == "icons"
+                    else Settings.get_BACKGROUND_SIZES()
+                ),
             )
 
             changed_files.extend(created_paths)
 
         return changed_files
+
+    def generate_icons(self) -> list[str]:
+        """
+        Read icons from source dir and create different sizes for Zabbix.
+        """
+        return self._generate_images("icons")
+
+    def generate_backgrounds(self) -> list[str]:
+        """
+        Read icons from source dir and create different sizes for Zabbix.
+        """
+        return self._generate_images("backgrounds")
 
     def import_file_changes(
         self, changed_files: list[str], image_objects: list[dict]

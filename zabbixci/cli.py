@@ -24,7 +24,14 @@ def read_args():
     method_parser.add_argument(
         "action",
         help="The action to perform",
-        choices=["push", "pull", "clearcache", "version", "generate-images"],
+        choices=[
+            "push",
+            "pull",
+            "clearcache",
+            "version",
+            "generate-icons",
+            "generate-backgrounds",
+        ],
     )
 
     # Provide configuration as file
@@ -288,8 +295,11 @@ async def run_zabbixci(action: str):
             await zabbixci.create_zabbix()
             await zabbixci.pull()
 
-        elif action == "generate-images":
-            zabbixci.generate_images()
+        elif action == "generate-icons":
+            zabbixci.generate_images("icon")
+
+        elif action == "generate-backgrounds":
+            zabbixci.generate_images("background")
 
     except KeyboardInterrupt:
         logger.error("Interrupted by user")
