@@ -28,9 +28,6 @@ class TestTemplatesWhitelist(TestTemplates):
             format="%(asctime)s - %(name)s - %(message)s",
         )
 
-        zci_log = logging.getLogger("zabbixci")
-        zci_log.setLevel(logging.DEBUG)
-
         Settings.ZABBIX_URL = DEV_ZABBIX_URL
         Settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
         Settings.REMOTE = DEV_GIT_REMOTE
