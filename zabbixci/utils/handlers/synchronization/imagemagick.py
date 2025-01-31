@@ -1,6 +1,5 @@
 import logging
 
-from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
 
 logger = logging.getLogger(__name__)
