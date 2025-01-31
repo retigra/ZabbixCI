@@ -185,6 +185,19 @@ class Git:
 
         remote.push([f"refs/heads/{branch}"], callbacks=callbacks)
 
+    def force_push(
+        self, specs: list[str], remote_url: str, callbacks: pygit2.RemoteCallbacks
+    ):
+        """
+        Force push the changes to the remote repository
+        """
+        remote = self._repository.remotes["origin"]
+
+        if not remote:
+            remote = self._repository.remotes.create("origin", remote_url)
+
+        remote.push(specs, callbacks=callbacks)
+
     def pull(
         self, remote_url: str, callbacks: pygit2.RemoteCallbacks, branch: str = None
     ):

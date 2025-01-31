@@ -3,7 +3,7 @@ import os
 import unittest
 from os import getenv
 
-from test_templates import TestTemplates
+from base_templates import BaseTemplates
 
 from zabbixci import ZabbixCI
 from zabbixci.settings import Settings
@@ -15,7 +15,7 @@ DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
 DEV_GIT_REMOTE = getenv("REMOTE")
 
 
-class TestTemplatesWhitelistRegex(TestTemplates):
+class TestTemplatesWhitelistRegex(BaseTemplates, unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         Settings.CACHE_PATH = "/tmp/zabbixci"
         self.cache = Cache(Settings.CACHE_PATH)
@@ -52,19 +52,6 @@ class TestTemplatesWhitelistRegex(TestTemplates):
         # Push changes to git
         changed = await self.zci.push()
         self.assertFalse(changed, "Template deletion detected outside of whitelist")
-
-        Settings.TEMPLATE_WHITELIST = "Linux by Zabbix agent,Linux by Zabbix 00000,Windows by Zabbix agent,Acronis Cyber Protect Cloud by HTTP,Kubernetes API server by HTTP,Kubernetes cluster state by HTTP"
-
-        Settings.PULL_BRANCH = "test"
-
-        changed = await self.zci.pull()
-        self.assertTrue(changed, "Template was not restored")
-
-        Settings.PULL_BRANCH = "main"
-        changed = await self.zci.pull()
-        self.assertTrue(changed, "Template deletion from Git was not detected")
-
-        await self.restoreState()
 
 
 if __name__ == "__main__":

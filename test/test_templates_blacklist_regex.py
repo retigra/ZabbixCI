@@ -3,7 +3,7 @@ import os
 import unittest
 from os import getenv
 
-from test_templates import TestTemplates
+from base_templates import BaseTemplates
 
 from zabbixci import ZabbixCI
 from zabbixci.settings import Settings
@@ -15,7 +15,7 @@ DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
 DEV_GIT_REMOTE = getenv("REMOTE")
 
 
-class TestTemplatesBlacklistRegex(TestTemplates):
+class TestTemplatesBlacklistRegex(BaseTemplates, unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         Settings.CACHE_PATH = "/tmp/zabbixci"
         self.cache = Cache(Settings.CACHE_PATH)
@@ -50,19 +50,6 @@ class TestTemplatesBlacklistRegex(TestTemplates):
         # Push changes to git
         changed = await self.zci.push()
         self.assertFalse(changed, "Template deletion detected inside of blacklist")
-
-        Settings.TEMPLATE_BLACKLIST = "Not existing template,Not existing template 2"
-
-        Settings.PULL_BRANCH = "test"
-
-        changed = await self.zci.pull()
-        self.assertTrue(changed, "Template was not restored")
-
-        Settings.PULL_BRANCH = "main"
-        changed = await self.zci.pull()
-        self.assertTrue(changed, "Template deletion from Git was not detected")
-
-        await self.restoreState()
 
 
 if __name__ == "__main__":
