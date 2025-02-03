@@ -40,6 +40,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         await self.zci.push()
 
     async def asyncSetUp(self):
+        self.zci.create_git()
         await self.zci.create_zabbix()
 
         await self.restoreState()
