@@ -233,10 +233,12 @@ async def run_zabbixci(action: str):
             )
 
         elif action == "push":
+            zabbixci.create_git()
             await zabbixci.create_zabbix()
             await zabbixci.push()
 
         elif action == "pull":
+            zabbixci.create_git()
             await zabbixci.create_zabbix()
             await zabbixci.pull()
 
