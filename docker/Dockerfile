@@ -1,4 +1,4 @@
-FROM python:slim
+FROM python:3-slim
 
 LABEL org.opencontainers.image.source=https://github.com/retigra/ZabbixCI
 LABEL org.opencontainers.image.title="ZabbixCI"
@@ -8,7 +8,7 @@ LABEL org.opencontainers.image.licenses=AGPL
 LABEL org.opencontainers.image.vendor="Retigra"
 LABEL org.opencontainers.image.authors="info@retigra.nl"
 
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y git imagemagick && apt-get clean
 
 # Set the working directory
 WORKDIR /app
@@ -21,6 +21,5 @@ COPY zabbixci /app/zabbixci
 
 # Install any needed packages specified in requirements.txt
 RUN pip install /app/
-RUN pip install -r /app/requirements.txt
 
 ENTRYPOINT [ "zabbixci" ]
