@@ -45,12 +45,13 @@ class BaseTemplates:
         )
 
         Cleanup.cleanup_cache(full=True)
-        self.zci.create_git(self.zci._git_cb)
+        self.zci.create_git()
 
         # Restore the state of Zabbix
         await self.zci.pull()
 
     async def asyncSetUp(self):
+        self.zci.create_git()
         await self.zci.create_zabbix()
         await self.restoreState()
 

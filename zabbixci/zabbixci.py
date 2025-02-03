@@ -32,7 +32,7 @@ class ZabbixCI:
         if logger:
             self.logger = logger
 
-        self.create_git(GitCredentials().create_git_callback())
+        self._git_cb = GitCredentials().create_git_callback()
 
     async def create_zabbix(self):
         """
@@ -65,11 +65,13 @@ class ZabbixCI:
             )
             raise SystemExit(1)
 
-    def create_git(self, git_cb):
+    def create_git(self, git_cb=None):
         """
         Create a Git object with the appropriate credentials
         """
-        self._git_cb = git_cb
+        if git_cb:
+            self._git_cb = git_cb
+
         self._git = Git(self._settings.CACHE_PATH, self._git_cb)
 
     async def push(self):

@@ -336,17 +336,21 @@ async def run_zabbixci(action: str):
             )
 
         elif action == "push":
+            zabbixci.create_git()
             await zabbixci.create_zabbix()
             await zabbixci.push()
 
         elif action == "pull":
+            zabbixci.create_git()
             await zabbixci.create_zabbix()
             await zabbixci.pull()
 
         elif action == "generate-icons":
+            zabbixci.create_git()
             zabbixci.generate_images("icon")
 
         elif action == "generate-backgrounds":
+            zabbixci.create_git()
             zabbixci.generate_images("background")
 
     except KeyboardInterrupt:

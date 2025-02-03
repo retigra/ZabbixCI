@@ -3,6 +3,8 @@ name: Build and Push Docker Image
 on:
   release:
     types: [published]
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   build:
@@ -40,7 +42,6 @@ jobs:
         push: true
         platforms: linux/amd64,linux/arm64
         tags: ${{ steps.meta.outputs.tags }}
-        annotations: ${{ steps.meta.outputs.annotations }}
         labels: ${{ steps.meta.outputs.labels }}
-        outputs: type=image, name=ghcr.io/retigra/zabbixci, org.opencontainers.image.description=Source control for Zabbix templates in Git
-
+        annotations: |
+          index:org.opencontainers.image.description=ZabbixCI is a tool that adds continuous integration to Zabbix, allowing you to synchronize Zabbix assets with a Git repository.
