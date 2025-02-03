@@ -41,7 +41,6 @@ class BaseTemplates:
         self.zci._git.force_push(
             ["+refs/remotes/origin/test:refs/heads/main"],
             Settings.REMOTE,
-            self.zci._git_cb,
         )
 
         Cleanup.cleanup_cache(full=True)
