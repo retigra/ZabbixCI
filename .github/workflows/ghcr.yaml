@@ -3,6 +3,8 @@ name: Build and Push Docker Image
 on:
   release:
     types: [published]
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   build:
@@ -26,7 +28,18 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: ghcr.io/retigra/zabbixci
-
+        labels: |
+          org.opencontainers.image.title=ZabbixCI
+          org.opencontainers.image.description=Source control for Zabbix templates in Git
+          org.opencontainers.image.vendor=Retigra
+          org.opencontainers.image.license=AGPL-3.0
+          org.opencontainers.image.url=https://github.com/retigra/ZabbixCI
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+        
     - name: Build and push Docker image
       uses: docker/build-push-action@v6
       with:
