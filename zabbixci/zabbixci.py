@@ -38,7 +38,6 @@ class ZabbixCI:
             self.logger = logger
 
         self.create_git_callback()
-        self.create_git()
 
     def validate_ssl_cert(self, _cert: None, valid: bool, hostname: bytes):
         """
