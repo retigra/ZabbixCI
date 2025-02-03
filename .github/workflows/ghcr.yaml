@@ -50,8 +50,4 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         annotations: |
-          org.opencontainers.image.title=ZabbixCI
-          org.opencontainers.image.description=Source control for Zabbix templates in Git
-          org.opencontainers.image.license=MIT
-          org.opencontainers.image.source=https://github.com/retigra/zabbixci
-
+          index:org.opencontainers.image.description=Source control for Zabbix templates in Git
