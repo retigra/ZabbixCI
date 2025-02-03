@@ -5,6 +5,7 @@ import logging.config
 from sys import version_info
 
 from zabbixci._version import __version__
+from zabbixci.exceptions import BaseZabbixCIException
 from zabbixci.logging import CustomFormatter
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
@@ -357,6 +358,8 @@ async def run_zabbixci(action: str):
         logger.error("Interrupted by user")
     except SystemExit as e:
         logger.debug(f"Script exited with code {e.code}")
+    except BaseZabbixCIException as e:
+        logger.error(e)
     except Exception:
         logger.error("Unexpected error:", exc_info=True)
     finally:

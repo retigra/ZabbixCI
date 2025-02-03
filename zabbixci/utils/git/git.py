@@ -7,6 +7,7 @@ from pygit2.enums import MergeAnalysis
 
 from zabbixci.settings import Settings
 from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.git.credentials import RemoteCallbacksSecured
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +17,13 @@ P = ParamSpec("P")
 class Git:
     _repository: pygit2.Repository = None
     author = pygit2.Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
+    _git_cb = None
 
     def __init__(self, path: str, callbacks: pygit2.RemoteCallbacks):
         """
         Initialize the git repository
         """
+        self._git_cb = callbacks
 
         if not os.path.exists(path):
             Cache.makedirs(path)
@@ -28,7 +31,7 @@ class Git:
             self._repository = pygit2.clone_repository(
                 Settings.REMOTE,
                 path,
-                callbacks=callbacks,
+                callbacks=self._git_cb,
             )
         else:
             self._repository = pygit2.Repository(path)
@@ -69,6 +72,10 @@ class Git:
         Check if the repository is empty
         """
         return self._repository.is_empty
+
+    def _mark_agent_active(self):
+        if isinstance(self._git_cb, RemoteCallbacksSecured):
+            self._git_cb.mark_agent_active()
 
     def get_current_revision(self):
         """
@@ -119,7 +126,7 @@ class Git:
         """
         self._repository.reset(*args, **kwargs)
 
-    def fetch(self, remote_url: str, callbacks: pygit2.RemoteCallbacks):
+    def fetch(self, remote_url: str):
         """
         Fetch the changes from the remote repository
         """
@@ -128,7 +135,8 @@ class Git:
 
         remote = self._repository.remotes["origin"]
 
-        remote.fetch(callbacks=callbacks)
+        remote.fetch(callbacks=self._git_cb)
+        self._mark_agent_active()
 
     def lookup_reference(self, name: str):
         return self._repository.lookup_reference(name)
@@ -169,9 +177,7 @@ class Git:
             logger.debug(f"Removing untracked file {file}")
             os.remove(f"{self._repository.workdir}/{file}")
 
-    def push(
-        self, remote_url: str, callbacks: pygit2.RemoteCallbacks, branch: str = None
-    ):
+    def push(self, remote_url: str, branch: str = None):
         """
         Push the changes to the remote repository
         """
@@ -183,11 +189,10 @@ class Git:
         if not remote:
             remote = self._repository.remotes.create("origin", remote_url)
 
-        remote.push([f"refs/heads/{branch}"], callbacks=callbacks)
+        remote.push([f"refs/heads/{branch}"], callbacks=self._git_cb)
+        self._mark_agent_active()
 
-    def force_push(
-        self, specs: list[str], remote_url: str, callbacks: pygit2.RemoteCallbacks
-    ):
+    def force_push(self, specs: list[str], remote_url: str):
         """
         Force push the changes to the remote repository
         """
@@ -196,11 +201,10 @@ class Git:
         if not remote:
             remote = self._repository.remotes.create("origin", remote_url)
 
-        remote.push(specs, callbacks=callbacks)
+        remote.push(specs, callbacks=self._git_cb)
+        self._mark_agent_active()
 
-    def pull(
-        self, remote_url: str, callbacks: pygit2.RemoteCallbacks, branch: str = None
-    ):
+    def pull(self, remote_url: str, branch: str = None):
         """
         Pull the changes from the remote repository, merge them with the local repository
         """
@@ -212,7 +216,7 @@ class Git:
         if not remote:
             remote = self._repository.remotes.create("origin", remote_url)
 
-        remote.fetch(callbacks=callbacks)
+        remote.fetch(callbacks=self._git_cb)
 
         remote_id = self._repository.lookup_reference(
             f"refs/remotes/origin/{branch}"
@@ -241,3 +245,4 @@ class Git:
 
         self._repository.state_cleanup()
         self.commit("Merge changes")
+        self._mark_agent_active()

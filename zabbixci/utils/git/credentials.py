@@ -5,9 +5,44 @@ from urllib.request import Request, urlopen
 
 import pygit2
 
+from zabbixci.exceptions import GitException
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
+
+
+class RemoteCallbacksSecured(pygit2.RemoteCallbacks):
+    _credentials = None
+
+    _call_count = 0
+    _agent_active: bool = False
+
+    def __init__(self, credentials):
+        super().__init__()
+        self._credentials = credentials
+
+    def credentials(self, url, username_from_url, allowed_types):
+        self._call_count += 1
+        if self._call_count > 10 and not self._agent_active:
+            raise GitException(
+                "SSH agent was unable to provide credentials, is your key added to the agent?"
+            )
+
+        return self._credentials(url, username_from_url, allowed_types)
+
+    def mark_agent_active(self):
+        self._agent_active = True
+
+    def transfer_progress(self, stats):
+        logger.debug(
+            f"Git: Transferred {stats.received_objects} objects, "
+            f"{stats.indexed_objects} indexed, "
+            f"{stats.total_objects} total"
+        )
+        return True
+
+    def certificate_check(self, cert, valid, hostname):
+        return valid
 
 
 class GitCredentials:
@@ -71,7 +106,9 @@ class GitCredentials:
             logger.debug("Using SSH agent for Git authentication")
             credentials = pygit2.KeypairFromAgent(Settings.GIT_USERNAME)
 
-        git_cb = pygit2.RemoteCallbacks(credentials=credentials)
+        git_cb = RemoteCallbacksSecured(
+            credentials,
+        )
 
         if Settings.INSECURE_SSL_VERIFY:
             # Accept all certificates
