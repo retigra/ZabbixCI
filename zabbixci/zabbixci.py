@@ -22,7 +22,6 @@ class ZabbixCI:
 
     _zabbix = None
     _git = None
-    _git_cb = None
 
     _ssl_context = None
 
@@ -31,8 +30,6 @@ class ZabbixCI:
 
         if logger:
             self.logger = logger
-
-        self._git_cb = GitCredentials().create_git_callback()
 
     async def create_zabbix(self):
         """
@@ -69,16 +66,16 @@ class ZabbixCI:
         """
         Create a Git object with the appropriate credentials
         """
-        if git_cb:
-            self._git_cb = git_cb
+        if git_cb is None:
+            git_cb = GitCredentials().create_git_callback()
 
-        self._git = Git(self._settings.CACHE_PATH, self._git_cb)
+        self._git = Git(self._settings.CACHE_PATH, git_cb)
 
     async def push(self):
         """
         Fetch Zabbix state and commit changes to git remote
         """
-        self._git.fetch(Settings.REMOTE, self._git_cb)
+        self._git.fetch(Settings.REMOTE)
 
         if not self._git.is_empty:
             # If the repository is empty, new branches can't be created. But it is
@@ -87,14 +84,14 @@ class ZabbixCI:
 
             # Pull the latest remote state
             try:
-                self._git.pull(Settings.REMOTE, self._git_cb)
+                self._git.pull(Settings.REMOTE)
             except KeyError:
                 self.logger.info(
                     f"Remote branch does not exist, using state from branch {Settings.PULL_BRANCH}"
                 )
                 # Remote branch does not exist, we pull the default branch and create a new branch
                 self._git.switch_branch(Settings.PULL_BRANCH)
-                self._git.pull(Settings.REMOTE, self._git_cb)
+                self._git.pull(Settings.REMOTE)
 
                 # Create a new branch
                 self._git.switch_branch(Settings.PUSH_BRANCH)
@@ -185,7 +182,7 @@ class ZabbixCI:
             self.logger.info("No staged changes, updating remote with current state")
 
         if not self._settings.DRY_RUN:
-            self._git.push(Settings.REMOTE, self._git_cb)
+            self._git.push(Settings.REMOTE)
             self.logger.info(
                 f"Committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
             )
@@ -203,7 +200,8 @@ class ZabbixCI:
         self._git.switch_branch(Settings.PULL_BRANCH)
 
         # Pull the latest remote state, untracked changes are preserved
-        self._git.pull(Settings.REMOTE, self._git_cb)
+        self._git.pull(Settings.REMOTE)
+
         self._git.reset(
             self._git.lookup_reference(
                 f"refs/remotes/origin/{Settings.PULL_BRANCH}"
@@ -284,7 +282,7 @@ class ZabbixCI:
         """
         Generate icons/backgrounds from Zabbix and save them to the cache
         """
-        self._git.fetch(Settings.REMOTE, self._git_cb)
+        self._git.fetch(Settings.REMOTE)
 
         self.logger.info("Generating icons from Zabbix")
 
@@ -302,14 +300,14 @@ class ZabbixCI:
 
             # Pull the latest remote state
             try:
-                self._git.pull(Settings.REMOTE, self._git_cb)
+                self._git.pull(Settings.REMOTE)
             except KeyError:
                 self.logger.info(
                     f"Remote branch does not exist, using state from branch {Settings.PULL_BRANCH}"
                 )
                 # Remote branch does not exist, we pull the default branch and create a new branch
                 self._git.switch_branch(Settings.PULL_BRANCH)
-                self._git.pull(Settings.REMOTE, self._git_cb)
+                self._git.pull(Settings.REMOTE)
 
                 # Create a new branch
                 self._git.switch_branch(Settings.PUSH_BRANCH)
@@ -337,7 +335,7 @@ class ZabbixCI:
             self.logger.info("No staged changes, updating remote with current state")
 
         if not self._settings.DRY_RUN:
-            self._git.push(Settings.REMOTE, self._git_cb)
+            self._git.push(Settings.REMOTE)
             self.logger.info(
                 f"Committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
             )
