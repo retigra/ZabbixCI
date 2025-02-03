@@ -28,12 +28,6 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: ghcr.io/retigra/zabbixci
-        labels: |
-          org.opencontainers.image.title=ZabbixCI
-          org.opencontainers.image.description=Source control for Zabbix templates in Git
-          org.opencontainers.image.vendor=Retigra
-          org.opencontainers.image.license=AGPL-3.0
-          org.opencontainers.image.url=https://github.com/retigra/ZabbixCI
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -50,4 +44,4 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         annotations: |
-          index:org.opencontainers.image.description=Source control for Zabbix templates in Git
+          index:org.opencontainers.image.description=ZabbixCI is a tool that adds continuous integration to Zabbix, allowing you to synchronize Zabbix assets with a Git repository.
