@@ -174,7 +174,6 @@ class Git:
         changes = self._repository.status()
 
         for file in changes:
-            logger.debug(f"Removing untracked file {file}")
             os.remove(f"{self._repository.workdir}/{file}")
 
     def push(self, remote_url: str, branch: str = None):
