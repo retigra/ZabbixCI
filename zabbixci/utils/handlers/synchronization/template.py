@@ -168,7 +168,11 @@ class TemplateHandler(TemplateValidationHandler):
                 except Exception as e:
                     logger.error(f"Error importing template {template}: {e}")
 
-        return [t.uuid for t in templates]
+        return [
+            template_id
+            for template in templates
+            for template_id in template.template_ids
+        ]
 
     def delete_file_changes(
         self,
