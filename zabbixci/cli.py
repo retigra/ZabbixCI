@@ -77,7 +77,7 @@ def read_args():
         help="Comma separated list of templates to exclude",
     )
     zabbixci_group.add_argument(
-        "--cache",
+        "--cache-path",
         help="Cache path for git repository, defaults to ./cache",
     )
     zabbixci_group.add_argument(
