@@ -68,7 +68,7 @@ class Image:
         with Cache.open(path, "rb") as file:
             # TODO: Validation of path ending with /
             matches = regex.match(
-                f".*/{Settings.IMAGE_PREFIX_PATH}/(icons|backgrounds)/(.*).png", path
+                f".*{Settings.IMAGE_PREFIX_PATH}/(icons|backgrounds)/(.*).png", path
             )
 
             if not matches:
