@@ -13,7 +13,7 @@ class Settings:
     ZABBIX_TOKEN = None
     REMOTE = None
     ROOT_TEMPLATE_GROUP = "Templates"
-    GIT_AUTHOR_NAME = "Zabbix CI"
+    GIT_AUTHOR_NAME = "ZabbixCI"
     GIT_AUTHOR_EMAIL = "zabbixci@localhost"
     PULL_BRANCH = "main"
     PUSH_BRANCH = "main"
