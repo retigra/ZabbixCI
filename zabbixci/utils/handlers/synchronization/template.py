@@ -149,10 +149,11 @@ class TemplateHandler(TemplateValidationHandler):
 
         # Import the templates
         for template in templates:
-            logger.info(f"Importing {template.name}, level {template.level(templates)}")
-
             if not Settings.DRY_RUN:
                 try:
+                    logger.info(
+                        f"Importing {template.name}, level {template.level(templates)}"
+                    )
                     self._zabbix.import_template(template)
                 except Exception as e:
                     logger.warning(
@@ -164,6 +165,9 @@ class TemplateHandler(TemplateValidationHandler):
         if len(failed_templates):
             for template in failed_templates:
                 try:
+                    logger.info(
+                        f"Importing {template.name}, level {template.level(templates)} after previous failure"
+                    )
                     self._zabbix.import_template(template)
                 except Exception as e:
                     logger.error(f"Error importing template {template}: {e}")
