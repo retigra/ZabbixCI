@@ -242,6 +242,9 @@ class ZabbixCI:
         self.logger.debug(f"Following files have changed on Git: {changed_files}")
         self.logger.debug(f"Following files are deleted from Git {deleted_files}")
 
+        diff = self._git.diff()
+        Git.print_diff(diff)
+
         # Sync the file cache with the desired git state
         self._git.reset(current_revision, ResetMode.HARD)
 

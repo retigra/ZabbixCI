@@ -83,6 +83,12 @@ class Git:
         """
         return self._repository.head.target
 
+    def diff(self, *args: P.args, **kwargs: P.kwargs):
+        """
+        Get the diff of the repository
+        """
+        return self._repository.diff(*args, **kwargs)
+
     def status(self, *args: P.args, **kwargs: P.kwargs):
         """
         Get the status of the repository
@@ -245,3 +251,18 @@ class Git:
         self._repository.state_cleanup()
         self.commit("Merge changes")
         self._mark_agent_active()
+
+    @staticmethod
+    def print_diff(diff):
+        """
+        Pretty print the diff object, green for additions, red for deletions
+        """
+        for patch in diff:
+            for hunk in patch.hunks:
+                for line in hunk.lines:
+                    if line.origin == "+":
+                        print(f"\033[92m{line.origin}{line.content}\033[0m", end="")
+                    elif line.origin == "-":
+                        print(f"\033[91m{line.origin}{line.content}\033[0m", end="")
+                    else:
+                        print(line.content, end="")
