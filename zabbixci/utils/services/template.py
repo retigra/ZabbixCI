@@ -200,8 +200,6 @@ class Template:
         """
         Get the amount of linked levels
         """
-        logger.debug(f"Getting level for {self.name}")
-
         linked_templates = [t for t in templates if t.name in self.linked_templates]
 
         self._level = (
