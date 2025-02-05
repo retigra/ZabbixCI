@@ -255,14 +255,18 @@ class Git:
     @staticmethod
     def print_diff(diff):
         """
-        Pretty print the diff object, green for additions, red for deletions
+        Pretty log the diff object, green for additions, red for deletions
         """
         for patch in diff:
+            log_entry = f"Diff: {patch.delta.new_file.path}\n"
+
             for hunk in patch.hunks:
                 for line in hunk.lines:
                     if line.origin == "+":
-                        print(f"\033[92m{line.origin}{line.content}\033[0m", end="")
+                        log_entry += f"\033[92m{line.origin}{line.content}\033[0m"
                     elif line.origin == "-":
-                        print(f"\033[91m{line.origin}{line.content}\033[0m", end="")
+                        log_entry += f"\033[91m{line.origin}{line.content}\033[0m"
                     else:
-                        print(line.content, end="")
+                        log_entry += line.content
+
+            logger.debug(log_entry)
