@@ -2,8 +2,7 @@ import argparse
 import asyncio
 import logging
 import logging.config
-import sys
-from sys import version_info
+from sys import argv, version_info
 
 from zabbixci._version import __version__
 from zabbixci.exceptions import BaseZabbixCIException
@@ -48,7 +47,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
         """
 
         if args is None:
-            args = sys.argv[1:]
+            args = argv[1:]
 
         for i, arg in enumerate(args):
             if arg in self.explicit_arguments:
