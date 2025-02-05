@@ -1,0 +1,287 @@
+# Configuration file for ZabbixCI
+#
+# To get more information about
+# using ZabbixCI, please visit:
+#
+# https://github.com/retigra/ZabbixCI
+
+#### GENERAL CONFIGURATION ####
+
+### Option: root_template_group
+# Template group name in Zabbix to use
+# as root for synchronization.
+# Mandatory: no
+# Default: Templates
+root_template_group: "Templates"
+
+### Option: template_prefix_path
+# Path in the Git repo to use for template
+# synchronization. This can be used to ignore
+# other directories in the Git repo that may
+# contain other information that is not to
+# be synced with Zabbix.
+# Mandatory: no
+# Default: "templates"
+template_prefix_path: "templates"
+
+### Option: image_prefix_path
+# The path in the Git repository used to store the images.
+# This helps to separate images from templates if needed.
+# Mandatory: no
+# Default: "images"
+image_prefix_path: "images"
+
+### Option: template_whitelist
+# Comma separated list of template names
+# to synchronize explicitly.
+# If set, all other templates will be ignored.
+# Mandatory: no
+# Default: ""
+template_whitelist: ""
+
+### Option: template_blacklist
+# Comma separated list of template names
+# to ignore during synchronization.
+# All other templates will be synced.
+# Mandatory: no
+# Default: ""
+template_blacklist: ""
+
+### Option: cache_path
+# Local filesystem path
+# to use for caching the remote Git
+# repository.
+# Mandatory: no
+# Default: ./cache
+cache_path: "./cache"
+
+### Option: dry_run
+# Disabled non-reversible changes.
+# Git push, Zabbix import, and ZabbixCI
+# template removal are disabled.
+# Mandatory: no
+# Default: false
+dry_run: false
+
+### Option: vendor
+# Set the vendor for updated templates.
+# String to fill the vendor_name field of a
+# Zabbix template when the template is updated
+# and pushed to Git, only when vendor_name was
+# previously empty.
+# Note: vendor_name and vendor_version must both be set
+# or unset for any given template.
+# Mandatory: no
+# Default: null
+vendor: null
+
+### Option: set_version
+# Update the vendor_version when a template is updated.
+# Fills the vendor_version field with a timestamp
+# when a template is updated and pushed to git.
+# Note: vendor_name and vendor_version must both be set
+# or unset for a given template.
+# Mandatory: no
+# Default: false
+set_version: false
+
+### Option: sync_templates
+# Synchronize Zabbix templates.
+# Mandatory: no
+# Default: true
+sync_templates: true
+
+### Option: sync_icons
+# Synchronize Zabbix icons.
+# Mandatory: no
+# Default: false
+sync_icons: false
+
+### Option: sync_backgrounds
+# Synchronize Zabbix backgrounds.
+# Mandatory: no
+# Default: false
+sync_backgrounds: false
+
+### Option: image_whitelist
+# Comma separated list of image names
+# to synchronize explicitly.
+# If set, all other images will be ignored.
+# Mandatory: no
+# Default: ""
+image_whitelist: ""
+
+### Option: image_blacklist
+# Comma separated list of image names
+# to ignore during synchronization.
+# All other images will be synced.
+# Mandatory: no
+# Default: ""
+image_blacklist: ""
+
+### Option: icon_sizes
+# Comma separated list of icon sizes to generate.
+# Mandatory: no
+# Default: "24,48,64,128"
+icon_sizes: "24,48,64,128"
+
+### Option: background_sizes
+# Comma separated list of background sizes to generate.
+# Mandatory: no
+# Default: "480,720,1080"
+background_sizes: "480,720,1080"
+
+#### ZABBIX CONFIGURATION ####
+
+### Option: zabbix_url
+# URL of your Zabbix frontend.
+# Mandatory: yes
+# Default: ""
+zabbix_url: "http://localhost:8080"
+
+### Option: zabbix_user
+# Zabbix user to access your Zabbix frontend.
+# Please consider switching to using
+# an API token.
+# Required if zabbix_token is not set.
+# Mandatory: no
+# Default: ""
+zabbix_user: ""
+
+### Option: zabbix_password
+# Zabbix password to access your Zabbix frontend.
+# Please consider switching to using
+# an API token.
+# Required if zabbix_token is not set.
+# Mandatory: no
+# Default: ""
+zabbix_password: ""
+
+### Option: zabbix_token
+# API token to access your Zabbix frontend.
+# This is preferred over using a user and password.
+# Required if zabbix_user and zabbix_password are not set.
+# Mandatory: no
+# Default: ""
+zabbix_token: ""
+
+#### GIT CONFIGURATION ####
+
+### Option: remote
+# Remote Git repository to use for synchronization.
+# Mandatory: yes
+# Default: ""
+remote: "git@github.com/org/repo.git"
+
+### Option: pull_branch
+# Git branch used to pull for synchronization.
+# Mandatory: no
+# Default: main
+pull_branch: "main"
+
+### Option: push_branch
+# Git branch used to push for synchronization.
+# Mandatory: no
+# Default: main
+push_branch: "main"
+
+### Option: git_username
+# Username to use for access to the Git repository.
+# Mandatory: no
+# Default: git
+git_username: "git"
+
+### Option: git_password
+# Password to use for access to the Git repository.
+# Mandatory: no
+# Default: ""
+git_password: ""
+
+### Option: git_pubkey
+# SSH public key for authentication.
+# Mandatory: no
+# Default: None
+git_pubkey: null
+
+### Option: git_privkey
+# SSH private key for authentication.
+# Mandatory: no
+# Default: None
+git_privkey: null
+
+### Option: git_keypassphrase
+# Passphrase for SSH key authentication.
+# Mandatory: no
+# Default: None
+git_keypassphrase: null
+
+### Option: git_author_name
+# Author name to use for Git commits.
+# Mandatory: no
+# Default: Zabbix CI
+git_author_name: "ZabbixCI"
+
+### Option: git_author_email
+# Author email to use for Git commits.
+# Mandatory: no
+# Default:
+git_author_email: "zabbixci@localhost"
+
+#### ZabbixCI Advanced Configuration ####
+
+### Option: verbose
+# Enable verbose output.
+# Mandatory: no
+# Default: false
+verbose: false
+
+### Option: debug
+# Enable ZabbixCI debug output.
+# Mandatory: no
+# Default: false
+debug: false
+
+### Option: debug_all
+# Enable all debug output, including underlying libraries.
+# Mandatory: no
+# Default: false
+debug_all: false
+
+### Option: batch_size
+# Number of assets (templates) to export
+# from Zabbix simultaneously.
+# This can be tuned to fit to support
+# the system resources of your Zabbix frontend servers.
+# Mandatory: yes
+# Default: 5
+batch_size: 5
+
+### Option: ignore_template_version
+# Ignore template version on Zabbix import.
+# Used for importing older templates into
+# a newer version of Zabbix.
+# Mandatory: no
+# Default: false
+ignore_template_version: false
+
+### Option: insecure_ssl_verify
+# Ignore certificate verification.
+# This can be used to ignore self-signed certificates.
+# Do not use this in production!
+# Mandatory: no
+# Default: true
+insecure_ssl_verify: true
+
+### Option: ca_bundle
+# Custom CA bundle to use.
+# Should be a path to a valid ca bundle file.
+# Used for Git (https) and Zabbix validation.
+# Mandatory: no
+# Default: ""
+ca_bundle: ""
+
+### Option: regex_matching
+# Use regex matching for whitelists and blacklists.
+# Mandatory: no
+# Default: false
+regex_matching: false
