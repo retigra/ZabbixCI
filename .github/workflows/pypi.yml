@@ -30,4 +30,4 @@ jobs:
         run: |
           python -m build
       - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/76f52bc884231f62b9a034ebfe128415bbaabdfc
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
