@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import logging
 import logging.config
-from sys import version_info
+from sys import argv, version_info
 
 from zabbixci._version import __version__
 from zabbixci.exceptions import BaseZabbixCIException
@@ -17,19 +17,82 @@ from zabbixci.zabbixci import ZabbixCI
 logger = logging.getLogger(__name__)
 
 
-def str2bool(value: str):
-    """Convert various string representations of boolean values."""
+class CustomArgumentGroup(argparse._ArgumentGroup):
+    """
+    Customized ArgumentGroup with supporting code to calculate the explicit arguments
+    """
+
+    def __init__(self, container, title=None, description=None, **kwargs):
+        super().__init__(container, title=None, description=None, **kwargs)
+        self._container = container
+
+    def add_argument(self, *args, **kwargs):
+        if "explicit" in kwargs:
+            self._container.explicit_arguments.extend(args)
+            del kwargs["explicit"]
+
+        return super().add_argument(*args, **kwargs)
+
+
+class CustomArgumentParser(argparse.ArgumentParser):
+    """
+    Customized ArgumentParser with supporting code to calculate the explicit arguments, and parse them for boolean values when they are set explicitly (key=value)
+    """
+
+    explicit_arguments = []
+
+    def parse_args(self, args=None, namespace=None):
+        """
+        Default parse_args method, but with the ability to set explicit arguments to `true` when they are set without a value
+        """
+
+        if args is None:
+            args = argv[1:]
+
+        for i, arg in enumerate(args):
+            if arg in self.explicit_arguments:
+                # Explicit arguments are set to true when provided.
+                args.insert(i + 1, "true")
+            elif [
+                explicit
+                for explicit in self.explicit_arguments
+                if arg.startswith(f"{explicit}=")
+            ]:
+                # Only when the user explicitly sets a value (key=value) we parse it as a boolean
+                # (no need to add true after the key, the default parser will handle it)
+                break
+
+        return super().parse_args(args, namespace)
+
+    def add_argument(self, *args, **kwargs):
+        # Add the explicit argument to the list of explicit arguments
+        if "explicit" in kwargs:
+            self.explicit_arguments.append(kwargs["explicit"])
+            del kwargs["explicit"]
+
+        return super().add_argument(*args, **kwargs)
+
+    # Add a custom argument group to the parser, which fills the explicit arguments list
+    def add_argument_group(self, *args, **kwargs):
+        group = CustomArgumentGroup(self, *args, **kwargs)
+        self._action_groups.append(group)
+        return group
+
+
+# Custom function to handle boolean conversion
+def str2bool(value):
     if isinstance(value, bool):
         return value
-    if value.lower() in ("true", "1", "yes", "y"):
+    if value.lower() in ("yes", "true", "t", "1"):
         return True
-    elif value.lower() in ("false", "0", "no", "n", "f"):
+    elif value.lower() in ("no", "false", "f", "0"):
         return False
-    raise argparse.ArgumentTypeError(f"Invalid boolean value: {value}")
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
 def read_args():
-    method_parser = argparse.ArgumentParser(
+    method_parser = CustomArgumentParser(
         description="ZabbixCI is a tool to manage Zabbix templates in a Git repository. ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.",
         prog="zabbixci",
     )
@@ -82,11 +145,11 @@ def read_args():
     )
     zabbixci_group.add_argument(
         "--dry-run",
-        help="Dry run, only show changes",
-        const=True,
-        default=None,
-        type=str2bool,
         nargs="?",
+        type=str2bool,
+        default=None,
+        help="Enable or disable dry run.",
+        explicit=True,
     )
     zabbixci_group.add_argument(
         "--vendor",
@@ -100,6 +163,7 @@ def read_args():
         default=None,
         type=str2bool,
         nargs="?",
+        explicit=True,
     )
     zabbixci_group.add_argument(
         "--sync-templates",
@@ -108,6 +172,7 @@ def read_args():
         default=None,
         type=str2bool,
         nargs="?",
+        explicit=True,
     )
     zabbixci_group.add_argument(
         "--sync-icons",
@@ -116,6 +181,7 @@ def read_args():
         default=None,
         type=str2bool,
         nargs="?",
+        explicit=True,
     )
     zabbixci_group.add_argument(
         "--sync-backgrounds",
@@ -124,6 +190,7 @@ def read_args():
         default=None,
         type=str2bool,
         nargs="?",
+        explicit=True,
     )
     zabbixci_group.add_argument(
         "--image-whitelist",
@@ -209,6 +276,7 @@ def read_args():
         default=None,
         type=str2bool,
         nargs="?",
+        explicit=True,
     )
     zabbixci_advanced_group.add_argument(
         "-vv",
@@ -219,6 +287,7 @@ def read_args():
         default=None,
         type=str2bool,
         nargs="?",
+        explicit=True,
     )
     zabbixci_advanced_group.add_argument(
         "-vvv",
@@ -229,6 +298,7 @@ def read_args():
         default=None,
         type=str2bool,
         nargs="?",
+        explicit=True,
     )
     zabbixci_advanced_group.add_argument(
         "--batch-size",
@@ -237,8 +307,10 @@ def read_args():
     zabbixci_advanced_group.add_argument(
         "--ignore-template-version",
         help="Ignore template versions on import, useful for initial import",
-        action="store_true",
         default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
     )
     zabbixci_advanced_group.add_argument(
         "--insecure-ssl-verify",
@@ -247,6 +319,7 @@ def read_args():
         default=None,
         type=str2bool,
         nargs="?",
+        explicit=True,
     )
     zabbixci_advanced_group.add_argument(
         "--ca-bundle",
@@ -259,6 +332,7 @@ def read_args():
         default=None,
         type=str2bool,
         nargs="?",
+        explicit=True,
     )
 
     return method_parser.parse_args()
