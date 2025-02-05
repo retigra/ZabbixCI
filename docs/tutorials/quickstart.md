@@ -47,7 +47,7 @@ Using `zabbixci --help` will show more detailed output on the commandline argume
 
 ## Configuring ZabbixCI
 
-ZabbixCI can be configured through commandline arguments, environment variables or a [configuration file](https://github.com/retigra/ZabbixCI/blob/main/docs/config.yaml.example).
+ZabbixCI can be configured through commandline arguments, environment variables or a [configuration file](https://github.com/retigra/ZabbixCI/blob/main/docs/config.yaml).
 In this tutorial we will use a file to configure the needed parameters.
 
 First, create a workingdir for ZabbixCI. This will be used as a local filesystem cache location as well as the location of our configuration:
@@ -81,7 +81,7 @@ git_privkey: /path/to/your/ssh_priv.key
 
 > [!TIP] 
 > If you've loaded in your SSH key via ssh-agent, you don't need to supply the `git_*` parameters in the config file.
-> Alternatively, you can use HTTP(S) authentication as well. See the [example config file](https://raw.githubusercontent.com/retigra/ZabbixCI/refs/heads/main/docs/config.yaml.example) to see all of the allowed options.
+> Alternatively, you can use HTTP(S) authentication as well. See the [example config file](https://raw.githubusercontent.com/retigra/ZabbixCI/refs/heads/main/docs/config.yaml) to see all of the allowed options.
 
 ## Pushing your templates to Git
 

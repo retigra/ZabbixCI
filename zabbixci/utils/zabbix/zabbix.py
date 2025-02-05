@@ -4,7 +4,7 @@ import aiohttp
 from ruamel.yaml import YAML
 from zabbix_utils import AsyncZabbixAPI
 
-from zabbixci.utils.template import Template
+from zabbixci.utils.services import Template
 
 yaml = YAML()
 
@@ -31,26 +31,22 @@ class Zabbix:
             "templategroup.get", {"search": {"name": template_group_names}}
         )["result"]
 
-    def get_templates(self, template_group_names: list[str]):
-        ids = self._get_template_group(template_group_names)
-
-        template_group_ids = [group["groupid"] for group in ids]
-
-        return self.zapi.send_sync_request(
-            "template.get", {"groupids": template_group_ids}
-        )["result"]
-
-    def get_templates_filtered(
-        self, template_group_names: list[str], filter_list: list[str]
+    def get_templates(
+        self, template_group_names: list[str], filter_list: list[str] = None
     ):
         ids = self._get_template_group(template_group_names)
 
         template_group_ids = [group["groupid"] for group in ids]
 
-        return self.zapi.send_sync_request(
-            "template.get",
-            {"groupids": template_group_ids, "filter": {"host": filter_list}},
-        )["result"]
+        if filter_list:
+            return self.zapi.send_sync_request(
+                "template.get",
+                {"groupids": template_group_ids, "filter": {"host": filter_list}},
+            )["result"]
+        else:
+            return self.zapi.send_sync_request(
+                "template.get", {"groupids": template_group_ids}
+            )["result"]
 
     def set_template(self, template_id: int, changes: dict):
         return self.zapi.send_sync_request(
@@ -62,6 +58,31 @@ class Zabbix:
             "configuration.export",
             {"options": {"templates": template_ids}, "format": "yaml"},
         )
+
+    def get_images(self, search: list[str] = None):
+        """
+        Export all images from Zabbix
+
+        TODO: Add batching for large number of images
+        """
+        if not search:
+            return self.zapi.send_sync_request(
+                "image.get", {"output": "extend", "select_image": True}
+            )["result"]
+        else:
+            return self.zapi.send_sync_request(
+                "image.get",
+                {"output": "extend", "select_image": True, "filter": {"name": search}},
+            )["result"]
+
+    def create_image(self, image: dict):
+        return self.zapi.send_sync_request("image.create", image)["result"]
+
+    def update_image(self, image: dict):
+        return self.zapi.send_sync_request("image.update", image)["result"]
+
+    def delete_images(self, image_ids: list[int]):
+        return self.zapi.send_sync_request("image.delete", image_ids)["result"]
 
     def import_template(self, template: Template):
         export = template.export()
@@ -125,5 +146,5 @@ class Zabbix:
             "result"
         ]
 
-    def delete_template(self, template_ids: list[int]):
+    def delete_templates(self, template_ids: list[int]):
         return self.zapi.send_sync_request("template.delete", template_ids)["result"]

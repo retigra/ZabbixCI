@@ -6,6 +6,8 @@ import pygit2
 from pygit2.enums import MergeAnalysis
 
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.git.credentials import RemoteCallbacksSecured
 
 logger = logging.getLogger(__name__)
 
@@ -15,19 +17,21 @@ P = ParamSpec("P")
 class Git:
     _repository: pygit2.Repository = None
     author = pygit2.Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
+    _git_cb = None
 
     def __init__(self, path: str, callbacks: pygit2.RemoteCallbacks):
         """
         Initialize the git repository
         """
+        self._git_cb = callbacks
 
         if not os.path.exists(path):
-            os.makedirs(path)
+            Cache.makedirs(path)
 
             self._repository = pygit2.clone_repository(
                 Settings.REMOTE,
                 path,
-                callbacks=callbacks,
+                callbacks=self._git_cb,
             )
         else:
             self._repository = pygit2.Repository(path)
@@ -69,11 +73,21 @@ class Git:
         """
         return self._repository.is_empty
 
+    def _mark_agent_active(self):
+        if isinstance(self._git_cb, RemoteCallbacksSecured):
+            self._git_cb.mark_agent_active()
+
     def get_current_revision(self):
         """
         Get the current revision
         """
         return self._repository.head.target
+
+    def diff(self, *args: P.args, **kwargs: P.kwargs):
+        """
+        Get the diff of the repository
+        """
+        return self._repository.diff(*args, **kwargs)
 
     def status(self, *args: P.args, **kwargs: P.kwargs):
         """
@@ -118,7 +132,7 @@ class Git:
         """
         self._repository.reset(*args, **kwargs)
 
-    def fetch(self, remote_url: str, callbacks: pygit2.RemoteCallbacks):
+    def fetch(self, remote_url: str):
         """
         Fetch the changes from the remote repository
         """
@@ -127,7 +141,8 @@ class Git:
 
         remote = self._repository.remotes["origin"]
 
-        remote.fetch(callbacks=callbacks)
+        remote.fetch(callbacks=self._git_cb)
+        self._mark_agent_active()
 
     def lookup_reference(self, name: str):
         return self._repository.lookup_reference(name)
@@ -165,12 +180,9 @@ class Git:
         changes = self._repository.status()
 
         for file in changes:
-            logger.debug(f"Removing untracked file {file}")
             os.remove(f"{self._repository.workdir}/{file}")
 
-    def push(
-        self, remote_url: str, callbacks: pygit2.RemoteCallbacks, branch: str = None
-    ):
+    def push(self, remote_url: str, branch: str = None):
         """
         Push the changes to the remote repository
         """
@@ -182,11 +194,22 @@ class Git:
         if not remote:
             remote = self._repository.remotes.create("origin", remote_url)
 
-        remote.push([f"refs/heads/{branch}"], callbacks=callbacks)
+        remote.push([f"refs/heads/{branch}"], callbacks=self._git_cb)
+        self._mark_agent_active()
 
-    def pull(
-        self, remote_url: str, callbacks: pygit2.RemoteCallbacks, branch: str = None
-    ):
+    def force_push(self, specs: list[str], remote_url: str):
+        """
+        Force push the changes to the remote repository
+        """
+        remote = self._repository.remotes["origin"]
+
+        if not remote:
+            remote = self._repository.remotes.create("origin", remote_url)
+
+        remote.push(specs, callbacks=self._git_cb)
+        self._mark_agent_active()
+
+    def pull(self, remote_url: str, branch: str = None):
         """
         Pull the changes from the remote repository, merge them with the local repository
         """
@@ -198,7 +221,7 @@ class Git:
         if not remote:
             remote = self._repository.remotes.create("origin", remote_url)
 
-        remote.fetch(callbacks=callbacks)
+        remote.fetch(callbacks=self._git_cb)
 
         remote_id = self._repository.lookup_reference(
             f"refs/remotes/origin/{branch}"
@@ -227,3 +250,33 @@ class Git:
 
         self._repository.state_cleanup()
         self.commit("Merge changes")
+        self._mark_agent_active()
+
+    @staticmethod
+    def print_diff(diff, invert=False):
+        """
+        Pretty log the diff object, green for additions, red for deletions
+        """
+        for patch in diff:
+            log_entry = f"Diff: {patch.delta.new_file.path}\n"
+
+            for hunk in patch.hunks:
+                for line in hunk.lines:
+                    if (
+                        line.origin == "+"
+                        and not invert
+                        or line.origin == "-"
+                        and invert
+                    ):
+                        log_entry += f"\033[92m{line.origin}{line.content}\033[0m"
+                    elif (
+                        line.origin == "-"
+                        and not invert
+                        or line.origin == "+"
+                        and invert
+                    ):
+                        log_entry += f"\033[91m{line.origin}{line.content}\033[0m"
+                    else:
+                        log_entry += line.content
+
+            logger.debug(log_entry)

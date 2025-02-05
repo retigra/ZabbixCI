@@ -5,7 +5,11 @@ import logging.config
 from sys import version_info
 
 from zabbixci._version import __version__
+from zabbixci.exceptions import BaseZabbixCIException
+from zabbixci.logging import CustomFormatter
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.cache.cleanup import Cleanup
 from zabbixci.zabbixci import ZabbixCI
 
 # Read command line arguments to fill the settings
@@ -13,157 +17,251 @@ from zabbixci.zabbixci import ZabbixCI
 logger = logging.getLogger(__name__)
 
 
+def str2bool(value: str):
+    """Convert various string representations of boolean values."""
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ("true", "1", "yes", "y"):
+        return True
+    elif value.lower() in ("false", "0", "no", "n", "f"):
+        return False
+    raise argparse.ArgumentTypeError(f"Invalid boolean value: {value}")
+
+
 def read_args():
-    parser = argparse.ArgumentParser(
+    method_parser = argparse.ArgumentParser(
         description="ZabbixCI is a tool to manage Zabbix templates in a Git repository. ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.",
         prog="zabbixci",
     )
-    parser.add_argument(
+    method_parser.add_argument(
         "action",
         help="The action to perform",
-        choices=["push", "pull", "clearcache", "version"],
+        choices=[
+            "push",
+            "pull",
+            "clearcache",
+            "version",
+            "generate-icons",
+            "generate-backgrounds",
+        ],
     )
 
     # Provide configuration as file
-    parser.add_argument(
+    method_parser.add_argument(
+        "-c",
         "--config",
-        help="Provide configuration as yaml file",
+        help="Provide configuration as YAML file",
     )
 
-    # Zabbix
-    parser.add_argument(
-        "--zabbix-url",
-        help="Zabbix URL",
-    )
-    parser.add_argument(
-        "--zabbix-user",
-        help="Zabbix user for user/password authentication",
-    )
-    parser.add_argument(
-        "--zabbix-password",
-        help="Zabbix password for user/password authentication",
-    )
-    parser.add_argument(
-        "--zabbix-token",
-        help="Zabbix token for token authentication (preferred)",
-    )
-
-    # Git
-    parser.add_argument(
-        "--remote",
-        help="URL of the remote git repository, supports ssh and http(s)",
-    )
-    parser.add_argument(
-        "--pull-branch",
-        help="Branch to pull from",
-    )
-    parser.add_argument(
-        "--push-branch",
-        help="Branch to push to",
-    )
-    parser.add_argument(
-        "--git-username",
-        help="Git username, used for http(s) authentication",
-    )
-    parser.add_argument(
-        "--git-password",
-        help="Git password, used for http(s) authentication",
-    )
-    parser.add_argument(
-        "--git-pubkey",
-        help="SSH public key, used for ssh authentication",
-    )
-    parser.add_argument(
-        "--git-privkey",
-        help="SSH private key, used for ssh authentication",
-    )
-    parser.add_argument(
-        "--git-keypassphrase",
-        help="SSH key passphrase, used for ssh authentication",
-    )
+    zabbixci_group = method_parser.add_argument_group("ZabbixCI")
 
     # ZabbixCI
-    parser.add_argument(
+    zabbixci_group.add_argument(
         "--root-template-group",
         help="Zabbix Template Group root, defaults to Templates",
     )
-    parser.add_argument(
+    zabbixci_group.add_argument(
         "--template-prefix-path",
         help="The path in the git repository, used to store the templates",
     )
-    parser.add_argument(
+    zabbixci_group.add_argument(
+        "--image-prefix-path",
+        help="The path in the git repository, used to store the images",
+    )
+    zabbixci_group.add_argument(
         "--template-whitelist",
         help="Comma separated list of templates to include",
     )
-    parser.add_argument(
+    zabbixci_group.add_argument(
         "--template-blacklist",
         help="Comma separated list of templates to exclude",
     )
-    parser.add_argument(
-        "--cache",
+    zabbixci_group.add_argument(
+        "--cache-path",
         help="Cache path for git repository, defaults to ./cache",
     )
-    parser.add_argument(
+    zabbixci_group.add_argument(
         "--dry-run",
         help="Dry run, only show changes",
-        action="store_true",
+        const=True,
         default=None,
+        type=str2bool,
+        nargs="?",
     )
-    parser.add_argument(
+    zabbixci_group.add_argument(
         "--vendor",
         help="Vendor name for templates",
         default=None,
     )
-    parser.add_argument(
+    zabbixci_group.add_argument(
         "--set-version",
         help="Set version on import",
-        action="store_true",
+        const=True,
         default=None,
+        type=str2bool,
+        nargs="?",
+    )
+    zabbixci_group.add_argument(
+        "--sync-templates",
+        help="Synchronize templates between Zabbix and git",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+    )
+    zabbixci_group.add_argument(
+        "--sync-icons",
+        help="Synchronize icons between Zabbix and git",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+    )
+    zabbixci_group.add_argument(
+        "--sync-backgrounds",
+        help="Synchronize background images between Zabbix and git",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+    )
+    zabbixci_group.add_argument(
+        "--image-whitelist",
+        help="Comma separated list of images to include",
+    )
+    zabbixci_group.add_argument(
+        "--image-blacklist",
+        help="Comma separated list of images to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--icon-sizes",
+        help="Comma separated list of icon sizes to generate",
+    )
+    zabbixci_group.add_argument(
+        "--background-sizes",
+        help="Comma separated list of background sizes to generate",
     )
 
+    zabbix_group = method_parser.add_argument_group("Zabbix")
+
+    # Zabbix
+    zabbix_group.add_argument(
+        "--zabbix-url",
+        help="Zabbix URL",
+    )
+    zabbix_group.add_argument(
+        "--zabbix-user",
+        help="Zabbix user for user/password authentication",
+    )
+    zabbix_group.add_argument(
+        "--zabbix-password",
+        help="Zabbix password for user/password authentication",
+    )
+    zabbix_group.add_argument(
+        "--zabbix-token",
+        help="Zabbix token for token authentication (preferred)",
+    )
+
+    git_group = method_parser.add_argument_group("Git")
+
+    # Git
+    git_group.add_argument(
+        "--remote",
+        help="URL of the remote git repository, supports ssh and http(s)",
+    )
+    git_group.add_argument(
+        "--pull-branch",
+        help="Branch to pull from",
+    )
+    git_group.add_argument(
+        "--push-branch",
+        help="Branch to push to",
+    )
+    git_group.add_argument(
+        "--git-username",
+        help="Git username, used for http(s) authentication",
+    )
+    git_group.add_argument(
+        "--git-password",
+        help="Git password, used for http(s) authentication",
+    )
+    git_group.add_argument(
+        "--git-pubkey",
+        help="SSH public key, used for ssh authentication",
+    )
+    git_group.add_argument(
+        "--git-privkey",
+        help="SSH private key, used for ssh authentication",
+    )
+    git_group.add_argument(
+        "--git-keypassphrase",
+        help="SSH key passphrase, used for ssh authentication",
+    )
+
+    zabbixci_advanced_group = method_parser.add_argument_group("ZabbixCI advanced")
+
     # ZabbixCI advanced
-    parser.add_argument(
+    zabbixci_advanced_group.add_argument(
         "-v",
         help="Enable verbose logging",
-        action="store_true",
         dest="verbose",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
     )
-    parser.add_argument(
+    zabbixci_advanced_group.add_argument(
         "-vv",
         "--debug",
         help="Enable debug logging",
-        action="store_true",
         dest="debug",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
     )
-    parser.add_argument(
+    zabbixci_advanced_group.add_argument(
         "-vvv",
         "--debug-all",
         help="Enable debug logging for all modules",
-        action="store_true",
         dest="debug_all",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
     )
-    parser.add_argument(
+    zabbixci_advanced_group.add_argument(
         "--batch-size",
         help="Batch size for Zabbix API export requests",
     )
-    parser.add_argument(
+    zabbixci_advanced_group.add_argument(
         "--ignore-template-version",
         help="Ignore template versions on import, useful for initial import",
         action="store_true",
         default=None,
     )
-    parser.add_argument(
+    zabbixci_advanced_group.add_argument(
         "--insecure-ssl-verify",
         help="Disable SSL verification for Zabbix API and git, only use for testing",
-        action="store_true",
+        const=True,
         default=None,
+        type=str2bool,
+        nargs="?",
     )
-    parser.add_argument(
+    zabbixci_advanced_group.add_argument(
         "--ca-bundle",
         help="Path to CA bundle for SSL verification",
     )
+    zabbixci_advanced_group.add_argument(
+        "--regex-matching",
+        help="Use regex matching for template and image whitelists and blacklists",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+    )
 
-    return parser.parse_args()
+    return method_parser.parse_args()
 
 
 def parse_cli():
@@ -177,9 +275,13 @@ def parse_cli():
         else logging.INFO if args.verbose else logging.WARN
     )
 
+    ch = logging.StreamHandler()
+
+    ch.setFormatter(CustomFormatter())
+
     logging.basicConfig(
-        format="%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s",
         level=global_level,
+        handlers=[ch],
     )
 
     zabbixci_logger = logging.getLogger("zabbixci")
@@ -206,8 +308,10 @@ def parse_cli():
 
     logger.debug(f"Settings: {settings_debug}")
 
+    Cache(Settings.CACHE_PATH)
+
     if args.action == "clearcache":
-        ZabbixCI.cleanup_cache(full=True)
+        Cleanup.cleanup_cache(full=True)
     else:
         asyncio.run(run_zabbixci(args.action))
 
@@ -242,10 +346,20 @@ async def run_zabbixci(action: str):
             await zabbixci.create_zabbix()
             await zabbixci.pull()
 
+        elif action == "generate-icons":
+            zabbixci.create_git()
+            zabbixci.generate_images("icon")
+
+        elif action == "generate-backgrounds":
+            zabbixci.create_git()
+            zabbixci.generate_images("background")
+
     except KeyboardInterrupt:
         logger.error("Interrupted by user")
     except SystemExit as e:
         logger.debug(f"Script exited with code {e.code}")
+    except BaseZabbixCIException as e:
+        logger.error(e)
     except Exception:
         logger.error("Unexpected error:", exc_info=True)
     finally:

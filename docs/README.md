@@ -22,7 +22,7 @@ See the [Containerized Deployment](Containerized.md) documentation for more
 
 ZabbixCI requires parameters to be set as command line arguments, a yaml
 configuration or as environment variables. See the
-[example configuration file](config.yaml.example). Available parameters can be
+[example configuration file](config.yaml). Available parameters can be
 found through `zabbixci --help`.
 
 ## Usage

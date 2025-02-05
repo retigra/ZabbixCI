@@ -1,20 +1,25 @@
+import asyncio
 import logging
 import os
-import unittest
 from os import getenv
 
 from zabbixci import ZabbixCI
 from zabbixci.settings import Settings
+from zabbixci.utils.cache.cache import Cache
+from zabbixci.utils.cache.cleanup import Cleanup
 
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
 DEV_GIT_REMOTE = getenv("REMOTE")
 
 
-class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
+class BaseTemplates:
     def setUp(self):
-        if os.path.exists(".cache"):
-            ZabbixCI.cleanup_cache(full=True)
+        Settings.CACHE_PATH = "/tmp/zabbixci"
+        self.cache = Cache(Settings.CACHE_PATH)
+
+        if os.path.exists(Settings.CACHE_PATH):
+            Cleanup.cleanup_cache(full=True)
 
         logging.basicConfig(
             level=logging.ERROR,
@@ -24,25 +29,29 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         Settings.ZABBIX_URL = DEV_ZABBIX_URL
         Settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
         Settings.REMOTE = DEV_GIT_REMOTE
+        Settings.REGEX_MATCHING = False
         Settings.SET_VERSION = True
-        Settings.TEMPLATE_WHITELIST = "Linux by Zabbix agent,Linux by Zabbix 00000,Windows by Zabbix agent,Acronis Cyber Protect Cloud by HTTP,Kubernetes API server by HTTP,Kubernetes cluster state by HTTP"
+
+        Settings.TEMPLATE_WHITELIST = ""
+        Settings.TEMPLATE_BLACKLIST = ""
 
         self.zci = ZabbixCI()
 
     async def restoreState(self):
-        ZabbixCI.cleanup_cache()
+        self.zci._git.force_push(
+            ["+refs/remotes/origin/test:refs/heads/main"],
+            Settings.REMOTE,
+        )
 
-        # Restore Zabbix to initial testing state
-        Settings.PULL_BRANCH = "test"
+        Cleanup.cleanup_cache(full=True)
+        self.zci.create_git()
+
+        # Restore the state of Zabbix
         await self.zci.pull()
-
-        Settings.PULL_BRANCH = "main"
-        await self.zci.push()
 
     async def asyncSetUp(self):
         self.zci.create_git()
         await self.zci.create_zabbix()
-
         await self.restoreState()
 
     async def test_push_pull_remote_defaults(self):
@@ -74,7 +83,7 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(changed, "Template was not restored")
 
         # Assert Git version is imported back into Zabbix
-        matches = self.zci._zabbix.get_templates_filtered(
+        matches = self.zci._zabbix.get_templates(
             [Settings.ROOT_TEMPLATE_GROUP], ["Windows by Zabbix agent"]
         )
         self.assertEqual(len(matches), 1, "Template not found")
@@ -83,8 +92,6 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
             "Windows by Zabbix agent (renamed)",
             "Template name not restored",
         )
-
-        await self.restoreState()
 
     async def test_template_rename(self):
         # Rename a template
@@ -105,19 +112,17 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(changed, "Template was not restored")
 
         # Assert Git version is restored
-        matches = self.zci._zabbix.get_templates_filtered(
+        matches = self.zci._zabbix.get_templates(
             [Settings.ROOT_TEMPLATE_GROUP], ["Linux by Zabbix 00000"]
         )
         self.assertEqual(len(matches), 1, "Template not found")
-
-        await self.restoreState()
 
     async def test_template_delete(self):
         # Delete a template
         template_id = self.zci._zabbix.get_templates_name(
             ["Acronis Cyber Protect Cloud by HTTP"]
         )[0]["templateid"]
-        self.zci._zabbix.delete_template([template_id])
+        self.zci._zabbix.delete_templates([template_id])
 
         # Push changes to git
         changed = await self.zci.push()
@@ -132,8 +137,6 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         changed = await self.zci.pull()
         self.assertTrue(changed, "Template deletion from Git was not detected")
 
-        await self.restoreState()
-
     async def test_push_to_new_branch(self):
         Settings.PUSH_BRANCH = "new-branch"
 
@@ -142,8 +145,6 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
 
         Settings.PUSH_BRANCH = "main"
 
-        await self.restoreState()
-
     async def asyncTearDown(self):
         await self.zci._zabbix.zapi.logout()
 
@@ -151,6 +152,5 @@ class TestPushFunctions(unittest.IsolatedAsyncioTestCase):
         if self.zci._zabbix._client_session:
             await self.zci._zabbix._client_session.close()
 
-
-if __name__ == "__main__":
-    unittest.main()
+        # Wait a couple of cycles for the session to close
+        await asyncio.sleep(0.25)
