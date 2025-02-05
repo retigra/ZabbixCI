@@ -113,6 +113,9 @@ class ZabbixCI:
         self.logger.info("Remote differs from local state, preparing to push")
         change_amount = len(self._git.status())
 
+        diff = self._git.diff()
+        Git.print_diff(diff)
+
         # Check if we have any changes to commit. Otherwise, we just push the current state
         if self._git.has_changes:
             # Create a commit
@@ -243,7 +246,7 @@ class ZabbixCI:
         self.logger.debug(f"Following files are deleted from Git {deleted_files}")
 
         diff = self._git.diff()
-        Git.print_diff(diff)
+        Git.print_diff(diff, invert=True)
 
         # Sync the file cache with the desired git state
         self._git.reset(current_revision, ResetMode.HARD)

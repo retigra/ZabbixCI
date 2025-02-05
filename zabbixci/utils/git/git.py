@@ -253,7 +253,7 @@ class Git:
         self._mark_agent_active()
 
     @staticmethod
-    def print_diff(diff):
+    def print_diff(diff, invert=False):
         """
         Pretty log the diff object, green for additions, red for deletions
         """
@@ -262,9 +262,19 @@ class Git:
 
             for hunk in patch.hunks:
                 for line in hunk.lines:
-                    if line.origin == "+":
+                    if (
+                        line.origin == "+"
+                        and not invert
+                        or line.origin == "-"
+                        and invert
+                    ):
                         log_entry += f"\033[92m{line.origin}{line.content}\033[0m"
-                    elif line.origin == "-":
+                    elif (
+                        line.origin == "-"
+                        and not invert
+                        or line.origin == "+"
+                        and invert
+                    ):
                         log_entry += f"\033[91m{line.origin}{line.content}\033[0m"
                     else:
                         log_entry += line.content
