@@ -61,7 +61,7 @@ documentation for more information.
 
 ZabbixCI requires parameters to be set as command line arguments, a yaml
 configuration or as environment variables. See the
-[example configuration file](https://github.com/retigra/ZabbixCI/tree/main/docs/config.yaml.example).
+[example configuration file](https://github.com/retigra/ZabbixCI/tree/main/docs/config.yaml).
 
 We recommend passing environment variables when using the container image. Feel
 free to use the method that best suits your workflow.
