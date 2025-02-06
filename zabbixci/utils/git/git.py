@@ -268,14 +268,14 @@ class Git:
                         or line.origin == "-"
                         and invert
                     ):
-                        log_entry += f"\033[92m{line.origin}{line.content}\033[0m"
+                        log_entry += f"\033[92m+{line.content}\033[0m"
                     elif (
                         line.origin == "-"
                         and not invert
                         or line.origin == "+"
                         and invert
                     ):
-                        log_entry += f"\033[91m{line.origin}{line.content}\033[0m"
+                        log_entry += f"\033[91m-{line.content}\033[0m"
                     else:
                         log_entry += line.content
 
