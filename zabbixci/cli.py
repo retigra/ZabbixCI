@@ -343,10 +343,17 @@ def parse_cli():
     args = read_args()
     arguments = vars(args)
 
+    if args.config:
+        Settings.read_config(args.config)
+
+    for key, value in arguments.items():
+        if value is not None:
+            setattr(Settings, key.upper(), value)
+
     global_level = (
         logging.DEBUG
-        if args.debug_all
-        else logging.INFO if args.verbose else logging.WARN
+        if Settings.DEBUG_ALL
+        else logging.INFO if Settings.VERBOSE else logging.WARN
     )
 
     ch = logging.StreamHandler()
@@ -361,17 +368,9 @@ def parse_cli():
     zabbixci_logger = logging.getLogger("zabbixci")
     zabbixci_logger.setLevel(
         logging.DEBUG
-        if args.debug or args.debug_all
-        else logging.INFO if args.verbose else logging.WARN
+        if Settings.DEBUG or Settings.DEBUG_ALL
+        else logging.INFO if Settings.VERBOSE else logging.WARN
     )
-
-    if args.config:
-        Settings.read_config(args.config)
-
-    for key, value in arguments.items():
-        if value is not None:
-            logger.debug(f"Setting {key} to {value}")
-            setattr(Settings, key.upper(), value)
 
     settings_debug = {
         **Settings.__dict__,
