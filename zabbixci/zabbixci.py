@@ -266,9 +266,7 @@ class ZabbixCI:
         # Inform user about the changes
         if Settings.DRY_RUN:
             self.logger.info(
-                "Dry run enabled, no changes will be made to Zabbix.",
-                f"Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates.",
-                f"Would have imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
+                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Would have imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
             )
         else:
             if (
@@ -280,9 +278,7 @@ class ZabbixCI:
                 self.logger.info("No changes detected, Zabbix is up to date")
             else:
                 self.logger.info(
-                    "Zabbix state has been synchronized.",
-                    f"Imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates.",
-                    f"Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
+                    "Zabbix state has been synchronized. Imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
                 )
 
         # clean local changes
