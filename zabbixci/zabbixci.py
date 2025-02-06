@@ -278,7 +278,7 @@ class ZabbixCI:
                 self.logger.info("No changes detected, Zabbix is up to date")
             else:
                 self.logger.info(
-                    "Zabbix state has been synchronized. Imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
+                    f"Zabbix state has been synchronized. Imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
                 )
 
         # clean local changes
