@@ -63,7 +63,7 @@ class TemplateHandler(TemplateValidationHandler):
                     continue
 
                 zabbix_template.save()
-                logger.info(f"Exported Zabbix template {zabbix_template.name}")
+                logger.info(f"Exported Zabbix template: {zabbix_template.name}")
 
         if len(failed_exports):
             logger.warning(
@@ -206,7 +206,7 @@ class TemplateHandler(TemplateValidationHandler):
             template = Template.open(file)
 
             if not template or not template.is_template:
-                logger.warning(f"Could not open to be deleted file {file}")
+                logger.warning(f"Could not open to be deleted file: {file}")
                 continue
 
             if not self.template_validation(template):

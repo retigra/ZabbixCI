@@ -71,7 +71,7 @@ class ImageHandler(ImageValidationHandler):
         for path in file_paths:
             # Skip non-image files
             if not self.is_image(path):
-                logger.warning(f"Skipping non-image source file {path}")
+                logger.warning(f"Skipping non-image source file: {path}")
                 continue
 
             match_groups = regex.match(
@@ -81,7 +81,7 @@ class ImageHandler(ImageValidationHandler):
 
             if not match_groups:
                 logger.warning(
-                    f"Could not extract destination and file name from {path}"
+                    f"Could not extract destination and file name from: {path}"
                 )
                 continue
 
@@ -92,7 +92,7 @@ class ImageHandler(ImageValidationHandler):
             file_type = match_groups.group(3)
 
             if not file_name:
-                logger.warning(f"Could not extract file name from {path}")
+                logger.warning(f"Could not extract file name from: {path}")
                 continue
 
             Cache.makedirs(destination)
@@ -159,7 +159,7 @@ class ImageHandler(ImageValidationHandler):
 
         def __import_image(image: Image):
             if image.name in [t["name"] for t in image_objects]:
-                logger.info(f"Updating {image.name}")
+                logger.info(f"Updating: {image.name}")
 
                 old_image = next(
                     filter(lambda dt: dt["name"] == image.name, image_objects)
@@ -172,7 +172,7 @@ class ImageHandler(ImageValidationHandler):
                     }
                 )
             else:
-                logger.info(f"Creating {image.name}")
+                logger.info(f"Creating: {image.name}")
                 return self._zabbix.create_image(image.as_zabbix_dict())
 
         # Import the images
@@ -224,7 +224,7 @@ class ImageHandler(ImageValidationHandler):
             image = Image.open(file)
 
             if not image:
-                logger.warning(f"Could not open to be deleted file {file}")
+                logger.warning(f"Could not open to be deleted file: {file}")
                 continue
 
             if not self.image_validation(image):
