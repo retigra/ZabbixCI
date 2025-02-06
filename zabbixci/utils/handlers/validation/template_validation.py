@@ -45,11 +45,11 @@ class TemplateValidationHandler(Handler):
         White/blacklist validation for templates
         """
         if self.enforce_blacklist(template.name):
-            logger.debug(f"Skipping blacklisted template {template.name}")
+            logger.debug(f"Skipping blacklisted template: {template.name}")
             return False
 
         if self.enforce_whitelist(template.name):
-            logger.debug(f"Skipping non whitelisted template {template.name}")
+            logger.debug(f"Skipping non whitelisted template: {template.name}")
             return False
 
         return True

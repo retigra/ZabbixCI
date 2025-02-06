@@ -65,7 +65,7 @@ class ImagemagickHandler:
                 converted_image = cls._convert(image.clone(), size, "png")
                 converted_image.save(filename=f"{destination}/{file_name}")
 
-                logger.info(f"Created {file_name}")
+                logger.info(f"Created: {file_name}")
                 files.append(f"{destination}/{file_name}")
 
         return files

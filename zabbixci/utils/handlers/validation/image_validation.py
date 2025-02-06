@@ -43,11 +43,11 @@ class ImageValidationHandler(Handler):
             return False
 
         if not Settings.SYNC_BACKGROUNDS and image.type == "background":
-            logger.debug(f"Skipping background image {image.name}")
+            logger.debug(f"Skipping background image: {image.name}")
             return False
 
         if not Settings.SYNC_ICONS and image.type == "icon":
-            logger.debug(f"Skipping icon image {image.name}")
+            logger.debug(f"Skipping icon image: {image.name}")
             return False
 
         if self.enforce_whitelist(image.name):

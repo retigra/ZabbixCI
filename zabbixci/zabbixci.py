@@ -87,7 +87,7 @@ class ZabbixCI:
                 self._git.pull(Settings.REMOTE)
             except KeyError:
                 self.logger.info(
-                    f"Remote branch does not exist, using state from branch {Settings.PULL_BRANCH}"
+                    f"Remote branch does not exist, using state from branch: {Settings.PULL_BRANCH}"
                 )
                 # Remote branch does not exist, we pull the default branch and create a new branch
                 self._git.switch_branch(Settings.PULL_BRANCH)
@@ -132,10 +132,10 @@ class ZabbixCI:
                 file = f"{Settings.CACHE_PATH}/{relative_path}"
 
                 if status == FileStatus.WT_DELETED:
-                    self.logger.info(f"Detected deletion of {file}")
+                    self.logger.info(f"Detected deletion of: {file}")
                     continue
 
-                self.logger.info(f"Detected change in {file}")
+                self.logger.info(f"Detected change in: {file}")
 
                 if not file.endswith(".yaml"):
                     # TODO create proper split of images and templates
@@ -146,12 +146,12 @@ class ZabbixCI:
                 if Settings.VENDOR and not template.vendor:
                     set_vendor = Settings.VENDOR
                     template.set_vendor(set_vendor)
-                    self.logger.debug(f"Setting vendor to {set_vendor}")
+                    self.logger.debug(f"Setting vendor to: {set_vendor}")
 
                 if Settings.SET_VERSION:
                     new_version = datetime.now(timezone.utc).strftime("%Y.%m.%d %H:%M")
                     template.set_version(new_version)
-                    self.logger.debug(f"Setting version to {new_version}")
+                    self.logger.debug(f"Setting version to: {new_version}")
 
                 if (template.new_version or template.new_vendor) and (
                     template.vendor and template.version
@@ -160,7 +160,7 @@ class ZabbixCI:
 
                     if not Settings.DRY_RUN:
                         self.logger.debug(
-                            f"Updating template metadata for {template.name}"
+                            f"Updating template metadata for: {template.name}"
                         )
                         self._zabbix.set_template(
                             next(
@@ -243,7 +243,7 @@ class ZabbixCI:
         ]
 
         self.logger.debug(f"Following files have changed on Git: {changed_files}")
-        self.logger.debug(f"Following files are deleted from Git {deleted_files}")
+        self.logger.debug(f"Following files are deleted from Git: {deleted_files}")
 
         diff = self._git.diff()
         Git.print_diff(diff, invert=True)
@@ -266,18 +266,23 @@ class ZabbixCI:
         # Inform user about the changes
         if Settings.DRY_RUN:
             self.logger.info(
-                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Would have imported {len(imported_images)} images and deleted {len(deleted_image_names)} images"
+                "Dry run enabled, no changes will be made to Zabbix.",
+                f"Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates.",
+                f"Would have imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
             )
         else:
             if (
                 len(deleted_template_names) == 0
                 and len(imported_template_ids) == 0
                 and len(imported_images) == 0
+                and len(deleted_image_names) == 0
             ):
                 self.logger.info("No changes detected, Zabbix is up to date")
             else:
                 self.logger.info(
-                    f"Zabbix state has been synchronized, imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images"
+                    "Zabbix state has been synchronized.",
+                    f"Imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates.",
+                    f"Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
                 )
 
         # clean local changes
@@ -309,7 +314,7 @@ class ZabbixCI:
                 self._git.pull(Settings.REMOTE)
             except KeyError:
                 self.logger.info(
-                    f"Remote branch does not exist, using state from branch {Settings.PULL_BRANCH}"
+                    f"Remote branch does not exist, using state from branch: {Settings.PULL_BRANCH}"
                 )
                 # Remote branch does not exist, we pull the default branch and create a new branch
                 self._git.switch_branch(Settings.PULL_BRANCH)

@@ -148,10 +148,14 @@ class Template:
         Vendor needs to be positioned before groups
         to match the Zabbix export format
         """
-        groups_index = list(self._template.keys()).index("groups")
+        keys = list(self._template.keys())
+
+        position_index = (
+            keys.index("description") if "description" in keys else keys.index("name")
+        )
 
         items = list(self._template.items())
-        items.insert(groups_index, ("vendor", {}))
+        items.insert(position_index + 1, ("vendor", {}))
         self._export["templates"][0] = dict(items)
 
     def set_vendor(self, vendor: str):
