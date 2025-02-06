@@ -145,10 +145,11 @@ def read_args():
     )
     zabbixci_group.add_argument(
         "--dry-run",
-        nargs="?",
-        type=str2bool,
-        default=None,
         help="Enable or disable dry run.",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
         explicit=True,
     )
     zabbixci_group.add_argument(
@@ -307,6 +308,7 @@ def read_args():
     zabbixci_advanced_group.add_argument(
         "--ignore-template-version",
         help="Ignore template versions on import, useful for initial import",
+        const=True,
         default=None,
         type=str2bool,
         nargs="?",
