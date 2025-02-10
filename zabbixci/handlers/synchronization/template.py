@@ -4,12 +4,10 @@ from io import StringIO
 
 from ruamel.yaml import YAML
 
+from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
+from zabbixci.services.template import Template
 from zabbixci.settings import Settings
-from zabbixci.utils.handlers.validation.template_validation import (
-    TemplateValidationHandler,
-)
-from zabbixci.utils.services.template import Template
-from zabbixci.utils.zabbix.zabbix import Zabbix
+from zabbixci.zabbix.zabbix import Zabbix
 
 logger = logging.getLogger(__name__)
 yaml = YAML()

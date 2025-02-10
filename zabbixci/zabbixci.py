@@ -7,13 +7,13 @@ from pygit2.enums import FileStatus, ResetMode
 from regex import search
 from ruamel.yaml import YAML
 
+from zabbixci.cache.cleanup import Cleanup
+from zabbixci.git import Git, GitCredentials
+from zabbixci.handlers.synchronization.image import ImageHandler
+from zabbixci.handlers.synchronization.template import TemplateHandler
+from zabbixci.services import Template
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cleanup import Cleanup
-from zabbixci.utils.git import Git, GitCredentials
-from zabbixci.utils.handlers.synchronization.image import ImageHandler
-from zabbixci.utils.handlers.synchronization.template import TemplateHandler
-from zabbixci.utils.services import Template
-from zabbixci.utils.zabbix import Zabbix
+from zabbixci.zabbix import Zabbix
 
 
 class ZabbixCI:

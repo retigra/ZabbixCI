@@ -2,7 +2,7 @@ import logging
 import os
 import os.path
 
-from zabbixci.utils.cache.filesystem import Filesystem
+from zabbixci.cache.filesystem import Filesystem
 
 
 class Cache(Filesystem):
