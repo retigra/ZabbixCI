@@ -68,7 +68,7 @@ The main methods available for ZabbixCI are: `pull`, `push`, and
 - The `push` method will export assets from the Zabbix server and push them
   to the Git repository.
 - The `clearcache` method clears the local github repository, this is needed after
-  changing the git remote or branch used.
+  changing the git remote.
 
 ```bash
 zabbixci --config config.yaml pull
