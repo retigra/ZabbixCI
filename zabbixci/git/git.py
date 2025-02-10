@@ -15,7 +15,7 @@ P = ParamSpec("P")
 
 
 class Git:
-    _repository: pygit2.Repository = None
+    _repository: pygit2.Repository | None = None
     author = pygit2.Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
     _git_cb = None
 
@@ -89,7 +89,7 @@ class Git:
         """
         return self._repository.diff(*args, **kwargs)
 
-    def status(self, *args: P.args, **kwargs: P.kwargs):
+    def status(self, *args: P.args, **kwargs: P.kwargs) -> dict[str, int]:
         """
         Get the status of the repository
         """

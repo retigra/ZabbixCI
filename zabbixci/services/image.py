@@ -10,14 +10,18 @@ logger = logging.getLogger(__name__)
 
 
 class Image:
+    image_id: int | None = None
     image: bytes
     name: str
     type: str
 
-    def __init__(self, base64: str, name: str, type: str = "icon"):
+    def __init__(
+        self, base64: str, name: str, type: str = "icon", image_id: int = None
+    ):
         self.image = b64decode(base64)
         self.name = name
         self.type = type
+        self.image_id = image_id
 
     def __str__(self):
         return f"{self.name} ({self.type})"
@@ -50,6 +54,9 @@ class Image:
             "imagetype": "1" if self.type == "icon" else "2",
         }
 
+    def minify(self):
+        return Image("", self.name, self.type, self.image_id)
+
     @classmethod
     def from_zabbix(cls, image: dict):
         """
@@ -61,6 +68,7 @@ class Image:
             image["image"],
             image["name"],
             "icon" if image["imagetype"] == "1" else "background",
+            image["imageid"],
         )
 
     @classmethod

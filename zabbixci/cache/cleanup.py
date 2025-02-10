@@ -2,8 +2,10 @@ import logging
 import os
 
 from zabbixci.cache.filesystem import Filesystem
+from zabbixci.handlers.validation.iconmap_validation import IconMapValidationHandler
 from zabbixci.handlers.validation.image_validation import ImageValidationHandler
 from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
+from zabbixci.services.icon_map import IconMap
 from zabbixci.services.image import Image
 from zabbixci.services.template import Template
 from zabbixci.settings import Settings
@@ -69,6 +71,31 @@ class Cleanup:
         return True
 
     @classmethod
+    def match_iconmap_cleanup(cls, root: str, name: str):
+        """
+        Check if a file is an iconmap file that should be cleaned up
+        """
+        if not Settings.SYNC_ICONMAPS:
+            return False
+
+        iconmap_handler = IconMapValidationHandler()
+
+        file = os.path.join(root, name)
+
+        if not iconmap_handler.read_validation(file):
+            return False
+
+        iconmap = IconMap.partial_open(file)
+
+        if not iconmap_handler:
+            return False
+
+        if not iconmap_handler.iconmap_validation(iconmap):
+            return False
+
+        return True
+
+    @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:
         """
         Clean all .yaml (template) files from the cache directory
@@ -84,6 +111,7 @@ class Cleanup:
                     full
                     or cls.match_template_cleanup(root, name)
                     or cls.match_image_cleanup(root, name)
+                    or cls.match_iconmap_cleanup(root, name)
                 ):
                     os.remove(os.path.join(root, name))
 

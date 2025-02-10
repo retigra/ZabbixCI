@@ -24,7 +24,7 @@ class ImageHandler(ImageValidationHandler):
     def __init__(self, zabbix: Zabbix):
         self._zabbix = zabbix
 
-    def images_to_cache(self) -> list[str]:
+    def images_to_cache(self) -> list[Image]:
         """
         Export Zabbix images to the cache
         """
@@ -41,6 +41,8 @@ class ImageHandler(ImageValidationHandler):
 
         logger.info(f"Found {len(images)} image(s) in Zabbix")
 
+        image_objects = []
+
         for image in images:
             image_object = Image.from_zabbix(image)
 
@@ -48,8 +50,9 @@ class ImageHandler(ImageValidationHandler):
                 continue
 
             image_object.save()
+            image_objects.append(image_object.minify())
 
-        return images
+        return image_objects
 
     def _generate_images(self, source_type: str) -> list[str]:
         """
@@ -126,7 +129,7 @@ class ImageHandler(ImageValidationHandler):
         return self._generate_images("backgrounds")
 
     def import_file_changes(
-        self, changed_files: list[str], image_objects: list[dict]
+        self, changed_files: list[str], image_objects: list[Image]
     ) -> list[str]:
         """
         Import images into Zabbix based on changed files.
@@ -158,16 +161,16 @@ class ImageHandler(ImageValidationHandler):
         failed_images: list[Image] = []
 
         def __import_image(image: Image):
-            if image.name in [t["name"] for t in image_objects]:
+            if image.name in [t.name for t in image_objects]:
                 logger.info(f"Updating: {image.name}")
 
                 old_image = next(
-                    filter(lambda dt: dt["name"] == image.name, image_objects)
+                    filter(lambda dt: dt.name == image.name, image_objects)
                 )
 
                 return self._zabbix.update_image(
                     {
-                        "imageid": old_image["imageid"],
+                        "imageid": old_image.image_id,
                         "image": image.as_zabbix_dict()["image"],
                     }
                 )
@@ -200,7 +203,7 @@ class ImageHandler(ImageValidationHandler):
         self,
         deleted_files: list[str],
         imported_image_names: list[str],
-        image_objects: list[dict],
+        image_objects: list[Image],
     ):
         """
         Delete images from Zabbix based on deleted files.
@@ -241,15 +244,16 @@ class ImageHandler(ImageValidationHandler):
         if len(deletion_queue):
             image_ids = [
                 # Get image IDs from Zabbix
-                t["imageid"]
+                t.image_id
                 for t in list(
-                    filter(lambda dt: dt["name"] in deletion_queue, image_objects)
+                    filter(lambda dt: dt.name in deletion_queue, image_objects)
                 )
+                if t.image_id
             ]
 
             logger.info(f"Deleting {len(image_ids)} images from Zabbix")
 
-            if len(image_ids):
+            if image_ids:
                 if not Settings.DRY_RUN:
                     self._zabbix.delete_images(image_ids)
 
