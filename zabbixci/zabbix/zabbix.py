@@ -171,5 +171,8 @@ class Zabbix:
     def create_iconmap(self, iconmap: dict):
         return self.zapi.send_sync_request("iconmap.create", iconmap)["result"]
 
+    def delete_iconmaps(self, iconmap_ids: list[int]):
+        return self.zapi.send_sync_request("iconmap.delete", iconmap_ids)["result"]
+
     def get_server_version(self):
         return self.zapi.send_sync_request("apiinfo.version", need_auth=False)["result"]

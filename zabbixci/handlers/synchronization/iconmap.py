@@ -62,7 +62,7 @@ class IconMapHandler(IconMapValidationHandler):
 
         :param changed_files: List of changed files
         :param iconmap_objects: List of iconmap objects from Zabbix, needed for choice between creation or update
-        :param image_objects: List of image objects from Zabbix,
+        :param image_objects: List of image objects from Zabbix, needed to open iconmap exports
 
         :return: List of imported image UUIDs
         """
@@ -133,11 +133,12 @@ class IconMapHandler(IconMapValidationHandler):
         image_objects: list[Image],
     ):
         """
-        Delete images from Zabbix based on deleted files.
+        Delete icon maps from Zabbix based on deleted files.
 
         :param deleted_files: List of deleted files
-        :param imported_image_names: List of imported image names
-        :param image_objects: List of image objects from Zabbix needed for deletion in current Zabbix instance
+        :param imported_iconmap_names: List of imported iconmap names
+        :param iconmap_objects: List of iconmap objects from Zabbix, needed for deletion
+        :param image_objects: List of image objects from Zabbix, needed to open iconmap exports (TODO @Wouter: Not strictly needed for this method as ids are not used, but ideally this would require a wrapping class for IconMap)
 
         :return: List of deleted image names
         """
@@ -146,7 +147,6 @@ class IconMapHandler(IconMapValidationHandler):
         if not Settings.SYNC_ICONS and not Settings.SYNC_BACKGROUNDS:
             return []
 
-        # Check if deleted files are images and if they are imported, if not add to deletion queue
         for file in deleted_files:
             if not self.read_validation(file):
                 continue
@@ -169,20 +169,18 @@ class IconMapHandler(IconMapValidationHandler):
             deletion_queue.append(iconmap.name)
             logger.info(f"Added {iconmap.name} to deletion queue")
 
-        # Delete images in deletion queue
         if len(deletion_queue):
             iconmap_ids = [
-                # Get image IDs from Zabbix
                 t.iconmapid
                 for t in list(
                     filter(lambda dt: dt.name in deletion_queue, iconmap_objects)
                 )
             ]
 
-            logger.info(f"Deleting {len(iconmap_ids)} images from Zabbix")
+            logger.info(f"Deleting {len(iconmap_ids)} iconmap(s) from Zabbix")
 
             if len(iconmap_ids):
                 if not Settings.DRY_RUN:
-                    self._zabbix.delete_images(iconmap_ids)
+                    self._zabbix.delete_iconmaps(iconmap_ids)
 
         return deletion_queue
