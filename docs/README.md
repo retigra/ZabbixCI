@@ -33,7 +33,7 @@ ZabbixCI creates a Git repository following a specific folder structure.
 For templates, Zabbix template groups are used to create folders, and templates are stored 
 as yaml files within these folders. 
 
-For this, the most specific template group matching the parent group variable is used 
+For this, the most parent template group matching the `root_template_group` is used 
 to determine the path of the template. 
 For example, a template in the group `Templates/Operating Systems/Linux` will be
 stored in the folder `Operating Systems/Linux` when `root_template_group` is set
@@ -60,7 +60,7 @@ Use the methods `generate-backgrounds` or `generate-icons` with the option
 
 ### Managing assets
 
-There are three methods available for ZabbixCI: `pull`, `push`, and
+The main methods available for ZabbixCI are: `pull`, `push`, and
 `clearcache`.
 
 - The `pull` method will pull assets from the Git repository and import them
