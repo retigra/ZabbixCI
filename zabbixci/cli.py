@@ -5,11 +5,11 @@ import logging.config
 from sys import argv, version_info
 
 from zabbixci._version import __version__
+from zabbixci.cache.cache import Cache
+from zabbixci.cache.cleanup import Cleanup
 from zabbixci.exceptions import BaseZabbixCIException
 from zabbixci.logging import CustomFormatter
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cache import Cache
-from zabbixci.utils.cache.cleanup import Cleanup
 from zabbixci.zabbixci import ZabbixCI
 
 # Read command line arguments to fill the settings

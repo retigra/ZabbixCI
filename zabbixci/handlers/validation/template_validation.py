@@ -2,10 +2,10 @@ import logging
 
 from ruamel.yaml import YAML
 
+from zabbixci.cache.filesystem import Filesystem
+from zabbixci.handlers.validation import Handler
+from zabbixci.services.template import Template
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.filesystem import Filesystem
-from zabbixci.utils.handlers.validation import Handler
-from zabbixci.utils.services.template import Template
 
 logger = logging.getLogger(__name__)
 yaml = YAML()

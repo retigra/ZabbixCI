@@ -5,8 +5,8 @@ from typing import TextIO
 import regex
 from ruamel.yaml import YAML
 
+from zabbixci.cache import Cache
 from zabbixci.settings import Settings
-from zabbixci.utils.cache import Cache
 
 yaml = YAML()
 

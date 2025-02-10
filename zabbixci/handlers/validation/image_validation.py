@@ -1,9 +1,9 @@
 import logging
 
+from zabbixci.cache.filesystem import Filesystem
+from zabbixci.handlers.validation import Handler
+from zabbixci.services.image import Image
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.filesystem import Filesystem
-from zabbixci.utils.handlers.validation import Handler
-from zabbixci.utils.services.image import Image
 
 logger = logging.getLogger(__name__)
 

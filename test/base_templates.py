@@ -4,9 +4,9 @@ import os
 from os import getenv
 
 from zabbixci import ZabbixCI
+from zabbixci.cache.cache import Cache
+from zabbixci.cache.cleanup import Cleanup
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cache import Cache
-from zabbixci.utils.cache.cleanup import Cleanup
 
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")

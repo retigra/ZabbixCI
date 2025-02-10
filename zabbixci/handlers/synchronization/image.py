@@ -2,12 +2,12 @@ import logging
 
 import regex
 
+from zabbixci.cache.cache import Cache
+from zabbixci.handlers.synchronization.imagemagick import ImagemagickHandler
+from zabbixci.handlers.validation.image_validation import ImageValidationHandler
+from zabbixci.services.image import Image
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cache import Cache
-from zabbixci.utils.handlers.synchronization.imagemagick import ImagemagickHandler
-from zabbixci.utils.handlers.validation.image_validation import ImageValidationHandler
-from zabbixci.utils.services.image import Image
-from zabbixci.utils.zabbix.zabbix import Zabbix
+from zabbixci.zabbix.zabbix import Zabbix
 
 logger = logging.getLogger(__name__)
 

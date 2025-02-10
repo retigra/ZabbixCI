@@ -5,9 +5,9 @@ from typing import ParamSpec
 import pygit2
 from pygit2.enums import MergeAnalysis
 
+from zabbixci.cache.cache import Cache
+from zabbixci.git.credentials import RemoteCallbacksSecured
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cache import Cache
-from zabbixci.utils.git.credentials import RemoteCallbacksSecured
 
 logger = logging.getLogger(__name__)
 

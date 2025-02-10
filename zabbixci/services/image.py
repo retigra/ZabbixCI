@@ -3,8 +3,8 @@ from base64 import b64decode, b64encode
 
 import regex
 
+from zabbixci.cache.cache import Cache
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cache import Cache
 
 logger = logging.getLogger(__name__)
 

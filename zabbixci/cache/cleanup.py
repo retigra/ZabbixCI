@@ -1,14 +1,12 @@
 import logging
 import os
 
+from zabbixci.cache.filesystem import Filesystem
+from zabbixci.handlers.validation.image_validation import ImageValidationHandler
+from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
+from zabbixci.services.image import Image
+from zabbixci.services.template import Template
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.filesystem import Filesystem
-from zabbixci.utils.handlers.validation.image_validation import ImageValidationHandler
-from zabbixci.utils.handlers.validation.template_validation import (
-    TemplateValidationHandler,
-)
-from zabbixci.utils.services.image import Image
-from zabbixci.utils.services.template import Template
 
 logger = logging.getLogger(__name__)
 
