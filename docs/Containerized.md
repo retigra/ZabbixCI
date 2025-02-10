@@ -27,7 +27,8 @@ docker run --rm -e GIT_USERNAME=username -e GIT_PASSWORD=access_token -e REMOTE=
 
 The `--rm` flag removes the container after it has finished running. The `-v`
 flag mounts the current directory to the `/zabbixci` directory in the container.
-The `--config` flag specifies the configuration file to use. The `pull` command
+The `--config` flag specifies the configuration file to use. 
+The `pull` command specifies the zabbixci method to execute, see `--help` for more info on the available methods.
 
 ## Configuration
 
@@ -42,5 +43,5 @@ The cache directory is used as a local copy of the git repository. In a
 containerized environment, the cache directory is stored in the `/app/cache`
 directory. Without persistent storage, the application could take longer to run,
 caused by the need to clone the repository each time the container is started.
-However, however this can mitigate some possible conflicts within the cache
+However, this can mitigate some possible conflicts within the cache
 directory and is therefore recommended.

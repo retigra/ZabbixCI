@@ -29,24 +29,45 @@ found through `zabbixci --help`.
 
 ### Repository structure
 
-ZabbixCI creates a Git repository following a specific folder structure. Zabbix
-template groups are used to create folders, and templates are stored as JSON
-files within these folders. For this, the most specific template group matching
-the parent group variable is used to determine the path of the template. For
-example, a template in the group `Templates/Operating Systems/Linux` will be
+ZabbixCI creates a Git repository following a specific folder structure. 
+For templates, Zabbix template groups are used to create folders, and templates are stored 
+as yaml files within these folders. 
+
+For this, the most parent template group matching the `root_template_group` is used 
+to determine the path of the template. 
+For example, a template in the group `Templates/Operating Systems/Linux` will be
 stored in the folder `Operating Systems/Linux` when `root_template_group` is set
 to `Templates`.
 
-### Managing templates
+Images within Git are located in the folder set by `image_prefix_path`, which is `images` by default.
+This folder can contain the following folder structure:
 
-There are three methods available for ZabbixCI: `pull`, `push`, and
+```bash
+images/
+├── backgrounds
+├── icons
+├── source-backgrounds
+└── source-icons
+```
+
+`backgrounds` and `icons` will contain the synced images of those types.
+The `source-backgrounds` and `source-icons` can be filled with image sources that 
+can be used to autogenerate Zabbix images in the desired sizes. 
+
+Use the methods `generate-backgrounds` or `generate-icons` with the option 
+`--background-sizes` or `--icon-sizes` respectively to populate the 
+`backgrounds` and `icons` folders with the desired files to sync. 
+
+### Managing assets
+
+The main methods available for ZabbixCI are: `pull`, `push`, and
 `clearcache`.
 
-- The `pull` method will pull templates from the Git repository and import them
-  to the Zabbix server.
-- The `push` method will export templates from the Zabbix server and push them
+- The `pull` method will pull assets from the Git repository and import them
+  into the Zabbix server.
+- The `push` method will export assets from the Zabbix server and push them
   to the Git repository.
-- The `clearcache` method clears the local github repository, needed after
+- The `clearcache` method clears the local github repository, this is needed after
   changing the git remote.
 
 ```bash
@@ -57,7 +78,7 @@ zabbixci --config config.yaml push
 zabbixci clearcache
 ```
 
-By default, ZabbixCI outputs warnings and errors. To see debug information, use
+By default, ZabbixCI outputs warnings and errors. To see more information, use
 the `-v` for a info level or `-vv` for a debug level. `-vvv` is also available
 which puts all underlying API calls and Python modules in debug mode.
 
@@ -68,7 +89,7 @@ ZabbixCI. (Example: the official Zabbix templates repository)
 
 ZabbixCI can also be used to import an unstructured github repository containing
 templates to a Zabbix server. The foreign repository should contain Zabbix
-exports in yaml format, when this repository is used as a source for the `pull`
+exports in _yaml_ format, when this repository is used as a source for the `pull`
 method, ZabbixCI will import the templates to the Zabbix server. After which,
 the `push` command should be used to generate the preferred repo structure in a
 new repository. The `clearcache` method should be used after changing the

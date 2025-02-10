@@ -15,7 +15,7 @@
 
 ZabbixCI is a tool that adds continuous integration to Zabbix, allowing you to
 synchronize Zabbix assets with a Git repository. By using the Zabbix API,
-ZabbixCI can create, update, and delete templates across multiple Zabbix
+ZabbixCI can create, update, and delete assets across multiple Zabbix
 servers.
 
 > [!NOTE]
@@ -25,22 +25,32 @@ servers.
 
 ZabbixCI provides the following features:
 
-* Easily installable through pip or docker, depending on your need
-* Export templates from Zabbix and push them to Git
-* Pull templates from Git and import them in Zabbix
-* Only changed or new templates will be processed during Git push or Zabbix import actions
-* Removes deleted templates automatically (unless black- or whitelisting is used)
-* Fully configurable through cli arguments, config file or environment variables
+* Easily installable through pip or run it as a container image
+* Fully configurable through cli arguments, config file and/or environment variables
 * Supports HTTP(S) and SSH auth for Git
+* Export assets from Zabbix and push them to Git
+* Pull assets from Git and import them in Zabbix
+* Only changed or new assets will be processed during Git push or Zabbix import actions
+* Removes deleted assets automatically (unless black- or whitelisting is used)
+* Use dry-run to verify behavior without changes to Zabbix or Git
 * Build with parallelization in mind to speed up the process (can be scaled for your needs)
-* Built-in version compatibility checking
-* Use dry runs to verify behavior without changes to Zabbix or Git
 * (Optional) Support for private CA servers to verify certificates
-* (Optional) Allow black-/whitelisting of templates
+* (Optional) Allow black-/whitelisting of assets (supports regexp)
 * (Optional) Use separate branches for push and pull transactions
-* (Optional) Allow automatic versioning of exported templates based on timestamps
-* (Optional) Automatically populate vendor field in templates
 
+### Additional template features
+
+* Sync your templates with Git
+* Built-in Zabbix version compatibility checking 
+* (Optional) Automatically populate empty vendor field with your own string
+* (Optional) Allow automatic versioning of exported templates based on timestamps
+
+### Additional image (icons and backgrounds) features
+
+* Sync your map images with Git
+* (Coming soon) Sync your icon-maps with Git 
+* Dynamically generate icons and backgrounds in predefined sizes
+* Use `.png` or `.svg` files as sources for image generation
 
 ## Installation
 
