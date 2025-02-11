@@ -8,8 +8,8 @@ from zabbixci.cache.filesystem import Filesystem
 
 class Cache(Filesystem):
     _logger = None
-    _instance: Self
-    _cache_dir: str
+    _instance: Self = None
+    _cache_dir: str = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:

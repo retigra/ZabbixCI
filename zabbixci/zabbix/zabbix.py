@@ -2,7 +2,7 @@ from ssl import SSLContext
 
 import aiohttp
 from ruamel.yaml import YAML
-from zabbix_utils import AsyncZabbixAPI
+from zabbix_utils import AsyncZabbixAPI  # type: ignore
 
 from zabbixci.assets import Template
 
@@ -15,12 +15,13 @@ class Zabbix:
 
     def __init__(self, *args, **kwargs):
         if "ssl_context" in kwargs:
-            if kwargs["ssl_context"] and isinstance(kwargs["ssl_context"], SSLContext):
+            if kwargs["ssl_context"]:
+                if not isinstance(kwargs["ssl_context"], SSLContext):
+                    raise ValueError("ssl_context must be an instance of SSLContext")
+
                 self._client_session = aiohttp.ClientSession(
                     connector=aiohttp.TCPConnector(ssl=kwargs["ssl_context"])
                 )
-            else:
-                raise ValueError("ssl_context must be an SSLContext object")
 
             del kwargs["ssl_context"]
 
@@ -146,9 +147,9 @@ class Zabbix:
     def delete_images(self, image_ids: list[int]):
         return self.zapi.send_sync_request("image.delete", image_ids)["result"]
 
-    def get_iconmaps(self, search: list[str] | None = None):
+    def get_icon_maps(self, search: list[str] | None = None):
         """
-        Export iconmaps from Zabbix
+        Export icon_maps from Zabbix
         """
         if not search:
             return self.zapi.send_sync_request(
@@ -164,14 +165,14 @@ class Zabbix:
                 },
             )["result"]
 
-    def update_iconmap(self, iconmap: dict):
-        return self.zapi.send_sync_request("iconmap.update", iconmap)["result"]
+    def update_icon_map(self, icon_map: dict):
+        return self.zapi.send_sync_request("iconmap.update", icon_map)["result"]
 
-    def create_iconmap(self, iconmap: dict):
-        return self.zapi.send_sync_request("iconmap.create", iconmap)["result"]
+    def create_icon_map(self, icon_map: dict):
+        return self.zapi.send_sync_request("iconmap.create", icon_map)["result"]
 
-    def delete_iconmaps(self, iconmap_ids: list[int]):
-        return self.zapi.send_sync_request("iconmap.delete", iconmap_ids)["result"]
+    def delete_icon_maps(self, icon_map_ids: list[int]):
+        return self.zapi.send_sync_request("iconmap.delete", icon_map_ids)["result"]
 
     def get_server_version(self):
         return self.zapi.send_sync_request("apiinfo.version", need_auth=False)["result"]

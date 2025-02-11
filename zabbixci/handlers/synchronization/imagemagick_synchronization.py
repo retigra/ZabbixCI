@@ -46,7 +46,7 @@ class ImagemagickHandler:
 
         :param image_path: Path to the image
         """
-        from wand.image import Image  # Import here to avoid dependency issues
+        from wand.image import Image  # type: ignore
 
         files: list[str] = []
 

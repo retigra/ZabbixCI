@@ -49,11 +49,11 @@ class Template(Asset):
         return [template["uuid"] for template in self._export["templates"]]
 
     @property
-    def primary_group(self):
+    def primary_group(self) -> str:
         """
         The most specific group of the template, the lowest child in the hierarchy
         """
-        selected_group = self._template["groups"][0]["name"]
+        selected_group: str = self._template["groups"][0]["name"]
         selected_length = 0
 
         # Most specific group is based on the group with the most slashes,

@@ -22,7 +22,7 @@ class Settings:
     PUSH_BRANCH: str = "main"
     TEMPLATE_PREFIX_PATH: str = "templates"
     IMAGE_PREFIX_PATH: str = "images"
-    ICON_MAP_PREFIX_PATH: str = "iconmaps"
+    ICON_MAP_PREFIX_PATH: str = "icon-maps"
     TEMPLATE_WHITELIST: str = ""
     TEMPLATE_BLACKLIST: str = ""
     CACHE_PATH: str = "./cache"
@@ -41,14 +41,14 @@ class Settings:
     SYNC_ICONS: bool = False
     SYNC_BACKGROUNDS: bool = False
     SYNC_TEMPLATES: bool = True
-    SYNC_ICONMAPS: bool = False
+    SYNC_ICON_MAPS: bool = False
     IMAGE_WHITELIST: str = ""
     IMAGE_BLACKLIST: str = ""
     ICON_SIZES: str = "24,48,64,128"
     BACKGROUND_SIZES: str = "480,720,1080"
     REGEX_MATCHING: bool = False
-    ICONMAP_WHITELIST: str = ""
-    ICONMAP_BLACKLIST: str = ""
+    ICON_MAP_WHITELIST: str = ""
+    ICON_MAP_BLACKLIST: str = ""
 
     @classmethod
     def get_template_whitelist(cls):
@@ -67,12 +67,12 @@ class Settings:
         return cls.IMAGE_BLACKLIST.split(",") if cls.IMAGE_BLACKLIST else []
 
     @classmethod
-    def get_iconmap_whitelist(cls):
-        return cls.ICONMAP_WHITELIST.split(",") if cls.ICONMAP_WHITELIST else []
+    def get_icon_map_whitelist(cls):
+        return cls.ICON_MAP_WHITELIST.split(",") if cls.ICON_MAP_WHITELIST else []
 
     @classmethod
-    def get_iconmap_blacklist(cls):
-        return cls.ICONMAP_BLACKLIST.split(",") if cls.ICONMAP_BLACKLIST else []
+    def get_icon_map_blacklist(cls):
+        return cls.ICON_MAP_BLACKLIST.split(",") if cls.ICON_MAP_BLACKLIST else []
 
     @classmethod
     def get_ICON_SIZES(cls):

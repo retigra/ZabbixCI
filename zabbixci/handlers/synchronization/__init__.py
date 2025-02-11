@@ -1,4 +1,4 @@
-from .iconmap_synchronization import IconMapValidationHandler
+from .icon_map_synchronization import IconMapValidationHandler
 from .image_synchronization import Image
 from .imagemagick_synchronization import ImagemagickHandler
 from .template_synchronization import Template

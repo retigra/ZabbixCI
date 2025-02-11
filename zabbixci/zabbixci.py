@@ -10,7 +10,7 @@ from ruamel.yaml import YAML
 from zabbixci.assets import Template
 from zabbixci.cache.cleanup import Cleanup
 from zabbixci.git import Git, GitCredentials
-from zabbixci.handlers.synchronization.iconmap_synchronization import IconMapHandler
+from zabbixci.handlers.synchronization.icon_map_synchronization import IconMapHandler
 from zabbixci.handlers.synchronization.image_synchronization import ImageHandler
 from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
 from zabbixci.settings import Settings
@@ -110,11 +110,11 @@ class ZabbixCI:
 
         template_handler = TemplateHandler(self._zabbix)
         image_handler = ImageHandler(self._zabbix)
-        iconmap_handler = IconMapHandler(self._zabbix)
+        icon_map_handler = IconMapHandler(self._zabbix)
 
         template_objects = await template_handler.templates_to_cache()
         image_objects = image_handler.images_to_cache()
-        iconmap_handler.icon_map_to_cache(image_objects)
+        icon_map_handler.icon_map_to_cache(image_objects)
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -240,11 +240,11 @@ class ZabbixCI:
 
         template_handler = TemplateHandler(self._zabbix)
         image_handler = ImageHandler(self._zabbix)
-        iconmap_handler = IconMapHandler(self._zabbix)
+        icon_map_handler = IconMapHandler(self._zabbix)
 
         template_objects = await template_handler.templates_to_cache()
         image_objects = image_handler.images_to_cache()
-        iconmap_objects = iconmap_handler.icon_map_to_cache(image_objects)
+        icon_map_objects = icon_map_handler.icon_map_to_cache(image_objects)
 
         # Check if there are any changes to commit
         if self._git.has_changes:
@@ -279,11 +279,11 @@ class ZabbixCI:
             deleted_files, imported_template_ids, template_objects
         )
 
-        imported_iconmaps = iconmap_handler.import_file_changes(
-            changed_files, iconmap_objects, image_objects
+        imported_icon_maps = icon_map_handler.import_file_changes(
+            changed_files, icon_map_objects, image_objects
         )
-        deleted_iconmap_names = iconmap_handler.delete_file_changes(
-            deleted_files, imported_iconmaps, iconmap_objects, image_objects
+        deleted_icon_map_names = icon_map_handler.delete_file_changes(
+            deleted_files, imported_icon_maps, icon_map_objects, image_objects
         )
 
         imported_images = image_handler.import_file_changes(
@@ -296,7 +296,7 @@ class ZabbixCI:
         # Inform user about the changes
         if Settings.DRY_RUN:
             self.logger.info(
-                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Would have imported {len(imported_images)} images and deleted {len(deleted_image_names)} images. Would have imported {len(imported_iconmaps)} iconmaps and deleted {len(deleted_iconmap_names)} iconmaps."
+                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Would have imported {len(imported_images)} images and deleted {len(deleted_image_names)} images. Would have imported {len(imported_icon_maps)} icon maps and deleted {len(deleted_icon_map_names)} icon maps."
             )
         else:
             if (
@@ -304,12 +304,12 @@ class ZabbixCI:
                 and len(imported_template_ids) == 0
                 and len(imported_images) == 0
                 and len(deleted_image_names) == 0
-                and len(imported_iconmaps) == 0
+                and len(imported_icon_maps) == 0
             ):
                 self.logger.info("No changes detected, Zabbix is up to date")
             else:
                 self.logger.info(
-                    f"Zabbix state has been synchronized. Imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images. Imported {len(imported_iconmaps)} iconmaps and deleted {len(deleted_iconmap_names)} iconmaps."
+                    f"Zabbix state has been synchronized. Imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images. Imported {len(imported_icon_maps)} icon maps and deleted {len(deleted_icon_map_names)} icon maps."
                 )
 
         # clean local changes

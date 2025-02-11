@@ -5,7 +5,7 @@ from zabbixci.assets.icon_map import IconMap
 from zabbixci.assets.image import Image
 from zabbixci.assets.template import Template
 from zabbixci.cache.filesystem import Filesystem
-from zabbixci.handlers.validation.iconmap_validation import IconMapValidationHandler
+from zabbixci.handlers.validation.icon_map_validation import IconMapValidationHandler
 from zabbixci.handlers.validation.image_validation import ImageValidationHandler
 from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
 from zabbixci.settings import Settings
@@ -71,26 +71,26 @@ class Cleanup:
         return True
 
     @classmethod
-    def match_iconmap_cleanup(cls, root: str, name: str):
+    def match_icon_map_cleanup(cls, root: str, name: str):
         """
-        Check if a file is an iconmap file that should be cleaned up
+        Check if a file is an icon_map file that should be cleaned up
         """
-        if not Settings.SYNC_ICONMAPS:
+        if not Settings.SYNC_ICON_MAPS:
             return False
 
-        iconmap_handler = IconMapValidationHandler()
+        icon_map_handler = IconMapValidationHandler()
 
         file = os.path.join(root, name)
 
-        if not iconmap_handler.read_validation(file):
+        if not icon_map_handler.read_validation(file):
             return False
 
-        iconmap = IconMap.partial_open(file)
+        icon_map = IconMap.partial_open(file)
 
-        if not iconmap_handler:
+        if not icon_map_handler:
             return False
 
-        if not iconmap_handler.object_validation(iconmap):
+        if not icon_map_handler.object_validation(icon_map):
             return False
 
         return True
@@ -111,7 +111,7 @@ class Cleanup:
                     full
                     or cls.match_template_cleanup(root, name)
                     or cls.match_image_cleanup(root, name)
-                    or cls.match_iconmap_cleanup(root, name)
+                    or cls.match_icon_map_cleanup(root, name)
                 ):
                     os.remove(os.path.join(root, name))
 

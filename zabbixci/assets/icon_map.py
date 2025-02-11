@@ -14,35 +14,35 @@ yaml = YAML()
 
 class IconMapping:
     # Standard Zabbix dict items
-    iconmappingid: int
-    iconmapid: int
+    icon_mappingid: int
+    icon_mapid: int
     iconid: int
     inventory_link: int
     expression: str
     sortorder: int
 
     # Additional items for export
-    iconmap_name: str
+    icon_map_name: str
     icon_name: str
 
     def __init__(
         self,
-        iconmappingid: int,
-        iconmapid: int,
+        icon_mappingid: int,
+        icon_mapid: int,
         iconid: int,
         inventory_link: int,
         expression: str,
         sortorder: int,
-        iconmap_name: str = "",
+        icon_map_name: str = "",
         icon_name: str = "",
     ):
-        self.iconmappingid = int(iconmappingid)
-        self.iconmapid = int(iconmapid)
+        self.icon_mappingid = int(icon_mappingid)
+        self.icon_mapid = int(icon_mapid)
         self.iconid = int(iconid)
         self.inventory_link = int(inventory_link)
         self.expression = expression
         self.sortorder = int(sortorder)
-        self.iconmap_name = iconmap_name
+        self.icon_map_name = icon_map_name
         self.icon_name = icon_name
 
     @property
@@ -50,16 +50,16 @@ class IconMapping:
         """
         Return a dictionary representation of the IconMapping object, independent Zabbix instance.
         """
-        if not self.iconmap_name or not self.icon_name:
+        if not self.icon_map_name or not self.icon_name:
             raise ValueError(
-                "IconMapping must be exported with iconmap_name and icon_name"
+                "IconMapping must be exported with icon_map_name and icon_name"
             )
 
         return {
             "inventory_link": self.inventory_link,
             "expression": self.expression,
             "sortorder": self.sortorder,
-            "iconmap_name": self.iconmap_name,
+            "iconmap_name": self.icon_map_name,
             "icon_name": self.icon_name,
         }
 
@@ -98,7 +98,7 @@ class IconMapping:
 
 
 class IconMap(Asset):
-    iconmapid: int
+    icon_mapid: int
     name: str
     default_iconid: int
     default_icon_name: str
@@ -106,13 +106,13 @@ class IconMap(Asset):
 
     def __init__(
         self,
-        iconmapid: int,
+        icon_mapid: int,
         name: str,
         default_iconid: int,
         default_icon_name: str,
         mappings: list[IconMapping],
     ):
-        self.iconmapid = iconmapid
+        self.icon_mapid = icon_mapid
         self.name = name
         self.default_iconid = default_iconid
         self.default_icon_name = default_icon_name

@@ -10,18 +10,18 @@ logger = logging.getLogger(__name__)
 
 class IconMapValidationHandler(Handler):
     """
-    Handler for importing iconmaps into Zabbix based on changed files. Includes validation steps based on settings.
+    Handler for importing icon maps into Zabbix based on changed files. Includes validation steps based on settings.
     """
 
     def get_whitelist(self):
-        return Settings.get_iconmap_whitelist()
+        return Settings.get_icon_map_whitelist()
 
     def get_blacklist(self):
-        return Settings.get_iconmap_blacklist()
+        return Settings.get_icon_map_blacklist()
 
     def read_validation(self, changed_file: str) -> bool:
         """
-        Validation steps to perform on a changed file before it is processed as a iconmap.
+        Validation steps to perform on a changed file before it is processed as a icon_map.
         """
         if not changed_file.endswith(".yaml"):
             return False

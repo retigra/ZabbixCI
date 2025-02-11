@@ -1,4 +1,4 @@
-from .iconmap_validation import IconMapValidationHandler
+from .icon_map_validation import IconMapValidationHandler
 from .image_validation import ImageValidationHandler
 from .template_validation import TemplateValidationHandler
 from .validation_handler import Handler
