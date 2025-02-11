@@ -291,7 +291,7 @@ class ZabbixCI:
             changed_files, icon_map_objects, image_objects
         )
         deleted_icon_map_names = icon_map_handler.delete_file_changes(
-            deleted_files, imported_icon_maps, icon_map_objects, image_objects
+            deleted_files, imported_icon_maps, icon_map_objects
         )
 
         deleted_image_names = image_handler.delete_file_changes(
@@ -301,7 +301,10 @@ class ZabbixCI:
         # Inform user about the changes
         if Settings.DRY_RUN:
             self.logger.info(
-                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Would have imported {len(imported_images)} images and deleted {len(deleted_image_names)} images. Would have imported {len(imported_icon_maps)} icon maps and deleted {len(deleted_icon_map_names)} icon maps."
+                "Dry run enabled, no changes will be made to Zabbix. "
+                f"Would have imported {len(imported_template_ids)} templates, deleted {len(deleted_template_names)} templates. "
+                f"Would have imported {len(imported_images)} images, deleted {len(deleted_image_names)} images. "
+                f"Would have imported {len(imported_icon_maps)} icon maps, deleted {len(deleted_icon_map_names)} icon maps."
             )
         else:
             if (
@@ -314,7 +317,10 @@ class ZabbixCI:
                 self.logger.info("No changes detected, Zabbix is up to date")
             else:
                 self.logger.info(
-                    f"Zabbix state has been synchronized. Imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images. Imported {len(imported_icon_maps)} icon maps and deleted {len(deleted_icon_map_names)} icon maps."
+                    "Zabbix state has been synchronized. "
+                    f"Imported {len(imported_template_ids)} templates, deleted {len(deleted_template_names)} templates. "
+                    f"Imported {len(imported_images)} images, deleted {len(deleted_image_names)} images. "
+                    f"Imported {len(imported_icon_maps)} icon maps, deleted {len(deleted_icon_map_names)} icon maps."
                 )
 
         # clean local changes
