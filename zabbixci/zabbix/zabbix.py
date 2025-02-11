@@ -1,27 +1,26 @@
-from typing import ParamSpec
+from ssl import SSLContext
 
 import aiohttp
 from ruamel.yaml import YAML
 from zabbix_utils import AsyncZabbixAPI
 
-from zabbixci.services import Template
+from zabbixci.assets import Template
 
 yaml = YAML()
-
-P = ParamSpec("P")
 
 
 class Zabbix:
     zapi: AsyncZabbixAPI
     _client_session = None
 
-    def __init__(self, *args: P.args, **kwargs: P.kwargs):
-
+    def __init__(self, *args, **kwargs):
         if "ssl_context" in kwargs:
-            if kwargs["ssl_context"]:
+            if kwargs["ssl_context"] and isinstance(kwargs["ssl_context"], SSLContext):
                 self._client_session = aiohttp.ClientSession(
                     connector=aiohttp.TCPConnector(ssl=kwargs["ssl_context"])
                 )
+            else:
+                raise ValueError("ssl_context must be an SSLContext object")
 
             del kwargs["ssl_context"]
 

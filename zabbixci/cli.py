@@ -39,7 +39,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
     Customized ArgumentParser with supporting code to calculate the explicit arguments, and parse them for boolean values when they are set explicitly (key=value)
     """
 
-    explicit_arguments = []
+    explicit_arguments: list[str] = []
 
     def parse_args(self, args=None, namespace=None):
         """

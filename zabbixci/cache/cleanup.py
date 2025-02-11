@@ -1,13 +1,13 @@
 import logging
 import os
 
+from zabbixci.assets.icon_map import IconMap
+from zabbixci.assets.image import Image
+from zabbixci.assets.template import Template
 from zabbixci.cache.filesystem import Filesystem
 from zabbixci.handlers.validation.iconmap_validation import IconMapValidationHandler
 from zabbixci.handlers.validation.image_validation import ImageValidationHandler
 from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
-from zabbixci.services.icon_map import IconMap
-from zabbixci.services.image import Image
-from zabbixci.services.template import Template
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class Cleanup:
             logger.warning(f"Could not open file {file} as a template")
             return False
 
-        if not template_handler.template_validation(template):
+        if not template_handler.object_validation(template):
             return False
 
         return True
@@ -65,7 +65,7 @@ class Cleanup:
         if not image:
             return False
 
-        if not image_handler.image_validation(image):
+        if not image_handler.object_validation(image):
             return False
 
         return True
@@ -90,7 +90,7 @@ class Cleanup:
         if not iconmap_handler:
             return False
 
-        if not iconmap_handler.iconmap_validation(iconmap):
+        if not iconmap_handler.object_validation(iconmap):
             return False
 
         return True

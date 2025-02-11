@@ -1,9 +1,10 @@
 import logging
 import os
-from typing import ParamSpec
 
 import pygit2
+from pygit2 import Diff  # Add this import
 from pygit2.enums import MergeAnalysis
+from pygit2.repository import Repository
 
 from zabbixci.cache.cache import Cache
 from zabbixci.git.credentials import RemoteCallbacksSecured
@@ -11,11 +12,9 @@ from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
 
-P = ParamSpec("P")
-
 
 class Git:
-    _repository: pygit2.Repository | None = None
+    _repository: Repository
     author = pygit2.Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
     _git_cb = None
 
@@ -34,7 +33,7 @@ class Git:
                 callbacks=self._git_cb,
             )
         else:
-            self._repository = pygit2.Repository(path)
+            self._repository = Repository(path)
 
     @property
     def has_changes(self):
@@ -83,13 +82,13 @@ class Git:
         """
         return self._repository.head.target
 
-    def diff(self, *args: P.args, **kwargs: P.kwargs):
+    def diff(self, *args, **kwargs) -> Diff:
         """
         Get the diff of the repository
         """
         return self._repository.diff(*args, **kwargs)
 
-    def status(self, *args: P.args, **kwargs: P.kwargs) -> dict[str, int]:
+    def status(self, *args, **kwargs) -> dict[str, int]:
         """
         Get the status of the repository
         """
@@ -114,7 +113,9 @@ class Git:
         Create a branch
         """
         try:
-            self._repository.branches.local.create(branch, self._repository.head.peel())
+            self._repository.branches.local.create(
+                branch, self._repository.head.peel(None)
+            )
         except Exception as e:
             logger.error(f"Failed to create branch: {e}")
 
@@ -126,7 +127,7 @@ class Git:
         index.add_all()
         index.write()
 
-    def reset(self, *args: P.args, **kwargs: P.kwargs):
+    def reset(self, *args, **kwargs):
         """
         Reset the repository
         """
@@ -182,7 +183,7 @@ class Git:
         for file in changes:
             os.remove(f"{self._repository.workdir}/{file}")
 
-    def push(self, remote_url: str, branch: str = None):
+    def push(self, remote_url: str, branch: str | None = None):
         """
         Push the changes to the remote repository
         """
@@ -209,7 +210,7 @@ class Git:
         remote.push(specs, callbacks=self._git_cb)
         self._mark_agent_active()
 
-    def pull(self, remote_url: str, branch: str = None):
+    def pull(self, remote_url: str, branch: str | None = None):
         """
         Pull the changes from the remote repository, merge them with the local repository
         """

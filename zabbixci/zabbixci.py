@@ -7,12 +7,12 @@ from pygit2.enums import FileStatus, ResetMode
 from regex import search
 from ruamel.yaml import YAML
 
+from zabbixci.assets import Template
 from zabbixci.cache.cleanup import Cleanup
 from zabbixci.git import Git, GitCredentials
-from zabbixci.handlers.synchronization.iconmap import IconMapHandler
-from zabbixci.handlers.synchronization.image import ImageHandler
-from zabbixci.handlers.synchronization.template import TemplateHandler
-from zabbixci.services import Template
+from zabbixci.handlers.synchronization.iconmap_synchronization import IconMapHandler
+from zabbixci.handlers.synchronization.image_synchronization import ImageHandler
+from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
 from zabbixci.settings import Settings
 from zabbixci.zabbix import Zabbix
 
