@@ -3,20 +3,21 @@ from base64 import b64decode, b64encode
 
 import regex
 
+from zabbixci.assets.asset import Asset
 from zabbixci.cache.cache import Cache
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
 
 
-class Image:
+class Image(Asset):
     image_id: int | None = None
     image: bytes
     name: str
     type: str
 
     def __init__(
-        self, base64: str, name: str, type: str = "icon", image_id: int = None
+        self, base64: str, name: str, type: str = "icon", image_id: int | None = None
     ):
         self.image = b64decode(base64)
         self.name = name

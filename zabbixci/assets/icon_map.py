@@ -3,8 +3,9 @@ from typing import TextIO
 
 from ruamel.yaml import YAML
 
+from zabbixci.assets.asset import Asset
+from zabbixci.assets.image import Image
 from zabbixci.cache.cache import Cache
-from zabbixci.services.image import Image
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -96,7 +97,7 @@ class IconMapping:
         )
 
 
-class IconMap:
+class IconMap(Asset):
     iconmapid: int
     name: str
     default_iconid: int

@@ -5,6 +5,7 @@ from typing import TextIO
 import regex
 from ruamel.yaml import YAML
 
+from zabbixci.assets.asset import Asset
 from zabbixci.cache import Cache
 from zabbixci.settings import Settings
 
@@ -13,13 +14,13 @@ yaml = YAML()
 logger = logging.getLogger(__name__)
 
 
-class Template:
+class Template(Asset):
     """
     A Python representation of a Zabbix template
     """
 
     _export: dict
-    _level: int = None
+    _level: int | None = None
 
     new_version = False
     new_vendor = False
