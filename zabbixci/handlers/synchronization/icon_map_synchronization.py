@@ -96,7 +96,7 @@ class IconMapHandler(IconMapValidationHandler):
 
                 return self._zabbix.update_icon_map(
                     {
-                        "icon_mapid": old_icon_map.icon_mapid,
+                        "iconmapid": old_icon_map.icon_mapid,
                         **icon_map.zabbix_dict,
                     }
                 )
