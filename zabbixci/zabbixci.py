@@ -279,6 +279,14 @@ class ZabbixCI:
             deleted_files, imported_template_ids, template_objects
         )
 
+        imported_images = image_handler.import_file_changes(
+            changed_files, image_objects
+        )
+
+        if len(imported_images) > 0:
+            # Update available image objects (only needed for Zabbix image id's)
+            image_objects = image_handler.images_to_cache()
+
         imported_icon_maps = icon_map_handler.import_file_changes(
             changed_files, icon_map_objects, image_objects
         )
@@ -286,9 +294,6 @@ class ZabbixCI:
             deleted_files, imported_icon_maps, icon_map_objects, image_objects
         )
 
-        imported_images = image_handler.import_file_changes(
-            changed_files, image_objects
-        )
         deleted_image_names = image_handler.delete_file_changes(
             deleted_files, imported_images, image_objects
         )
