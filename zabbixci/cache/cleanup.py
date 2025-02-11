@@ -4,7 +4,6 @@ import os
 from zabbixci.assets.icon_map import IconMap
 from zabbixci.assets.image import Image
 from zabbixci.assets.template import Template
-from zabbixci.cache.filesystem import Filesystem
 from zabbixci.handlers.validation.icon_map_validation import IconMapValidationHandler
 from zabbixci.handlers.validation.image_validation import ImageValidationHandler
 from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
@@ -19,16 +18,7 @@ class Cleanup:
         if not Settings.SYNC_TEMPLATES:
             return False
 
-        is_template = name.endswith(".yaml") and Filesystem.is_within(
-            root, f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}"
-        )
-
-        if not is_template:
-            return False
-
-        # Check if the template is in the whitelist
         template_handler = TemplateValidationHandler()
-
         file = os.path.join(root, name)
 
         if not template_handler.read_validation(file):

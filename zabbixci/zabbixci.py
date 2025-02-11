@@ -151,7 +151,6 @@ class ZabbixCI:
                 self.logger.info(f"Detected change in: {file}")
 
                 if not template_handler.read_validation(file):
-                    # TODO create proper split of images and templates
                     continue
 
                 template = Template.open(file)
