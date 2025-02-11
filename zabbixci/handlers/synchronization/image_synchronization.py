@@ -2,10 +2,12 @@ import logging
 
 import regex
 
+from zabbixci.assets.image import Image
 from zabbixci.cache.cache import Cache
-from zabbixci.handlers.synchronization.imagemagick import ImagemagickHandler
+from zabbixci.handlers.synchronization.imagemagick_synchronization import (
+    ImagemagickHandler,
+)
 from zabbixci.handlers.validation.image_validation import ImageValidationHandler
-from zabbixci.services.image import Image
 from zabbixci.settings import Settings
 from zabbixci.zabbix.zabbix import Zabbix
 
@@ -46,7 +48,7 @@ class ImageHandler(ImageValidationHandler):
         for image in images:
             image_object = Image.from_zabbix(image)
 
-            if not self.image_validation(image_object):
+            if not self.object_validation(image_object):
                 continue
 
             image_object.save()
@@ -151,7 +153,7 @@ class ImageHandler(ImageValidationHandler):
 
             image = Image.open(file)
 
-            if not self.image_validation(image):
+            if not self.object_validation(image):
                 continue
 
             images.append(image)
@@ -230,7 +232,7 @@ class ImageHandler(ImageValidationHandler):
                 logger.warning(f"Could not open to be deleted file: {file}")
                 continue
 
-            if not self.image_validation(image):
+            if not self.object_validation(image):
                 continue
 
             if image.name in imported_image_names:

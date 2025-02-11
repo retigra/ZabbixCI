@@ -1,8 +1,8 @@
 import logging
 
+from zabbixci.assets.icon_map import IconMap
 from zabbixci.cache.filesystem import Filesystem
-from zabbixci.handlers.validation import Handler
-from zabbixci.services.icon_map import IconMap
+from zabbixci.handlers.validation.validation_handler import Handler
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class IconMapValidationHandler(Handler):
 
         return True
 
-    def iconmap_validation(self, icon_map: IconMap | None) -> bool:
+    def object_validation(self, icon_map: IconMap | None) -> bool:
         if not icon_map:
             return False
 

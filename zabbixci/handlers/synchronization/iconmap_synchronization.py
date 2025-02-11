@@ -1,8 +1,8 @@
 import logging
 
+from zabbixci.assets.icon_map import IconMap
+from zabbixci.assets.image import Image
 from zabbixci.handlers.validation.iconmap_validation import IconMapValidationHandler
-from zabbixci.services.icon_map import IconMap
-from zabbixci.services.image import Image
 from zabbixci.settings import Settings
 from zabbixci.zabbix.zabbix import Zabbix
 
@@ -43,7 +43,7 @@ class IconMapHandler(IconMapValidationHandler):
         for icon_map in iconmaps:
             icon_map_object = IconMap.from_zabbix(icon_map, images)
 
-            if not self.iconmap_validation(icon_map_object):
+            if not self.object_validation(icon_map_object):
                 continue
 
             icon_map_object.save()
@@ -77,7 +77,7 @@ class IconMapHandler(IconMapValidationHandler):
 
             iconmap = IconMap.open(file, image_objects)
 
-            if not self.iconmap_validation(iconmap):
+            if not self.object_validation(iconmap):
                 continue
 
             icon_maps.append(iconmap)
@@ -157,7 +157,7 @@ class IconMapHandler(IconMapValidationHandler):
                 logger.warning(f"Could not open to be deleted file: {file}")
                 continue
 
-            if not self.iconmap_validation(iconmap):
+            if not self.object_validation(iconmap):
                 continue
 
             if iconmap.name in imported_iconmap_names:
