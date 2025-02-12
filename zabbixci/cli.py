@@ -3,6 +3,7 @@ import asyncio
 import logging
 import logging.config
 from sys import argv, version_info
+from typing import Sequence
 
 from zabbixci._version import __version__
 from zabbixci.cache.cache import Cache
@@ -11,8 +12,6 @@ from zabbixci.exceptions import BaseZabbixCIException
 from zabbixci.logging import CustomFormatter
 from zabbixci.settings import Settings
 from zabbixci.zabbixci import ZabbixCI
-
-# Read command line arguments to fill the settings
 
 logger = logging.getLogger(__name__)
 
@@ -41,18 +40,21 @@ class CustomArgumentParser(argparse.ArgumentParser):
 
     explicit_arguments: list[str] = []
 
-    def parse_args(self, args=None, namespace=None):
+    def parse_args(self, args: Sequence[str] | None = None, namespace=None):
         """
         Default parse_args method, but with the ability to set explicit arguments to `true` when they are set without a value
         """
+        argument_list: list[str] = []
 
         if args is None:
-            args = argv[1:]
+            argument_list = argv[1:]
+        else:
+            argument_list = list(args)
 
-        for i, arg in enumerate(args):
+        for i, arg in enumerate(argument_list):
             if arg in self.explicit_arguments:
                 # Explicit arguments are set to true when provided.
-                args.insert(i + 1, "true")
+                argument_list.insert(i + 1, "true")
             elif [
                 explicit
                 for explicit in self.explicit_arguments
@@ -91,7 +93,7 @@ def str2bool(value):
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
-def read_args():
+def read_args(args: list[str] | None = None):
     method_parser = CustomArgumentParser(
         description="ZabbixCI is a tool to manage Zabbix templates in a Git repository. ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.",
         prog="zabbixci",
@@ -354,12 +356,18 @@ def read_args():
         explicit=True,
     )
 
-    return method_parser.parse_args()
+    return method_parser.parse_args(args)
 
 
-def parse_cli():
+def parse_cli(custom_args: list[str] | None = None):
+    """
+    Run ZabbixCI reading the command line arguments
+
+    param custom_args: Custom arguments to parse instead of reading from the command line
+    """
     Settings.from_env()
-    args = read_args()
+
+    args = read_args(custom_args)
     arguments = vars(args)
 
     if args.config:
