@@ -1,14 +1,14 @@
 import logging
 import os
 import os.path
+from typing import Self
 
 from zabbixci.cache.filesystem import Filesystem
 
 
 class Cache(Filesystem):
-    _instance = None
     _logger = None
-
+    _instance: Self = None
     _cache_dir: str = None
 
     def __new__(cls, *args, **kwargs):
@@ -25,6 +25,23 @@ class Cache(Filesystem):
     def _ensure_safe_path(cls, path):
         if not cls.is_within_cache(path):
             raise ValueError(f"Path {path} does not reside within the cache directory")
+
+    @classmethod
+    def get_files(cls, path: str) -> list[str]:
+        """
+        Wrapped get_files function that ensures that the path is within the cache directory
+        """
+
+        cls._ensure_safe_path(path)
+        real_path = os.path.realpath(path)
+
+        found_files = []
+
+        for root, _dirs, files in os.walk(real_path):
+            for name in files:
+                found_files.append(os.path.join(root, name))
+
+        return found_files
 
     @classmethod
     def open(cls, path, mode):

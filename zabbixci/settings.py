@@ -7,44 +7,48 @@ yaml = YAML()
 
 class Settings:
     _DYN_IMG_EXT = ["png", "jpg", "jpeg", "gif", "bmp", "svg"]
-    VERBOSE = False
-    DEBUG = False
-    DEBUG_ALL = False
-    ZABBIX_URL = "http://localhost:8080"
-    ZABBIX_USER = None
-    ZABBIX_PASSWORD = None
-    ZABBIX_TOKEN = None
-    REMOTE = None
-    ROOT_TEMPLATE_GROUP = "Templates"
-    GIT_AUTHOR_NAME = "ZabbixCI"
-    GIT_AUTHOR_EMAIL = "zabbixci@localhost"
-    PULL_BRANCH = "main"
-    PUSH_BRANCH = "main"
-    TEMPLATE_PREFIX_PATH = "templates"
-    IMAGE_PREFIX_PATH = "images"
-    TEMPLATE_WHITELIST = ""
-    TEMPLATE_BLACKLIST = ""
-    CACHE_PATH = "./cache"
-    BATCH_SIZE = 5
-    IGNORE_TEMPLATE_VERSION = False
-    INSECURE_SSL_VERIFY = False
-    GIT_USERNAME = "git"
-    GIT_PASSWORD = None
-    GIT_PUBKEY = None
-    GIT_PRIVKEY = None
-    GIT_KEYPASSPHRASE = None
-    CA_BUNDLE = None
-    DRY_RUN = False
-    VENDOR = None
-    SET_VERSION = False
-    SYNC_ICONS = False
-    SYNC_BACKGROUNDS = False
-    SYNC_TEMPLATES = True
-    IMAGE_WHITELIST = ""
-    IMAGE_BLACKLIST = ""
-    ICON_SIZES = "24,48,64,128"
-    BACKGROUND_SIZES = "480,720,1080"
-    REGEX_MATCHING = False
+    VERBOSE: bool | None = False
+    DEBUG: bool | None = False
+    DEBUG_ALL: bool | None = False
+    ZABBIX_URL: str | None = "http://localhost:8080"
+    ZABBIX_USER: str | None = None
+    ZABBIX_PASSWORD: str | None = None
+    ZABBIX_TOKEN: str | None = None
+    REMOTE: str | None = None
+    ROOT_TEMPLATE_GROUP: str = "Templates"
+    GIT_AUTHOR_NAME: str = "ZabbixCI"
+    GIT_AUTHOR_EMAIL: str = "zabbixci@localhost"
+    PULL_BRANCH: str = "main"
+    PUSH_BRANCH: str = "main"
+    TEMPLATE_PREFIX_PATH: str = "templates"
+    IMAGE_PREFIX_PATH: str = "images"
+    ICON_MAP_PREFIX_PATH: str = "icon-maps"
+    TEMPLATE_WHITELIST: str = ""
+    TEMPLATE_BLACKLIST: str = ""
+    CACHE_PATH: str = "./cache"
+    BATCH_SIZE: int = 5
+    IGNORE_TEMPLATE_VERSION: bool = False
+    INSECURE_SSL_VERIFY: bool = False
+    GIT_USERNAME: str = "git"
+    GIT_PASSWORD: str | None = None
+    GIT_PUBKEY: str | None = None
+    GIT_PRIVKEY: str | None = None
+    GIT_KEYPASSPHRASE: str | None = None
+    CA_BUNDLE: str | None = None
+    DRY_RUN: bool = False
+    VENDOR: str | None = None
+    SET_VERSION: bool = False
+    SYNC_ICONS: bool = False
+    SYNC_BACKGROUNDS: bool = False
+    SYNC_TEMPLATES: bool = True
+    SYNC_ICON_MAPS: bool = False
+    IMAGE_WHITELIST: str = ""
+    IMAGE_BLACKLIST: str = ""
+    ICON_SIZES: str = "24,48,64,128"
+    BACKGROUND_SIZES: str = "480,720,1080"
+    REGEX_MATCHING: bool = False
+    ICON_MAP_WHITELIST: str = ""
+    ICON_MAP_BLACKLIST: str = ""
 
     @classmethod
     def get_template_whitelist(cls):
@@ -61,6 +65,14 @@ class Settings:
     @classmethod
     def get_image_blacklist(cls):
         return cls.IMAGE_BLACKLIST.split(",") if cls.IMAGE_BLACKLIST else []
+
+    @classmethod
+    def get_icon_map_whitelist(cls):
+        return cls.ICON_MAP_WHITELIST.split(",") if cls.ICON_MAP_WHITELIST else []
+
+    @classmethod
+    def get_icon_map_blacklist(cls):
+        return cls.ICON_MAP_BLACKLIST.split(",") if cls.ICON_MAP_BLACKLIST else []
 
     @classmethod
     def get_ICON_SIZES(cls):

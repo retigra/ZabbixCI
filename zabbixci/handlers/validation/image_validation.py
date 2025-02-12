@@ -1,8 +1,8 @@
 import logging
 
+from zabbixci.assets.image import Image
 from zabbixci.cache.filesystem import Filesystem
-from zabbixci.handlers.validation import Handler
-from zabbixci.services.image import Image
+from zabbixci.handlers.validation.validation_handler import Handler
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class ImageValidationHandler(Handler):
 
         return True
 
-    def image_validation(self, image: Image | None) -> bool:
+    def object_validation(self, image: Image | None) -> bool:
         if not image:
             return False
 
