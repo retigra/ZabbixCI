@@ -158,6 +158,13 @@ class IconMap(Asset):
 
         See: https://www.zabbix.com/documentation/7.0/en/manual/api/reference/iconmap/object#icon-map
         """
+        mappings = [
+            IconMapping.from_zabbix(mapping, icon_map["name"], icons)
+            for mapping in icon_map["mappings"]
+        ]
+
+        mappings.sort(key=lambda x: x.sortorder)
+
         return cls(
             icon_map["iconmapid"],
             icon_map["name"],
@@ -165,10 +172,7 @@ class IconMap(Asset):
             next(
                 filter(lambda icon: icon.image_id == icon_map["default_iconid"], icons)
             ).name,
-            [
-                IconMapping.from_zabbix(mapping, icon_map["name"], icons)
-                for mapping in icon_map["mappings"]
-            ],
+            mappings,
         )
 
     @classmethod
