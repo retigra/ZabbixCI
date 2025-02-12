@@ -140,6 +140,22 @@ def read_args():
         help="Comma separated list of templates to exclude",
     )
     zabbixci_group.add_argument(
+        "--image-whitelist",
+        help="Comma separated list of images to include",
+    )
+    zabbixci_group.add_argument(
+        "--image-blacklist",
+        help="Comma separated list of images to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--icon-map-whitelist",
+        help="Comma separated list of icon maps to include",
+    )
+    zabbixci_group.add_argument(
+        "--icon-map-blacklist",
+        help="Comma separated list of icon maps to exclude",
+    )
+    zabbixci_group.add_argument(
         "--cache-path",
         help="Cache path for git repository, defaults to ./cache",
     )
@@ -194,12 +210,13 @@ def read_args():
         explicit=True,
     )
     zabbixci_group.add_argument(
-        "--image-whitelist",
-        help="Comma separated list of images to include",
-    )
-    zabbixci_group.add_argument(
-        "--image-blacklist",
-        help="Comma separated list of images to exclude",
+        "--sync-icon-maps",
+        help="Synchronize icon maps between Zabbix and git",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
     )
     zabbixci_group.add_argument(
         "--icon-sizes",
