@@ -134,6 +134,10 @@ def read_args(args: list[str] | None = None):
         help="The path in the git repository, used to store the images",
     )
     zabbixci_group.add_argument(
+        "--icon-map-prefix-path",
+        help="The path in the git repository, used to store the icon maps",
+    )
+    zabbixci_group.add_argument(
         "--template-whitelist",
         help="Comma separated list of templates to include",
     )
@@ -284,12 +288,21 @@ def read_args(args: list[str] | None = None):
         "--git-keypassphrase",
         help="SSH key passphrase, used for ssh authentication",
     )
+    git_group.add_argument(
+        "--git-author-name",
+        help="Git author name",
+    )
+    git_group.add_argument(
+        "--git-author-email",
+        help="Git author email",
+    )
 
     zabbixci_advanced_group = method_parser.add_argument_group("ZabbixCI advanced")
 
     # ZabbixCI advanced
     zabbixci_advanced_group.add_argument(
         "-v",
+        "--verbose",
         help="Enable verbose logging",
         dest="verbose",
         const=True,
