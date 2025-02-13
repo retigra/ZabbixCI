@@ -64,7 +64,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
                 # (no need to add true after the key, the default parser will handle it)
                 break
 
-        return super().parse_args(args, namespace)
+        return super().parse_args(argument_list, namespace)
 
     def add_argument(self, *args, **kwargs):
         # Add the explicit argument to the list of explicit arguments
