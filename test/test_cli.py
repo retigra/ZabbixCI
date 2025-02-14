@@ -4,48 +4,72 @@ from zabbixci.cli import read_args
 from zabbixci.settings import Settings
 
 
+def test_cli_arg(
+    key: str, value, test_value: str
+) -> tuple[str | None, int | str | bool] | None:
+    if not key.isupper() or key.startswith("_") or key == "ACTION":
+        return None
+
+    arguments: list[str] = []
+
+    # Add value for the current key
+    expected_value: tuple[str | None, int | str | bool] = ("", "")
+    if isinstance(value, bool):
+        arguments.append(
+            f"--{key.lower().replace('_', '-')}{f'={test_value}' if test_value == 'false' else ''}"
+        )
+        expected_value = (
+            None,
+            test_value == "true",
+        )
+    elif isinstance(value, int):
+        arguments.append(f"--{key.lower().replace('_', '-')}")
+        expected_value = (test_value, test_value)
+    elif isinstance(value, str) or not value:
+        arguments.append(f"--{key.lower().replace('_', '-')}")
+        expected_value = (test_value, test_value)
+    if expected_value[0]:
+        arguments.append(expected_value[0])
+
+    # Add push
+    arguments.append("push")
+
+    try:
+        # Read args
+        args = read_args(arguments)
+        parsed_args = vars(args)
+    except SystemExit:
+        print(f"Failed for: {arguments}")
+
+    # Update settings
+    for dkey, dvalue in parsed_args.items():
+        if dvalue is not None:
+            setattr(Settings, dkey.upper(), dvalue)
+
+    return expected_value
+
+
 class TestCLI(TestCase):
-    def test_cli_true(self) -> None:
-
+    def test_cli_0(self) -> None:
         items = dict(Settings.__dict__).items()
-
         for key, value in items:
-            if not key.isupper() or key.startswith("_"):
+            expected_value = test_cli_arg(key, value, "true")
+
+            if not expected_value:
                 continue
 
-            arguments: list[str] = []
+            # Test if setting is updated
+            self.assertEqual(
+                Settings.__dict__[key], expected_value[1], f"Failed for {key}"
+            )
 
-            arguments.append(f"--{key.lower().replace('_', '-')}")
+    def test_cli_1(self) -> None:
+        items = dict(Settings.__dict__).items()
+        for key, value in items:
+            expected_value = test_cli_arg(key, value, "false")
 
-            is_bool = isinstance(value, bool)
-            is_int = isinstance(value, int)
-            is_str = isinstance(value, str)
-
-            expected_value: tuple[str | None, int | str | bool] = ("", "")
-
-            if is_bool:
-                expected_value = (None, True)
-            elif is_int:
-                expected_value = (
-                    "1",
-                    "1",
-                )  # It seems the cli parser doesn't convert the value to int
-            elif is_str or not value:
-                expected_value = ("test", "test")
-
-            if expected_value[0]:
-                arguments.append(expected_value[0])
-
-            arguments.append("push")
-
-            # Read args
-            args = read_args(arguments)
-            parsed_args = vars(args)
-
-            # Update settings
-            for dkey, dvalue in parsed_args.items():
-                if dvalue is not None:
-                    setattr(Settings, dkey.upper(), dvalue)
+            if not expected_value:
+                continue
 
             # Test if setting is updated
             self.assertEqual(
