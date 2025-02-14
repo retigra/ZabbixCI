@@ -32,6 +32,11 @@ class BaseTemplates:
         Settings.REGEX_MATCHING = False
         Settings.SET_VERSION = True
 
+        Settings.SYNC_TEMPLATES = True
+        Settings.SYNC_ICONS = False
+        Settings.SYNC_BACKGROUNDS = False
+        Settings.SYNC_ICON_MAPS = False
+
         Settings.TEMPLATE_WHITELIST = ""
         Settings.TEMPLATE_BLACKLIST = ""
 
