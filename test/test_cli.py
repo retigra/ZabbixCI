@@ -50,6 +50,9 @@ def test_cli_arg(
 
 
 class TestCLI(TestCase):
+    def setUp(self):
+        self.settings_backup = Settings.__dict__.copy()
+
     def test_cli_0(self) -> None:
         items = dict(Settings.__dict__).items()
         for key, value in items:
@@ -75,3 +78,10 @@ class TestCLI(TestCase):
             self.assertEqual(
                 Settings.__dict__[key], expected_value[1], f"Failed for {key}"
             )
+
+    def tearDown(self):
+        # Restore settings
+        for key, value in self.settings_backup.items():
+            if not key.isupper() or key.startswith("_") or key == "ACTION":
+                continue
+            setattr(Settings, key, value)
