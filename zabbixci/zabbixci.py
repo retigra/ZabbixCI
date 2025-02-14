@@ -324,7 +324,14 @@ class ZabbixCI:
 
         # clean local changes
         self._git.clean()
-        return len(imported_template_ids) > 0 or len(deleted_template_names) > 0
+        return (
+            len(imported_template_ids) > 0
+            or len(deleted_template_names) > 0
+            or len(imported_images) > 0
+            or len(deleted_image_names) > 0
+            or len(imported_icon_maps) > 0
+            or len(deleted_icon_map_names) > 0
+        )
 
     def generate_images(self, type: str) -> bool:
         """
