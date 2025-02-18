@@ -34,11 +34,16 @@ Please make sure to install any [prerequisites for pygit2](https://www.pygit2.or
 You should now be able to run ZabbixCI:
 ```console
 user@localhost:~$ zabbixci
-usage: zabbixci [-h] [--config CONFIG] [--zabbix-url ZABBIX_URL] [--zabbix-user ZABBIX_USER] [--zabbix-password ZABBIX_PASSWORD] [--zabbix-token ZABBIX_TOKEN] [--remote REMOTE] [--pull-branch PULL_BRANCH]
-                [--push-branch PUSH_BRANCH] [--git-username GIT_USERNAME] [--git-password GIT_PASSWORD] [--git-pubkey GIT_PUBKEY] [--git-privkey GIT_PRIVKEY] [--git-keypassphrase GIT_KEYPASSPHRASE]
-                [--root-template-group ROOT_TEMPLATE_GROUP] [--template-prefix-path TEMPLATE_PREFIX_PATH] [--template-whitelist TEMPLATE_WHITELIST] [--template-blacklist TEMPLATE_BLACKLIST] [--cache CACHE] [--dry-run]
-                [--vendor VENDOR] [--set-version] [-v] [-vv] [-vvv] [--batch-size BATCH_SIZE] [--ignore-template-version] [--insecure-ssl-verify] [--ca-bundle CA_BUNDLE]
-                {push,pull,clearcache,version}
+usage: zabbixci [-h] [-c CONFIG] [--root-template-group ROOT_TEMPLATE_GROUP] [--template-prefix-path TEMPLATE_PREFIX_PATH] [--image-prefix-path IMAGE_PREFIX_PATH]
+                [--template-whitelist TEMPLATE_WHITELIST] [--template-blacklist TEMPLATE_BLACKLIST] [--cache-path CACHE_PATH] [--dry-run [DRY_RUN]] [--vendor VENDOR]   
+                [--set-version [SET_VERSION]] [--sync-templates [SYNC_TEMPLATES]] [--sync-icons [SYNC_ICONS]] [--sync-backgrounds [SYNC_BACKGROUNDS]]
+                [--image-whitelist IMAGE_WHITELIST] [--image-blacklist IMAGE_BLACKLIST] [--icon-sizes ICON_SIZES] [--background-sizes BACKGROUND_SIZES]
+                [--zabbix-url ZABBIX_URL] [--zabbix-user ZABBIX_USER] [--zabbix-password ZABBIX_PASSWORD] [--zabbix-token ZABBIX_TOKEN] [--remote REMOTE]
+                [--pull-branch PULL_BRANCH] [--push-branch PUSH_BRANCH] [--git-username GIT_USERNAME] [--git-password GIT_PASSWORD] [--git-pubkey GIT_PUBKEY]
+                [--git-privkey GIT_PRIVKEY] [--git-keypassphrase GIT_KEYPASSPHRASE] [-v [VERBOSE]] [-vv [DEBUG]] [-vvv [DEBUG_ALL]] [--batch-size BATCH_SIZE]
+                [--ignore-template-version [IGNORE_TEMPLATE_VERSION]] [--insecure-ssl-verify [INSECURE_SSL_VERIFY]] [--ca-bundle CA_BUNDLE]
+                [--regex-matching [REGEX_MATCHING]]
+                {push,pull,clearcache,version,generate-icons,generate-backgrounds}
 zabbixci: error: the following arguments are required: action
 user@localhost:~$
 ```

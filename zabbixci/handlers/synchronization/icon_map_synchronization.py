@@ -28,6 +28,12 @@ class IconMapHandler(IconMapValidationHandler):
         if not Settings.SYNC_ICON_MAPS:
             return []
 
+        if not Settings.SYNC_ICONS:
+            logger.warning(
+                "SYNC_ICONS is disabled, unable to export icon maps without icons"
+            )
+            return []
+
         search = (
             self.get_whitelist()
             if not self._use_regex() and self.get_whitelist()

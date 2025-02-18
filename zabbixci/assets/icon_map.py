@@ -6,6 +6,7 @@ from ruamel.yaml import YAML
 from zabbixci.assets.asset import Asset
 from zabbixci.assets.image import Image
 from zabbixci.cache.cache import Cache
+from zabbixci.exceptions import ZabbixIconMissingException
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -83,6 +84,16 @@ class IconMapping:
         See: https://www.zabbix.com/documentation/7.0/en/manual/api/reference/iconmap/object
         """
 
+        icon = next(
+            filter(lambda icon: icon.image_id == icon_mapping["iconid"], images), None
+        )
+
+        if not icon:
+            # Unable to export icon map because iconId can not be converted to iconName
+            raise ZabbixIconMissingException(
+                f"Icon {icon_mapping['iconid']} not found in images, unable to export icon map"
+            )
+
         return cls(
             icon_mapping["iconmappingid"],
             icon_mapping["iconmapid"],
@@ -91,9 +102,7 @@ class IconMapping:
             icon_mapping["expression"],
             icon_mapping["sortorder"],
             icon_map_name,
-            next(
-                filter(lambda icon: icon.image_id == icon_mapping["iconid"], images)
-            ).name,
+            icon.name,
         )
 
 
@@ -157,6 +166,11 @@ class IconMap(Asset):
         Create an IconMap object from a Zabbix API response.
 
         See: https://www.zabbix.com/documentation/7.0/en/manual/api/reference/iconmap/object#icon-map
+
+        :param icon_map: Zabbix API response
+        :param icons: List of Image
+
+        :return: IconMap object or None when the object could not be created
         """
         mappings = [
             IconMapping.from_zabbix(mapping, icon_map["name"], icons)
@@ -165,13 +179,22 @@ class IconMap(Asset):
 
         mappings.sort(key=lambda x: x.sortorder)
 
+        icon = next(
+            filter(lambda icon: icon.image_id == icon_map["default_iconid"], icons),
+            None,
+        )
+
+        if not icon:
+            # Unable to export icon map because defaultIconId can not be converted to defaultIconName
+            raise ZabbixIconMissingException(
+                f"Icon {icon_map['default_iconid']} not found in images, unable to export icon map"
+            )
+
         return cls(
             icon_map["iconmapid"],
             icon_map["name"],
             icon_map["default_iconid"],
-            next(
-                filter(lambda icon: icon.image_id == icon_map["default_iconid"], icons)
-            ).name,
+            icon.name,
             mappings,
         )
 
@@ -204,9 +227,10 @@ class IconMap(Asset):
                 None,
             )
 
+            # Unable to import a icon_map without matching icon names to ids of current Zabbix server
             if not default_icon or not default_icon.image_id:
-                raise ValueError(
-                    f"Default icon {icon_map['default_icon_name']} not found in images"
+                raise ZabbixIconMissingException(
+                    f"Icon {icon_map['default_icon_name']} not found in images, unable to import icon map"
                 )
 
             def icon_mapping(mapping, images: list[Image]):
