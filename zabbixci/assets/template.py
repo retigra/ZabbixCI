@@ -141,7 +141,12 @@ class Template(Asset):
         """
         Dump Zabbix importable template to stream
         """
-        yaml.dump({"zabbix_export": self._export}, stream)
+        prepared_export = self._export.copy()
+
+        if "date" in prepared_export:
+            del prepared_export["date"]
+
+        yaml.dump({"zabbix_export": prepared_export}, stream)
 
     def _insert_vendor_dict(self):
         """
