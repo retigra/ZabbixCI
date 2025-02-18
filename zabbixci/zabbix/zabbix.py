@@ -13,6 +13,10 @@ class Zabbix:
     zapi: AsyncZabbixAPI
     _client_session = None
 
+    @property
+    def api_version(self):
+        return self.zapi.version
+
     def __init__(self, *args, **kwargs):
         if "ssl_context" in kwargs:
             if kwargs["ssl_context"]:
