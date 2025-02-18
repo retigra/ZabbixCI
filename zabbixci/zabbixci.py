@@ -57,7 +57,7 @@ class ZabbixCI:
             self.logger.debug("Using token for Zabbix authentication")
             await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
 
-        if self._zabbix.zapi.version < 7.0:
+        if self._zabbix.zapi.version < 6.0:
             self.logger.error(
                 f"Zabbix server version {self._zabbix.zapi.version} is not supported (7.0+ required)"
             )
