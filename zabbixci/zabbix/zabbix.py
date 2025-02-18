@@ -13,6 +13,10 @@ class Zabbix:
     zapi: AsyncZabbixAPI
     _client_session = None
 
+    @property
+    def api_version(self):
+        return self.zapi.version
+
     def __init__(self, *args, **kwargs):
         if "ssl_context" in kwargs:
             if kwargs["ssl_context"]:
@@ -28,9 +32,14 @@ class Zabbix:
         self.zapi = AsyncZabbixAPI(*args, **kwargs, client_session=self._client_session)
 
     def _get_template_group(self, template_group_names: list[str]):
-        return self.zapi.send_sync_request(
-            "templategroup.get", {"search": {"name": template_group_names}}
-        )["result"]
+        if self.api_version < 7.0:
+            return self.zapi.send_sync_request(
+                "hostgroup.get", {"search": {"name": template_group_names}}
+            )["result"]
+        else:
+            return self.zapi.send_sync_request(
+                "templategroup.get", {"search": {"name": template_group_names}}
+            )["result"]
 
     def get_templates(
         self, template_group_names: list[str], filter_list: list[str] | None = None
@@ -68,7 +77,21 @@ class Zabbix:
             {
                 "format": "yaml",
                 "rules": {
-                    "template_groups": {"createMissing": True, "updateExisting": True},
+                    **(
+                        {
+                            "template_groups": {
+                                "createMissing": True,
+                                "updateExisting": True,
+                            }
+                        }
+                        if self.api_version >= 7.0
+                        else {
+                            "groups": {
+                                "createMissing": True,
+                                "updateExisting": True,
+                            }
+                        }
+                    ),
                     "templateLinkage": {"createMissing": True, "deleteMissing": True},
                     "templates": {
                         "createMissing": True,

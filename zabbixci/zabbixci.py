@@ -57,7 +57,7 @@ class ZabbixCI:
             self.logger.debug("Using token for Zabbix authentication")
             await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
 
-        if self._zabbix.zapi.version < 7.0:
+        if self._zabbix.zapi.version < 6.0:
             self.logger.error(
                 f"Zabbix server version {self._zabbix.zapi.version} is not supported (7.0+ required)"
             )
@@ -155,12 +155,16 @@ class ZabbixCI:
 
                 template = Template.open(file)
 
-                if Settings.VENDOR and not template.vendor:
+                if (
+                    Settings.VENDOR
+                    and not template.vendor
+                    and self._zabbix.api_version >= 7.0
+                ):
                     set_vendor = Settings.VENDOR
                     template.set_vendor(set_vendor)
                     self.logger.debug(f"Setting vendor to: {set_vendor}")
 
-                if Settings.SET_VERSION:
+                if Settings.SET_VERSION and self._zabbix.api_version >= 7.0:
                     new_version = datetime.now(timezone.utc).strftime("%Y.%m.%d %H:%M")
                     template.set_version(new_version)
                     self.logger.debug(f"Setting version to: {new_version}")
