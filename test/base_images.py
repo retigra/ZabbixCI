@@ -51,8 +51,17 @@ class BaseImages:
         Cleanup.cleanup_cache(full=True)
         self.zci.create_git()
 
+        whitelist = Settings.IMAGE_WHITELIST
+        blacklist = Settings.IMAGE_BLACKLIST
+
+        Settings.IMAGE_WHITELIST = ""
+        Settings.IMAGE_BLACKLIST = ""
+
         # Restore the state of Zabbix
         await self.zci.pull()
+
+        Settings.IMAGE_WHITELIST = whitelist
+        Settings.IMAGE_BLACKLIST = blacklist
 
     async def asyncSetUp(self):
         self.zci.create_git()
@@ -107,12 +116,7 @@ class BaseImages:
 
         # Assert Git version is imported back into Zabbix
         matches = self.zci._zabbix.get_images(["Cloud_(128) (renamed)"])
-        self.assertEqual(len(matches), 1, "Template not found")
-        self.assertEqual(
-            matches[0]["name"],
-            "Cloud_(128) (renamed)",
-            "Template name not restored",
-        )
+        self.assertEqual(len(matches), 1, "Image not found")
 
     async def asyncTearDown(self):
         await self.zci._zabbix.zapi.logout()

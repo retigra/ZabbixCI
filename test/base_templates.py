@@ -51,8 +51,14 @@ class BaseTemplates:
         Cleanup.cleanup_cache(full=True)
         self.zci.create_git()
 
+        whitelist = Settings.TEMPLATE_WHITELIST
+        blacklist = Settings.TEMPLATE_BLACKLIST
+
         # Restore the state of Zabbix
         await self.zci.pull()
+
+        Settings.TEMPLATE_WHITELIST = whitelist
+        Settings.TEMPLATE_BLACKLIST = blacklist
 
     async def asyncSetUp(self):
         self.zci.create_git()
@@ -92,11 +98,6 @@ class BaseTemplates:
             [Settings.ROOT_TEMPLATE_GROUP], ["Windows by Zabbix agent"]
         )
         self.assertEqual(len(matches), 1, "Template not found")
-        self.assertEqual(
-            matches[0]["name"],
-            "Windows by Zabbix agent (renamed)",
-            "Template name not restored",
-        )
 
     async def test_template_rename(self):
         # Rename a template

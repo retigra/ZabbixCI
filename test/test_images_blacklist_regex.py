@@ -13,7 +13,8 @@ DEV_GIT_REMOTE = getenv("REMOTE")
 class TestImagesBlacklist(BaseImages, unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         super().setUp()
-        Settings.IMAGE_BLACKLIST = "retigra_(200)"
+        Settings.REGEX_MATCHING = True
+        Settings.IMAGE_BLACKLIST = "retigra.*"
 
     async def test_image_delete(self):
         image_id = self.zci._zabbix.get_images(["retigra_(200)"])[0]["imageid"]
