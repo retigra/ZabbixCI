@@ -84,7 +84,7 @@ class Zabbix:
                                 "updateExisting": True,
                             }
                         }
-                        if self.api_version > 7.0
+                        if self.api_version >= 7.0
                         else {
                             "groups": {
                                 "createMissing": True,
