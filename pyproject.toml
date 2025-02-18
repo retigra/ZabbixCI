@@ -23,7 +23,7 @@ classifiers = [
     "Topic :: Utilities",
     "Environment :: Console",
 ]
-authors = [{ name = "Retigra", email = "into@retigra.nl" }]
+authors = [{ name = "Retigra", email = "info@retigra.nl" }]
 
 maintainers = [
     { name = "Wouter de Bruijn", email = "wouter.debruijn@retigra.nl" },
