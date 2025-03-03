@@ -48,7 +48,7 @@ ZabbixCI provides the following features:
 ### Additional image (icons and backgrounds) features
 
 * Sync your map images with Git
-* (Coming soon) Sync your icon-maps with Git 
+* Sync your icon-maps with Git 
 * Dynamically generate icons and backgrounds in predefined sizes
 * Use `.png` or `.svg` files as sources for image generation
 
