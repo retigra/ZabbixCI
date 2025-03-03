@@ -86,9 +86,12 @@ class Settings:
 
     @classmethod
     def from_env(cls):
-        for key in cls.__dict__.keys():
+        for key, value in cls.__dict__.items():
             if key in os.environ:
-                setattr(cls, key, os.environ[key])
+                if isinstance(value, bool):
+                    setattr(cls, key, os.environ[key].lower() == "true")
+                else:
+                    setattr(cls, key, os.environ[key])
 
     @classmethod
     def read_config(cls, path):
