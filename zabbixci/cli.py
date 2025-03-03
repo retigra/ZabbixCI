@@ -3,16 +3,15 @@ import asyncio
 import logging
 import logging.config
 from sys import argv, version_info
+from typing import Sequence
 
 from zabbixci._version import __version__
+from zabbixci.cache.cache import Cache
+from zabbixci.cache.cleanup import Cleanup
 from zabbixci.exceptions import BaseZabbixCIException
 from zabbixci.logging import CustomFormatter
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cache import Cache
-from zabbixci.utils.cache.cleanup import Cleanup
 from zabbixci.zabbixci import ZabbixCI
-
-# Read command line arguments to fill the settings
 
 logger = logging.getLogger(__name__)
 
@@ -39,20 +38,23 @@ class CustomArgumentParser(argparse.ArgumentParser):
     Customized ArgumentParser with supporting code to calculate the explicit arguments, and parse them for boolean values when they are set explicitly (key=value)
     """
 
-    explicit_arguments = []
+    explicit_arguments: list[str] = []
 
-    def parse_args(self, args=None, namespace=None):
+    def parse_args(self, args: Sequence[str] | None = None, namespace=None):
         """
         Default parse_args method, but with the ability to set explicit arguments to `true` when they are set without a value
         """
+        argument_list: list[str] = []
 
         if args is None:
-            args = argv[1:]
+            argument_list = argv[1:]
+        else:
+            argument_list = list(args)
 
-        for i, arg in enumerate(args):
+        for i, arg in enumerate(argument_list):
             if arg in self.explicit_arguments:
                 # Explicit arguments are set to true when provided.
-                args.insert(i + 1, "true")
+                argument_list.insert(i + 1, "true")
             elif [
                 explicit
                 for explicit in self.explicit_arguments
@@ -62,7 +64,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
                 # (no need to add true after the key, the default parser will handle it)
                 break
 
-        return super().parse_args(args, namespace)
+        return super().parse_args(argument_list, namespace)
 
     def add_argument(self, *args, **kwargs):
         # Add the explicit argument to the list of explicit arguments
@@ -91,7 +93,7 @@ def str2bool(value):
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
-def read_args():
+def read_args(args: list[str] | None = None):
     method_parser = CustomArgumentParser(
         description="ZabbixCI is a tool to manage Zabbix templates in a Git repository. ZabbixCI adds version control to Zabbix templates, allowing you to track changes, synchronize templates between different Zabbix servers, and collaborate with other team members.",
         prog="zabbixci",
@@ -132,12 +134,32 @@ def read_args():
         help="The path in the git repository, used to store the images",
     )
     zabbixci_group.add_argument(
+        "--icon-map-prefix-path",
+        help="The path in the git repository, used to store the icon maps",
+    )
+    zabbixci_group.add_argument(
         "--template-whitelist",
         help="Comma separated list of templates to include",
     )
     zabbixci_group.add_argument(
         "--template-blacklist",
         help="Comma separated list of templates to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--image-whitelist",
+        help="Comma separated list of images to include",
+    )
+    zabbixci_group.add_argument(
+        "--image-blacklist",
+        help="Comma separated list of images to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--icon-map-whitelist",
+        help="Comma separated list of icon maps to include",
+    )
+    zabbixci_group.add_argument(
+        "--icon-map-blacklist",
+        help="Comma separated list of icon maps to exclude",
     )
     zabbixci_group.add_argument(
         "--cache-path",
@@ -194,12 +216,13 @@ def read_args():
         explicit=True,
     )
     zabbixci_group.add_argument(
-        "--image-whitelist",
-        help="Comma separated list of images to include",
-    )
-    zabbixci_group.add_argument(
-        "--image-blacklist",
-        help="Comma separated list of images to exclude",
+        "--sync-icon-maps",
+        help="Synchronize icon maps between Zabbix and git",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
     )
     zabbixci_group.add_argument(
         "--icon-sizes",
@@ -265,12 +288,21 @@ def read_args():
         "--git-keypassphrase",
         help="SSH key passphrase, used for ssh authentication",
     )
+    git_group.add_argument(
+        "--git-author-name",
+        help="Git author name",
+    )
+    git_group.add_argument(
+        "--git-author-email",
+        help="Git author email",
+    )
 
     zabbixci_advanced_group = method_parser.add_argument_group("ZabbixCI advanced")
 
     # ZabbixCI advanced
     zabbixci_advanced_group.add_argument(
         "-v",
+        "--verbose",
         help="Enable verbose logging",
         dest="verbose",
         const=True,
@@ -337,12 +369,18 @@ def read_args():
         explicit=True,
     )
 
-    return method_parser.parse_args()
+    return method_parser.parse_args(args)
 
 
-def parse_cli():
+def parse_cli(custom_args: list[str] | None = None):
+    """
+    Run ZabbixCI reading the command line arguments
+
+    param custom_args: Custom arguments to parse instead of reading from the command line
+    """
     Settings.from_env()
-    args = read_args()
+
+    args = read_args(custom_args)
     arguments = vars(args)
 
     if args.config:

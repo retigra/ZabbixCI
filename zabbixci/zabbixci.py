@@ -7,21 +7,22 @@ from pygit2.enums import FileStatus, ResetMode
 from regex import search
 from ruamel.yaml import YAML
 
+from zabbixci.assets import Template
+from zabbixci.cache.cleanup import Cleanup
+from zabbixci.git import Git, GitCredentials
+from zabbixci.handlers.synchronization.icon_map_synchronization import IconMapHandler
+from zabbixci.handlers.synchronization.image_synchronization import ImageHandler
+from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.cleanup import Cleanup
-from zabbixci.utils.git import Git, GitCredentials
-from zabbixci.utils.handlers.synchronization.image import ImageHandler
-from zabbixci.utils.handlers.synchronization.template import TemplateHandler
-from zabbixci.utils.services import Template
-from zabbixci.utils.zabbix import Zabbix
+from zabbixci.zabbix import Zabbix
 
 
 class ZabbixCI:
     logger = logging.getLogger(__name__)
     yaml = YAML()
 
-    _zabbix = None
-    _git = None
+    _zabbix: Zabbix | None = None
+    _git: Git | None = None
 
     _ssl_context = None
 
@@ -31,7 +32,7 @@ class ZabbixCI:
         if logger:
             self.logger = logger
 
-    async def create_zabbix(self):
+    async def create_zabbix(self) -> None:
         """
         Create a Zabbix object with the appropriate credentials
         """
@@ -56,13 +57,13 @@ class ZabbixCI:
             self.logger.debug("Using token for Zabbix authentication")
             await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
 
-        if self._zabbix.zapi.version < 7.0:
+        if self._zabbix.zapi.version < 6.0:
             self.logger.error(
                 f"Zabbix server version {self._zabbix.zapi.version} is not supported (7.0+ required)"
             )
             raise SystemExit(1)
 
-    def create_git(self, git_cb=None):
+    def create_git(self, git_cb=None) -> None:
         """
         Create a Git object with the appropriate credentials
         """
@@ -71,10 +72,18 @@ class ZabbixCI:
 
         self._git = Git(self._settings.CACHE_PATH, git_cb)
 
-    async def push(self):
+    async def push(self) -> bool:
         """
         Fetch Zabbix state and commit changes to git remote
         """
+        if not self._git or not self._zabbix:
+            raise ValueError(
+                "ZabbixCI has not been initialized, call create_zabbix() and create_git() first"
+            )
+
+        if not Settings.REMOTE:
+            raise ValueError("Remote repository not set")
+
         self._git.fetch(Settings.REMOTE)
 
         if not self._git.is_empty:
@@ -101,9 +110,11 @@ class ZabbixCI:
 
         template_handler = TemplateHandler(self._zabbix)
         image_handler = ImageHandler(self._zabbix)
+        icon_map_handler = IconMapHandler(self._zabbix)
 
         template_objects = await template_handler.templates_to_cache()
-        image_handler.images_to_cache()
+        image_objects = image_handler.images_to_cache()
+        icon_map_handler.icon_map_to_cache(image_objects)
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -121,9 +132,11 @@ class ZabbixCI:
             # Create a commit
             changes = self._git.status()
 
+            regex_match = search("https?://([^/]+)", self._zabbix.zapi.url)
+
             host = os.getenv(
                 "ZABBIX_HOST",
-                search("https?://([^/]+)", self._zabbix.zapi.url).group(1),
+                regex_match.group(1) if regex_match else "zabbix_host",
             )
 
             change_amount = len(changes)
@@ -137,18 +150,21 @@ class ZabbixCI:
 
                 self.logger.info(f"Detected change in: {file}")
 
-                if not file.endswith(".yaml"):
-                    # TODO create proper split of images and templates
+                if not template_handler.read_validation(file):
                     continue
 
                 template = Template.open(file)
 
-                if Settings.VENDOR and not template.vendor:
+                if (
+                    Settings.VENDOR
+                    and not template.vendor
+                    and self._zabbix.api_version >= 7.0
+                ):
                     set_vendor = Settings.VENDOR
                     template.set_vendor(set_vendor)
                     self.logger.debug(f"Setting vendor to: {set_vendor}")
 
-                if Settings.SET_VERSION:
+                if Settings.SET_VERSION and self._zabbix.api_version >= 7.0:
                     new_version = datetime.now(timezone.utc).strftime("%Y.%m.%d %H:%M")
                     template.set_version(new_version)
                     self.logger.debug(f"Setting version to: {new_version}")
@@ -196,10 +212,18 @@ class ZabbixCI:
 
         return change_amount > 0
 
-    async def pull(self):
+    async def pull(self) -> bool:
         """
         Pull current state from git remote and update Zabbix
         """
+        if not self._git or not self._zabbix:
+            raise ValueError(
+                "ZabbixCI has not been initialized, call create_zabbix() and create_git() first"
+            )
+
+        if not Settings.REMOTE:
+            raise ValueError("Remote repository not set")
+
         self._git.switch_branch(Settings.PULL_BRANCH)
 
         # Pull the latest remote state, untracked changes are preserved
@@ -219,9 +243,11 @@ class ZabbixCI:
 
         template_handler = TemplateHandler(self._zabbix)
         image_handler = ImageHandler(self._zabbix)
+        icon_map_handler = IconMapHandler(self._zabbix)
 
         template_objects = await template_handler.templates_to_cache()
         image_objects = image_handler.images_to_cache()
+        icon_map_objects = icon_map_handler.icon_map_to_cache(image_objects)
 
         # Check if there are any changes to commit
         if self._git.has_changes:
@@ -259,6 +285,18 @@ class ZabbixCI:
         imported_images = image_handler.import_file_changes(
             changed_files, image_objects
         )
+
+        if len(imported_images) > 0:
+            # Update available image objects (only needed for Zabbix image id's)
+            image_objects = image_handler.images_to_cache()
+
+        imported_icon_maps = icon_map_handler.import_file_changes(
+            changed_files, icon_map_objects, image_objects
+        )
+        deleted_icon_map_names = icon_map_handler.delete_file_changes(
+            deleted_files, imported_icon_maps, icon_map_objects
+        )
+
         deleted_image_names = image_handler.delete_file_changes(
             deleted_files, imported_images, image_objects
         )
@@ -266,7 +304,10 @@ class ZabbixCI:
         # Inform user about the changes
         if Settings.DRY_RUN:
             self.logger.info(
-                f"Dry run enabled, no changes will be made to Zabbix. Would have imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Would have imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
+                "Dry run enabled, no changes will be made to Zabbix. "
+                f"Would have imported {len(imported_template_ids)} templates, deleted {len(deleted_template_names)} templates. "
+                f"Would have imported {len(imported_images)} images, deleted {len(deleted_image_names)} images. "
+                f"Would have imported {len(imported_icon_maps)} icon maps, deleted {len(deleted_icon_map_names)} icon maps."
             )
         else:
             if (
@@ -274,21 +315,40 @@ class ZabbixCI:
                 and len(imported_template_ids) == 0
                 and len(imported_images) == 0
                 and len(deleted_image_names) == 0
+                and len(imported_icon_maps) == 0
             ):
                 self.logger.info("No changes detected, Zabbix is up to date")
             else:
                 self.logger.info(
-                    f"Zabbix state has been synchronized. Imported {len(imported_template_ids)} templates and deleted {len(deleted_template_names)} templates. Imported {len(imported_images)} images and deleted {len(deleted_image_names)} images.",
+                    "Zabbix state has been synchronized. "
+                    f"Imported {len(imported_template_ids)} templates, deleted {len(deleted_template_names)} templates. "
+                    f"Imported {len(imported_images)} images, deleted {len(deleted_image_names)} images. "
+                    f"Imported {len(imported_icon_maps)} icon maps, deleted {len(deleted_icon_map_names)} icon maps."
                 )
 
         # clean local changes
         self._git.clean()
-        return len(imported_template_ids) > 0 or len(deleted_template_names) > 0
+        return (
+            len(imported_template_ids) > 0
+            or len(deleted_template_names) > 0
+            or len(imported_images) > 0
+            or len(deleted_image_names) > 0
+            or len(imported_icon_maps) > 0
+            or len(deleted_icon_map_names) > 0
+        )
 
-    def generate_images(self, type: str):
+    def generate_images(self, type: str) -> bool:
         """
         Generate icons/backgrounds from Zabbix and save them to the cache
         """
+        if not self._git or not self._zabbix:
+            raise ValueError(
+                "ZabbixCI has not been initialized, call create_zabbix() and create_git() first"
+            )
+
+        if not Settings.REMOTE:
+            raise ValueError("Remote repository not set")
+
         self._git.fetch(Settings.REMOTE)
 
         self.logger.info("Generating icons from Zabbix")

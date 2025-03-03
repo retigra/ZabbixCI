@@ -1,12 +1,9 @@
 import logging
+from typing import Any
 
-from zabbixci.utils.cache.cache import Cache
+from zabbixci.cache.cache import Cache
 
 logger = logging.getLogger(__name__)
-
-
-class Image:
-    pass
 
 
 class ImagemagickHandler:
@@ -15,7 +12,7 @@ class ImagemagickHandler:
     """
 
     @classmethod
-    def _convert(cls, image: Image, size: int, format: str) -> Image:
+    def _convert(cls, image: Any, size: int, format: str) -> Any:
         """
         Convert an image to a different size and format
 
@@ -49,7 +46,7 @@ class ImagemagickHandler:
 
         :param image_path: Path to the image
         """
-        from wand.image import Image
+        from wand.image import Image  # type: ignore
 
         files: list[str] = []
 

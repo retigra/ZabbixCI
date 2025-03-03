@@ -1,14 +1,13 @@
 import logging
 import os
 
+from zabbixci.assets.icon_map import IconMap
+from zabbixci.assets.image import Image
+from zabbixci.assets.template import Template
+from zabbixci.handlers.validation.icon_map_validation import IconMapValidationHandler
+from zabbixci.handlers.validation.image_validation import ImageValidationHandler
+from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.filesystem import Filesystem
-from zabbixci.utils.handlers.validation.image_validation import ImageValidationHandler
-from zabbixci.utils.handlers.validation.template_validation import (
-    TemplateValidationHandler,
-)
-from zabbixci.utils.services.image import Image
-from zabbixci.utils.services.template import Template
 
 logger = logging.getLogger(__name__)
 
@@ -19,16 +18,7 @@ class Cleanup:
         if not Settings.SYNC_TEMPLATES:
             return False
 
-        is_template = name.endswith(".yaml") and Filesystem.is_within(
-            root, f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}"
-        )
-
-        if not is_template:
-            return False
-
-        # Check if the template is in the whitelist
         template_handler = TemplateValidationHandler()
-
         file = os.path.join(root, name)
 
         if not template_handler.read_validation(file):
@@ -40,7 +30,7 @@ class Cleanup:
             logger.warning(f"Could not open file {file} as a template")
             return False
 
-        if not template_handler.template_validation(template):
+        if not template_handler.object_validation(template):
             return False
 
         return True
@@ -65,7 +55,32 @@ class Cleanup:
         if not image:
             return False
 
-        if not image_handler.image_validation(image):
+        if not image_handler.object_validation(image):
+            return False
+
+        return True
+
+    @classmethod
+    def match_icon_map_cleanup(cls, root: str, name: str):
+        """
+        Check if a file is an icon_map file that should be cleaned up
+        """
+        if not Settings.SYNC_ICON_MAPS:
+            return False
+
+        icon_map_handler = IconMapValidationHandler()
+
+        file = os.path.join(root, name)
+
+        if not icon_map_handler.read_validation(file):
+            return False
+
+        icon_map = IconMap.partial_open(file)
+
+        if not icon_map_handler:
+            return False
+
+        if not icon_map_handler.object_validation(icon_map):
             return False
 
         return True
@@ -86,6 +101,7 @@ class Cleanup:
                     full
                     or cls.match_template_cleanup(root, name)
                     or cls.match_image_cleanup(root, name)
+                    or cls.match_icon_map_cleanup(root, name)
                 ):
                     os.remove(os.path.join(root, name))
 

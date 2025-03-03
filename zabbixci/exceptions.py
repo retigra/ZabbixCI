@@ -8,3 +8,7 @@ class GitException(BaseZabbixCIException):
 
 class ZabbixException(BaseZabbixCIException):
     pass
+
+
+class ZabbixIconMissingException(ZabbixException):
+    pass

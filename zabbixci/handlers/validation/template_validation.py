@@ -2,10 +2,10 @@ import logging
 
 from ruamel.yaml import YAML
 
+from zabbixci.assets.template import Template
+from zabbixci.cache.filesystem import Filesystem
+from zabbixci.handlers.validation.validation_handler import Handler
 from zabbixci.settings import Settings
-from zabbixci.utils.cache.filesystem import Filesystem
-from zabbixci.utils.handlers.validation import Handler
-from zabbixci.utils.services.template import Template
 
 logger = logging.getLogger(__name__)
 yaml = YAML()
@@ -40,10 +40,13 @@ class TemplateValidationHandler(Handler):
 
         return True
 
-    def template_validation(self, template: Template) -> bool:
+    def object_validation(self, template: Template | None) -> bool:
         """
         White/blacklist validation for templates
         """
+        if not template:
+            return False
+
         if self.enforce_blacklist(template.name):
             logger.debug(f"Skipping blacklisted template: {template.name}")
             return False

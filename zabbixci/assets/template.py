@@ -5,21 +5,22 @@ from typing import TextIO
 import regex
 from ruamel.yaml import YAML
 
+from zabbixci.assets.asset import Asset
+from zabbixci.cache import Cache
 from zabbixci.settings import Settings
-from zabbixci.utils.cache import Cache
 
 yaml = YAML()
 
 logger = logging.getLogger(__name__)
 
 
-class Template:
+class Template(Asset):
     """
     A Python representation of a Zabbix template
     """
 
     _export: dict
-    _level: int = None
+    _level: int | None = None
 
     new_version = False
     new_vendor = False
@@ -48,11 +49,11 @@ class Template:
         return [template["uuid"] for template in self._export["templates"]]
 
     @property
-    def primary_group(self):
+    def primary_group(self) -> str:
         """
         The most specific group of the template, the lowest child in the hierarchy
         """
-        selected_group = self._template["groups"][0]["name"]
+        selected_group: str = self._template["groups"][0]["name"]
         selected_length = 0
 
         # Most specific group is based on the group with the most slashes,
@@ -140,7 +141,12 @@ class Template:
         """
         Dump Zabbix importable template to stream
         """
-        yaml.dump({"zabbix_export": self._export}, stream)
+        prepared_export = self._export.copy()
+
+        if "date" in prepared_export:
+            del prepared_export["date"]
+
+        yaml.dump({"zabbix_export": prepared_export}, stream)
 
     def _insert_vendor_dict(self):
         """

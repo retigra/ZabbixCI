@@ -4,12 +4,10 @@ from io import StringIO
 
 from ruamel.yaml import YAML
 
+from zabbixci.assets.template import Template
+from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
 from zabbixci.settings import Settings
-from zabbixci.utils.handlers.validation.template_validation import (
-    TemplateValidationHandler,
-)
-from zabbixci.utils.services.template import Template
-from zabbixci.utils.zabbix.zabbix import Zabbix
+from zabbixci.zabbix.zabbix import Zabbix
 
 logger = logging.getLogger(__name__)
 yaml = YAML()
@@ -59,7 +57,7 @@ class TemplateHandler(TemplateValidationHandler):
 
                 zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
 
-                if not self.template_validation(zabbix_template):
+                if not self.object_validation(zabbix_template):
                     continue
 
                 zabbix_template.save()
@@ -91,11 +89,11 @@ class TemplateHandler(TemplateValidationHandler):
         await self.zabbix_export(templates)
         return templates
 
-    def template_validation(self, template) -> bool:
+    def object_validation(self, template) -> bool:
         """
         Validation steps to perform on a template before it is imported into Zabbix
         """
-        if not super().template_validation(template):
+        if not super().object_validation(template):
             return False
 
         zabbix_version = self._zabbix.get_server_version()
@@ -136,7 +134,7 @@ class TemplateHandler(TemplateValidationHandler):
                 logger.warning(f"Could load file {file} as a template")
                 continue
 
-            if not self.template_validation(template):
+            if not self.object_validation(template):
                 continue
 
             templates.append(template)
@@ -209,7 +207,7 @@ class TemplateHandler(TemplateValidationHandler):
                 logger.warning(f"Could not open to be deleted file: {file}")
                 continue
 
-            if not self.template_validation(template):
+            if not self.object_validation(template):
                 continue
 
             if template.uuid in imported_template_ids:
