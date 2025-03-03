@@ -1,4 +1,5 @@
 import logging
+from os import environ
 
 from zabbixci.settings import Settings
 
@@ -18,13 +19,25 @@ class CustomFormatter(logging.Formatter):
         if Settings.DEBUG or Settings.DEBUG_ALL:
             self.log_format = "%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s"
 
-        self.formats = {
-            logging.DEBUG: grey + self.log_format + reset,
-            logging.INFO: grey + self.log_format + reset,
-            logging.WARNING: yellow + self.log_format + reset,
-            logging.ERROR: red + self.log_format + reset,
-            logging.CRITICAL: bold_red + self.log_format + reset,
-        }
+        term = environ.get("TERM", "dumb")
+        no_color = environ.get("NO_COLOR", "false")
+
+        if term == "dumb" or no_color.lower() == "true":
+            self.formats = {
+                logging.DEBUG: self.log_format,
+                logging.INFO: self.log_format,
+                logging.WARNING: self.log_format,
+                logging.ERROR: self.log_format,
+                logging.CRITICAL: self.log_format,
+            }
+        else:
+            self.formats = {
+                logging.DEBUG: grey + self.log_format + reset,
+                logging.INFO: grey + self.log_format + reset,
+                logging.WARNING: yellow + self.log_format + reset,
+                logging.ERROR: red + self.log_format + reset,
+                logging.CRITICAL: bold_red + self.log_format + reset,
+            }
 
     def format(self, record):
         log_fmt = self.formats.get(record.levelno)
