@@ -277,16 +277,20 @@ class ZabbixCI:
         # Sync the file cache with the desired git state
         self._git.reset(current_revision, ResetMode.HARD)
 
-        imported_template_ids = template_handler.import_file_changes(changed_files)
+        imported_template_ids, failed_template_names = (
+            template_handler.import_file_changes(changed_files)
+        )
         deleted_template_names = template_handler.delete_file_changes(
-            deleted_files, imported_template_ids, template_objects
+            deleted_files,
+            [*imported_template_ids, *failed_template_names],
+            template_objects,
         )
 
         imported_images = image_handler.import_file_changes(
             changed_files, image_objects
         )
 
-        if len(imported_images) > 0:
+        if imported_images:
             # Update available image objects (only needed for Zabbix image id's)
             image_objects = image_handler.images_to_cache()
 
@@ -301,43 +305,64 @@ class ZabbixCI:
             deleted_files, imported_images, image_objects
         )
 
+        has_changes = bool(
+            imported_template_ids
+            or deleted_template_names
+            or imported_images
+            or deleted_image_names
+            or imported_icon_maps
+            or deleted_icon_map_names
+        )
+
         # Inform user about the changes
         if Settings.DRY_RUN:
+            self.logger.info("Dry run enabled, no changes will be made to Zabbix")
             self.logger.info(
-                "Dry run enabled, no changes will be made to Zabbix. "
-                f"Would have imported {len(imported_template_ids)} templates, deleted {len(deleted_template_names)} templates. "
-                f"Would have imported {len(imported_images)} images, deleted {len(deleted_image_names)} images. "
-                f"Would have imported {len(imported_icon_maps)} icon maps, deleted {len(deleted_icon_map_names)} icon maps."
+                "Would have imported %s templates, deleted %s templates",
+                len(imported_template_ids),
+                len(deleted_template_names),
+            )
+            self.logger.info(
+                "Would have imported %s images, deleted %s images",
+                len(imported_images),
+                len(deleted_image_names),
+            )
+            self.logger.info(
+                "Would have imported %s icon maps, deleted %s icon maps",
+                len(imported_icon_maps),
+                len(deleted_icon_map_names),
             )
         else:
-            if (
-                len(deleted_template_names) == 0
-                and len(imported_template_ids) == 0
-                and len(imported_images) == 0
-                and len(deleted_image_names) == 0
-                and len(imported_icon_maps) == 0
-            ):
-                self.logger.info("No changes detected, Zabbix is up to date")
-            else:
+            if has_changes:
                 self.logger.info(
-                    "Zabbix state has been synchronized. "
-                    f"Imported {len(imported_template_ids)} templates, deleted {len(deleted_template_names)} templates. "
-                    f"Imported {len(imported_images)} images, deleted {len(deleted_image_names)} images. "
-                    f"Imported {len(imported_icon_maps)} icon maps, deleted {len(deleted_icon_map_names)} icon maps."
+                    "Imported %s templates, deleted %s templates",
+                    len(imported_template_ids),
+                    len(deleted_template_names),
                 )
+                self.logger.info(
+                    "Imported %s images, deleted %s images",
+                    len(imported_images),
+                    len(deleted_image_names),
+                )
+                self.logger.info(
+                    "Imported %s icon maps, deleted %s icon maps",
+                    len(imported_icon_maps),
+                    len(deleted_icon_map_names),
+                )
+            else:
+                self.logger.info("No changes detected, Zabbix is up to date")
+
+        if failed_template_names:
+            self.logger.error(
+                "Failed to import the following templates: "
+                f"{', '.join(failed_template_names)}"
+            )
 
         # clean local changes
         self._git.clean()
-        return (
-            len(imported_template_ids) > 0
-            or len(deleted_template_names) > 0
-            or len(imported_images) > 0
-            or len(deleted_image_names) > 0
-            or len(imported_icon_maps) > 0
-            or len(deleted_icon_map_names) > 0
-        )
+        return has_changes
 
-    def generate_images(self, type: str) -> bool:
+    def generate_images(self, image_type: str) -> bool:
         """
         Generate icons/backgrounds from Zabbix and save them to the cache
         """
@@ -355,9 +380,9 @@ class ZabbixCI:
 
         image_handler = ImageHandler(self._zabbix)
 
-        if type == "background":
+        if image_type == "background":
             image_handler.generate_backgrounds()
-        elif type == "icon":
+        elif image_type == "icon":
             image_handler.generate_icons()
 
         if not self._git.is_empty:
@@ -394,7 +419,7 @@ class ZabbixCI:
 
             if not Settings.DRY_RUN:
                 # Generate commit message
-                self._git.commit(f"Generated {type}(s) from source files")
+                self._git.commit(f"Generated {image_type}(s) from source files")
                 self.logger.info(
                     f"Staged changes from generated images committed to {self._git.current_branch}"
                 )
