@@ -154,8 +154,8 @@ class TemplateHandler(TemplateValidationHandler):
         failed_templates: list[str] = []
 
         # Import the templates
-        for template in templates:
-            if not Settings.DRY_RUN:
+        if not Settings.DRY_RUN:
+            for template in templates:
                 try:
                     logger.info(
                         "Importing %s, level %d",
