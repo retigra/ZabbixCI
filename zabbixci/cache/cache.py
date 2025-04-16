@@ -8,7 +8,7 @@ from zabbixci.cache.filesystem import Filesystem
 
 class Cache(Filesystem):
     _logger = None
-    _instance: Self
+    _instance: Self = None
     _cache_dir: str
 
     def __new__(cls, *args, **kwargs):
