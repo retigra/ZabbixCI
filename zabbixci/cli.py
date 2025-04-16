@@ -1,15 +1,14 @@
 import argparse
 import asyncio
 import logging
-import logging.config
-from sys import argv, version_info
+from sys import argv, exit, version_info
 from typing import Sequence
 
 from zabbixci._version import __version__
 from zabbixci.cache.cache import Cache
 from zabbixci.cache.cleanup import Cleanup
 from zabbixci.exceptions import BaseZabbixCIException
-from zabbixci.logging import CustomFormatter
+from zabbixci.logging import CustomFormatter, StatusCodeHandler
 from zabbixci.settings import Settings
 from zabbixci.zabbixci import ZabbixCI
 
@@ -419,7 +418,7 @@ def parse_cli(custom_args: list[str] | None = None):
         "REMOTE": "********",
     }
 
-    logger.debug(f"Settings: {settings_debug}")
+    logger.debug("Settings: %s", settings_debug)
 
     Cache(Settings.CACHE_PATH)
 
@@ -431,6 +430,11 @@ def parse_cli(custom_args: list[str] | None = None):
 
 async def run_zabbixci(action: str):
     zabbixci = ZabbixCI()
+
+    status_handler = StatusCodeHandler()
+    logging.getLogger().addHandler(status_handler)
+
+    exit_code = 0
 
     try:
         if action == "version":
@@ -469,16 +473,28 @@ async def run_zabbixci(action: str):
 
     except KeyboardInterrupt:
         logger.error("Interrupted by user")
+        exit_code = 130
     except SystemExit as e:
-        logger.debug(f"Script exited with code {e.code}")
+        logger.debug("Script exited with code %s", e.code)
+        exit_code = int(e.code or 1)
     except BaseZabbixCIException as e:
         logger.error(e)
+        exit_code = 1
     except Exception:
         logger.error("Unexpected error:", exc_info=True)
+        exit_code = 129
     finally:
         if zabbixci._zabbix:
             await zabbixci._zabbix.zapi.logout()
             await zabbixci._zabbix.zapi.client_session.close()
+
+        # No exception was raised, return status code from logger
+        if exit_code == 0:
+            exit_code = status_handler.status_code
+
+        if exit_code != 0:
+            logger.error("ZabbixCI run completed with errors")
+        exit(exit_code)
 
 
 if __name__ == "__main__":
