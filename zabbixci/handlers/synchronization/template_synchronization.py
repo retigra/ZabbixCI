@@ -3,6 +3,7 @@ import logging
 from io import StringIO
 
 from ruamel.yaml import YAML
+from zabbix_utils import APIRequestError, ProcessingError
 
 from zabbixci.assets.template import Template
 from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
@@ -34,7 +35,7 @@ class TemplateHandler(TemplateValidationHandler):
         failed_exports = []
 
         for batchIndex, batch in enumerate(batches):
-            logger.info(f"Processing batch {batchIndex + 1}/{len(batches)}")
+            logger.info("Processing batch %d/%d", batchIndex + 1, len(batches))
             coros = []
             for t in batch:
                 coros.append(self._zabbix.export_template_async([t["templateid"]]))
@@ -43,7 +44,7 @@ class TemplateHandler(TemplateValidationHandler):
 
             for index, response in enumerate(responses):
                 if isinstance(response, BaseException):
-                    logger.error(f"Error exporting template: {response}")
+                    logger.error("Error exporting template: %s", response)
 
                     # Retry the export
                     failed_exports.append(batch[index])
@@ -61,11 +62,11 @@ class TemplateHandler(TemplateValidationHandler):
                     continue
 
                 zabbix_template.save()
-                logger.info(f"Exported Zabbix template: {zabbix_template.name}")
+                logger.info("Exported Zabbix template: %s", zabbix_template.name)
 
         if len(failed_exports):
             logger.warning(
-                f"Failed to export {len(failed_exports)} templates, retrying"
+                "Failed to export %d templates, retrying", len(failed_exports)
             )
             await self.zabbix_export(failed_exports)
 
@@ -83,8 +84,8 @@ class TemplateHandler(TemplateValidationHandler):
         )
         templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP], search)
 
-        logger.info(f"Found {len(templates)} templates in Zabbix")
-        logger.debug(f"Found Zabbix templates: {[t['host'] for t in templates]}")
+        logger.info("Found %d templates in Zabbix", len(templates))
+        logger.debug("Found Zabbix templates: %s", [t["host"] for t in templates])
 
         await self.zabbix_export(templates)
         return templates
@@ -104,25 +105,30 @@ class TemplateHandler(TemplateValidationHandler):
             != zabbix_version.split(".")[0:2]
         ):
             logger.warning(
-                f"Template {template.name}: {template.zabbix_version} must match Zabbix release {'.'.join(zabbix_version.split('.')[0:2])}"
+                "Template %s: %s must match Zabbix release %s",
+                template.name,
+                template.zabbix_version,
+                ".".join(zabbix_version.split(".")[0:2]),
             )
             return False
 
         return True
 
-    def import_file_changes(self, changed_files: list[str]) -> list[str]:
+    def import_file_changes(
+        self, changed_files: list[str]
+    ) -> tuple[list[str], list[str]]:
         """
         Import templates into Zabbix based on changed files.
         Changes are parsed and validated before importing.
 
         :param changed_files: List of changed files
 
-        :return: List of changed template UUIDs
+        :return: Tuple of imported template UUIDs and failed template UUIDs
         """
         templates: list[Template] = []
 
         if Settings.SYNC_TEMPLATES is False:
-            return []
+            return ([], [])
 
         for file in changed_files:
             if not self.read_validation(file):
@@ -131,50 +137,59 @@ class TemplateHandler(TemplateValidationHandler):
             template = Template.open(file)
 
             if not template or not template.is_template:
-                logger.warning(f"Could load file {file} as a template")
+                logger.warning("Could load file %s as a template", file)
                 continue
 
             if not self.object_validation(template):
                 continue
 
             templates.append(template)
-            logger.info(f"Detected change in template: {template.name}")
+            logger.info("Detected change in template: %s", template.name)
 
         # Group templates by level
         templates = sorted(templates, key=lambda tl: tl.level(templates))
 
-        failed_templates: list[Template] = []
+        retry_templates: list[Template] = []
+        success_templates: list[str] = []
+        failed_templates: list[str] = []
 
         # Import the templates
-        for template in templates:
-            if not Settings.DRY_RUN:
+        if not Settings.DRY_RUN:
+            for template in templates:
                 try:
                     logger.info(
-                        f"Importing {template.name}, level {template.level(templates)}"
+                        "Importing %s, level %d",
+                        template.name,
+                        template.level(templates),
                     )
                     self._zabbix.import_template(template)
-                except Exception as e:
+
+                    success_templates.extend(template.template_ids)
+                except (APIRequestError, ProcessingError) as e:
                     logger.warning(
-                        f"Error importing template {template.name}, will try to import later"
+                        "Error importing template %s, will try to import later",
+                        template.name,
                     )
-                    logger.debug(f"Error details: {e}")
-                    failed_templates.append(template)
+                    logger.debug("Error details: %s", e)
+                    retry_templates.append(template)
 
-        if len(failed_templates):
-            for template in failed_templates:
+        if retry_templates:
+            for template in retry_templates:
                 try:
                     logger.info(
-                        f"Importing {template.name}, level {template.level(templates)} after previous failure"
+                        "Importing %s, level %d after previous failure",
+                        template.name,
+                        template.level(templates),
                     )
                     self._zabbix.import_template(template)
-                except Exception as e:
-                    logger.error(f"Error importing template {template}: {e}")
 
-        return [
-            template_id
-            for template in templates
-            for template_id in template.template_ids
-        ]
+                    success_templates.extend(template.template_ids)
+                except (APIRequestError, ProcessingError) as e:
+                    logger.error("Error importing template %s: %s", template, e)
+
+                    failed_templates.extend(template.template_ids)
+
+        return (success_templates, failed_templates)
 
     def delete_file_changes(
         self,
@@ -204,7 +219,7 @@ class TemplateHandler(TemplateValidationHandler):
             template = Template.open(file)
 
             if not template or not template.is_template:
-                logger.warning(f"Could not open to be deleted file: {file}")
+                logger.warning("Could not open to be deleted file: %s", file)
                 continue
 
             if not self.object_validation(template):
@@ -212,15 +227,16 @@ class TemplateHandler(TemplateValidationHandler):
 
             if template.uuid in imported_template_ids:
                 logger.debug(
-                    f"Template {template.name} is being imported under a different name or path, skipping deletion"
+                    "Template %s is being imported under a different name or path, skipping deletion",
+                    template.name,
                 )
                 continue
 
             deletion_queue.append(template.name)
-            logger.info(f"Added {template.name} to deletion queue")
+            logger.info("Added %s to deletion queue", template.name)
 
         # Delete templates in deletion queue
-        if len(deletion_queue):
+        if deletion_queue:
             template_ids = [
                 # Get template IDs from Zabbix
                 t["templateid"]
@@ -229,7 +245,7 @@ class TemplateHandler(TemplateValidationHandler):
                 )
             ]
 
-            logger.info(f"Deleting {len(template_ids)} templates from Zabbix")
+            logger.info("Deleting %d templates from Zabbix", len(template_ids))
 
             if len(template_ids):
                 if not Settings.DRY_RUN:

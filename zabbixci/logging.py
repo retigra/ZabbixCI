@@ -16,6 +16,8 @@ class CustomFormatter(logging.Formatter):
     formats: dict[str, str] = {}
 
     def __init__(self):
+        super().__init__()
+
         if Settings.DEBUG or Settings.DEBUG_ALL:
             self.log_format = "%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s"
 
@@ -43,3 +45,15 @@ class CustomFormatter(logging.Formatter):
         log_fmt = self.formats.get(record.levelno)
         formatter = logging.Formatter(log_fmt, "%Y-%m-%d %H:%M:%S")
         return formatter.format(record)
+
+
+class StatusCodeHandler(logging.Handler):
+    """
+    Log handler that sets a status code based on the received logs
+    """
+
+    status_code: int = 0
+
+    def emit(self, record):
+        if record.levelno >= logging.ERROR:
+            self.status_code = 1
