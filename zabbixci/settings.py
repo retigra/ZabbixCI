@@ -18,6 +18,7 @@ class Settings:
     ROOT_TEMPLATE_GROUP: str = "Templates"
     GIT_AUTHOR_NAME: str = "ZabbixCI"
     GIT_AUTHOR_EMAIL: str = "zabbixci@localhost"
+    GIT_COMMIT_MESSAGE: str | None = None
     PULL_BRANCH: str = "main"
     PUSH_BRANCH: str = "main"
     TEMPLATE_PREFIX_PATH: str = "templates"

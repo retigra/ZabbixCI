@@ -193,7 +193,9 @@ class ZabbixCI:
 
             if not Settings.DRY_RUN:
                 # Generate commit message
-                self._git.commit(f"Committed Zabbix state from {host}")
+                self._git.commit(
+                    Settings.GIT_COMMIT_MESSAGE or f"Committed Zabbix state from {host}"
+                )
                 self.logger.info(
                     f"Staged changes from {host} committed to {self._git.current_branch}"
                 )
