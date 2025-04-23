@@ -104,3 +104,7 @@ Keep in mind that that foreign templates might not match your configured
 `root_template_group`, in which case these templates would not be exported from
 your Zabbix instance on the next `push`. Making the previously imported
 templates orphaned by ZabbixCI.
+
+## Tutorials
+
+For practical guides on using ZabbixCI, check out our [tutorials](https://github.com/retigra/ZabbixCI/tree/main/docs/tutorials) section.
