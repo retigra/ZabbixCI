@@ -10,8 +10,8 @@ This video by [@mcbrineellis](https://www.github.com/mcbrineellis) goes into set
 
 Click the thumbnail to watch the video:
 
-| [![Automate and Centralize Zabbix Templates with ZabbixCI](https://img.youtube.com/vi/FSdetMaVXP0/default.jpg)](https://youtu.be/FSdetMaVXP0) | Automate and Centralize Zabbix Templates with ZabbixCI |
-| --- | --- |
+| [![Automate and Centralize Zabbix Templates with ZabbixCI](https://img.youtube.com/vi/FSdetMaVXP0/default.jpg)](https://youtu.be/FSdetMaVXP0) | [***Automate and Centralize Zabbix Templates with ZabbixCI*** <br> youtube.com](https://youtu.be/FSdetMaVXP0) |
+| --- | :--- |
 
 
 
