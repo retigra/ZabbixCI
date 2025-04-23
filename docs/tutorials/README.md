@@ -9,6 +9,7 @@ We are grateful for the community around Zabbix and ZabbixCI for any contributio
 This video by [@mcbrineellis](https://www.github.com/mcbrineellis) goes into setting up two Zabbix instances and synchronizing templates between the two using ZabbixCI. Connor also goes into using gitlab to merge new templates from `dev` to `prod` git branches.
 
 Click the thumbnail to watch the video:
+
 [![Automate and Centralize Zabbix Templates with ZabbixCI](https://img.youtube.com/vi/FSdetMaVXP0/default.jpg)](https://youtu.be/FSdetMaVXP0)
 
 
