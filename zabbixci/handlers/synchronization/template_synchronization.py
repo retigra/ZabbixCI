@@ -172,6 +172,11 @@ class TemplateHandler(TemplateValidationHandler):
                     )
                     logger.debug("Error details: %s", e)
                     retry_templates.append(template)
+        else:
+            # Dry-run is enabled, don't import but increment success count
+            success_templates.extend(
+                [t.template_ids for t in templates if t.template_ids]
+            )
 
         if retry_templates:
             for template in retry_templates:
