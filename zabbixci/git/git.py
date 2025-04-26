@@ -1,9 +1,8 @@
 import logging
 import os
 
-import pygit2
-from pygit2 import Diff  # Add this import
-from pygit2.enums import MergeAnalysis
+from pygit2 import Diff, RemoteCallbacks, Signature, clone_repository
+from pygit2.enums import CheckoutStrategy, MergeAnalysis
 from pygit2.repository import Repository
 
 from zabbixci.cache.cache import Cache
@@ -15,19 +14,20 @@ logger = logging.getLogger(__name__)
 
 class Git:
     _repository: Repository
-    author = pygit2.Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
+    author: Signature
     _git_cb = None
 
-    def __init__(self, path: str, callbacks: pygit2.RemoteCallbacks):
+    def __init__(self, path: str, callbacks: RemoteCallbacks):
         """
         Initialize the git repository
         """
         self._git_cb = callbacks
+        self.author = Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
 
         if not os.path.exists(path):
             Cache.makedirs(path)
 
-            self._repository = pygit2.clone_repository(
+            self._repository = clone_repository(
                 Settings.REMOTE,
                 path,
                 callbacks=self._git_cb,
@@ -99,14 +99,14 @@ class Git:
         Switch to a branch, if the branch does not exist, create it
         """
         if not self._repository.branches.local.get(branch):
-            logger.debug(f"Branch {branch} does not exist, creating")
+            logger.debug("Branch %s does not exist, creating", branch)
             self.create_branch(branch)
 
         local_branch = self._repository.branches.local[branch]
 
         self._repository.checkout(local_branch)
         self._repository.head.set_target(local_branch.target)
-        logger.debug(f"Switched to branch {branch}")
+        logger.debug("Switched to branch %s", branch)
 
     def create_branch(self, branch: str):
         """
@@ -117,7 +117,7 @@ class Git:
                 branch, self._repository.head.peel(None)
             )
         except Exception as e:
-            logger.error(f"Failed to create branch: {e}")
+            logger.error("Failed to create branch: %s", e)
 
     def add_all(self):
         """
@@ -174,7 +174,7 @@ class Git:
         """
         Clean the repository from untracked files
         """
-        self._repository.checkout_head(strategy=pygit2.GIT_CHECKOUT_FORCE)
+        self._repository.checkout_head(strategy=CheckoutStrategy.FORCE)
         self._repository.state_cleanup()
 
         # Any remaining untracked files will be removed
@@ -240,7 +240,7 @@ class Git:
             try:
                 self._repository.head.set_target(remote_id)
             except Exception as e:
-                logger.error(f"Failed to fast-forward: {e}")
+                logger.error("Failed to fast-forward: %s", e)
 
         if merge_result & MergeAnalysis.NORMAL:
             self._repository.merge(remote_id)
