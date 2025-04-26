@@ -227,6 +227,11 @@ git_author_name: "ZabbixCI"
 # Default:
 git_author_email: "zabbixci@localhost"
 
+### Option: git_commit_message
+# Custom commit message to use for Git commits.
+# Mandatory: no
+# git_commit_message: "your custom commit message"
+
 #### ZabbixCI Advanced Configuration ####
 
 ### Option: verbose
