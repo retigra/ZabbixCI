@@ -1,68 +1,83 @@
 # ZabbixCI Quickstart
-For this tutorial, you will need to have a Zabbix server and a remote Git repository set up.
-We will be making a backup of your Zabbix templates using ZabbixCI and pushing them to your Git repository.
 
-After your templates are pushed to Git, we will make changes to the templates to show how ZabbixCI can sync these changes for you.
+For this tutorial, you will need to have a Zabbix server and a remote Git
+repository set up. We will be making a backup of your Zabbix templates using
+ZabbixCI and pushing them to your Git repository.
+
+After your templates are pushed to Git, we will make changes to the templates to
+show how ZabbixCI can sync these changes for you.
 
 ## Prerequisites
+
 You will need the following things setup and working:
 
-* A computer with a working [Python3](https://realpython.com/installing-python/) environment (can be your Zabbix Server!)
-* A working [Zabbix server](https://www.zabbix.com/download)
-* A [Zabbix API token](https://www.zabbix.com/documentation/7.0/en/manual/web_interface/frontend_sections/users/api_tokens)
-* A remote Git repository (e.g. [Github](https://github.com) or [GitLab](https://gitlab.com))
-* SSH access to Git ([Github](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) | [Gitlab](https://docs.gitlab.com/ee/user/ssh.html))
-
+- A computer with a working [Python3](https://realpython.com/installing-python/)
+  environment (can be your Zabbix Server!)
+- A working [Zabbix server](https://www.zabbix.com/download)
+- A
+  [Zabbix API token](https://www.zabbix.com/documentation/7.0/en/manual/web_interface/frontend_sections/users/api_tokens)
+- A remote Git repository (e.g. [Github](https://github.com) or
+  [GitLab](https://gitlab.com))
+- SSH access to Git
+  ([Github](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
+  | [Gitlab](https://docs.gitlab.com/ee/user/ssh.html))
 
 ## Install ZabbixCI
 
-To install ZabbixCI, use the following command, this will install ZabbixCI and all it's dependencies:
+To install ZabbixCI, use the following command, this will install ZabbixCI and
+all it's dependencies:
 
 `pip install zabbixci`
 
-> [!IMPORTANT] 
-> Some Operating Systems do not allow you to install Python packages directly via `pip`.
-> If this is the case, you can use a Python [virtual environment](https://docs.python.org/3/tutorial/venv.html) to run ZabbixCI. 
+> [!IMPORTANT]
+> Some Operating Systems do not allow you to install Python packages directly
+> via `pip`. If this is the case, you can use a Python
+> [virtual environment](https://docs.python.org/3/tutorial/venv.html) to run
+> ZabbixCI.
 
 If for some reason the installation fails with the following error:
+
 ```console
 fatal error: git2.h: No such file or directory
 ```
 
-Please make sure to install any [prerequisites for pygit2](https://www.pygit2.org/install.html) as well.
+Please make sure to install any
+[prerequisites for pygit2](https://www.pygit2.org/install.html) as well.
 
 You should now be able to run ZabbixCI:
+
 ```console
 user@localhost:~$ zabbixci
-usage: zabbixci [-h] [-c CONFIG] [--root-template-group ROOT_TEMPLATE_GROUP] [--template-prefix-path TEMPLATE_PREFIX_PATH] [--image-prefix-path IMAGE_PREFIX_PATH]
-                [--template-whitelist TEMPLATE_WHITELIST] [--template-blacklist TEMPLATE_BLACKLIST] [--cache-path CACHE_PATH] [--dry-run [DRY_RUN]] [--vendor VENDOR]   
-                [--set-version [SET_VERSION]] [--sync-templates [SYNC_TEMPLATES]] [--sync-icons [SYNC_ICONS]] [--sync-backgrounds [SYNC_BACKGROUNDS]]
-                [--image-whitelist IMAGE_WHITELIST] [--image-blacklist IMAGE_BLACKLIST] [--icon-sizes ICON_SIZES] [--background-sizes BACKGROUND_SIZES]
-                [--zabbix-url ZABBIX_URL] [--zabbix-user ZABBIX_USER] [--zabbix-password ZABBIX_PASSWORD] [--zabbix-token ZABBIX_TOKEN] [--remote REMOTE]
-                [--pull-branch PULL_BRANCH] [--push-branch PUSH_BRANCH] [--git-username GIT_USERNAME] [--git-password GIT_PASSWORD] [--git-pubkey GIT_PUBKEY]
-                [--git-privkey GIT_PRIVKEY] [--git-keypassphrase GIT_KEYPASSPHRASE] [-v [VERBOSE]] [-vv [DEBUG]] [-vvv [DEBUG_ALL]] [--batch-size BATCH_SIZE]
-                [--ignore-template-version [IGNORE_TEMPLATE_VERSION]] [--insecure-ssl-verify [INSECURE_SSL_VERIFY]] [--ca-bundle CA_BUNDLE]
-                [--regex-matching [REGEX_MATCHING]]
+usage: zabbixci [-h] [-c CONFIG] [--root-template-group ROOT_TEMPLATE_GROUP] [--template-prefix-path TEMPLATE_PREFIX_PATH] [--image-prefix-path IMAGE_PREFIX_PATH] [--icon-map-prefix-path ICON_MAP_PREFIX_PATH] [--template-whitelist TEMPLATE_WHITELIST] [--template-blacklist TEMPLATE_BLACKLIST] [--image-whitelist IMAGE_WHITELIST]
+                [--image-blacklist IMAGE_BLACKLIST] [--icon-map-whitelist ICON_MAP_WHITELIST] [--icon-map-blacklist ICON_MAP_BLACKLIST] [--cache-path CACHE_PATH] [--dry-run [DRY_RUN]] [--vendor VENDOR] [--set-version [SET_VERSION]] [--sync-templates [SYNC_TEMPLATES]] [--sync-icons [SYNC_ICONS]] [--sync-backgrounds [SYNC_BACKGROUNDS]]
+                [--sync-icon-maps [SYNC_ICON_MAPS]] [--icon-sizes ICON_SIZES] [--background-sizes BACKGROUND_SIZES] [--zabbix-url ZABBIX_URL] [--zabbix-user ZABBIX_USER] [--zabbix-password ZABBIX_PASSWORD] [--zabbix-token ZABBIX_TOKEN] [--remote REMOTE] [--pull-branch PULL_BRANCH] [--push-branch PUSH_BRANCH] [--git-username GIT_USERNAME]
+                [--git-password GIT_PASSWORD] [--git-pubkey GIT_PUBKEY] [--git-privkey GIT_PRIVKEY] [--git-keypassphrase GIT_KEYPASSPHRASE] [--git-author-name GIT_AUTHOR_NAME] [--git-author-email GIT_AUTHOR_EMAIL] [-m GIT_COMMIT_MESSAGE] [-v [VERBOSE]] [-vv [DEBUG]] [-vvv [DEBUG_ALL]] [--batch-size BATCH_SIZE]
+                [--ignore-template-version [IGNORE_TEMPLATE_VERSION]] [--insecure-ssl-verify [INSECURE_SSL_VERIFY]] [--ca-bundle CA_BUNDLE] [--regex-matching [REGEX_MATCHING]]
                 {push,pull,clearcache,version,generate-icons,generate-backgrounds}
 zabbixci: error: the following arguments are required: action
 user@localhost:~$
 ```
 
-Using `zabbixci --help` will show more detailed output on the commandline arguments you can use.
+Using `zabbixci --help` will show more detailed output on the commandline
+arguments you can use.
 
 ## Configuring ZabbixCI
 
-ZabbixCI can be configured through commandline arguments, environment variables or a [configuration file](https://github.com/retigra/ZabbixCI/blob/main/docs/config.yaml).
+ZabbixCI can be configured through commandline arguments, environment variables
+or a
+[configuration file](https://github.com/retigra/ZabbixCI/blob/main/docs/config.yaml).
 In this tutorial we will use a file to configure the needed parameters.
 
-First, create a workingdir for ZabbixCI. This will be used as a local filesystem cache location as well as the location of our configuration:
+First, create a workingdir for ZabbixCI. This will be used as a local filesystem
+cache location as well as the location of our configuration:
 
 ```console
 user@localhost:~$ mkdir zabbixci; cd zabbixci
 user@localhost:~/zabbixci$
 ```
 
-Now, create a `config.yaml` file in this directory with your favorite editor and the following contents (replace the values for your own settings):
+Now, create a `config.yaml` file in this directory with your favorite editor and
+the following contents (replace the values for your own settings):
 
 ```yaml
 # Zabbix API connection parameters
@@ -84,15 +99,19 @@ git_privkey: /path/to/your/ssh_priv.key
 #git_keypassphrase: YOURPASSPHRASE
 ```
 
-> [!TIP] 
-> If you've loaded in your SSH key via ssh-agent, you don't need to supply the `git_*` parameters in the config file.
-> Alternatively, you can use HTTP(S) authentication as well. See the [example config file](https://raw.githubusercontent.com/retigra/ZabbixCI/refs/heads/main/docs/config.yaml) to see all of the allowed options.
+> [!TIP]
+> If you've loaded in your SSH key via ssh-agent, you don't need to supply the
+> `git_*` parameters in the config file. Alternatively, you can use HTTP(S)
+> authentication as well. See the
+> [example config file](https://raw.githubusercontent.com/retigra/ZabbixCI/refs/heads/main/docs/config.yaml)
+> to see all of the allowed options.
 
 ## Pushing your templates to Git
 
-If everything is configured, we should now be able to perform a dry-run to see if everything is working as expected.
-The dry-run will not change anything in Zabbix or Git and can be used to verify any actions that would normally be performed by ZabbixCI.
-The output below is shortened for brevity:
+If everything is configured, we should now be able to perform a dry-run to see
+if everything is working as expected. The dry-run will not change anything in
+Zabbix or Git and can be used to verify any actions that would normally be
+performed by ZabbixCI. The output below is shortened for brevity:
 
 ```console
 user@localhost:~/zabbixci$ zabbixci push -v --config ./config.yaml --dry-run
@@ -137,9 +156,10 @@ Now, your templates should show up in your Git repository!
 
 ## Make a change in Zabbix
 
-Now we want to make a change to one of the templates in Zabbix and push this change to Git.
-Make a minor change to one of your Templates. In our case we added some text to the `description` field of the
-template `HP iLO by SNMP`. Afterwards, rerun the `push` command:
+Now we want to make a change to one of the templates in Zabbix and push this
+change to Git. Make a minor change to one of your Templates. In our case we
+added some text to the `description` field of the template `HP iLO by SNMP`.
+Afterwards, rerun the `push` command:
 
 ```console
 user@localhost:~/zabbixci$ zabbixci push -v --config ./config.yaml
@@ -156,20 +176,22 @@ user@localhost:~/zabbixci$ zabbixci push -v --config ./config.yaml
 user@localhost:~/zabbixci$
 ```
 
-As you can see, a change was detected and pushed to Git.
-You can now see the diff in Git:
-![image](pics/hp_ilo_change.png)
+As you can see, a change was detected and pushed to Git. You can now see the
+diff in Git: ![image](pics/hp_ilo_change.png)
 
-> [!TIP] 
-> We recommend using a development branch to develop and maintain templates within Git.
-> Once the templates have been tested properly, you can merge the changes back to your main branch.
-> See ['Branches in a nutshell'](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell) on working with Git branches.
-> You can use the options `push_branch` and `pull_branch` to specify with branches ZabbixCI should use.
+> [!TIP]
+> We recommend using a development branch to develop and maintain templates
+> within Git. Once the templates have been tested properly, you can merge the
+> changes back to your main branch. See
+> ['Branches in a nutshell'](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell)
+> on working with Git branches. You can use the options `push_branch` and
+> `pull_branch` to specify with branches ZabbixCI should use.
 
 ## Make a change in Git
 
-Let's make a change in Git and import the change in Zabbix.
-In this case we will update the `vendor` and `version` fields in the template `Linux by Zabbix agent`:
+Let's make a change in Git and import the change in Zabbix. In this case we will
+update the `vendor` and `version` fields in the template
+`Linux by Zabbix agent`:
 
 ![image](pics/linux_change.png)
 
@@ -193,10 +215,12 @@ Zabbix will now have the updated template:
 
 ![image](pics/zabbix_template_version.png)
 
-
 ## Conclusion
 
-Congratulations, in this tutorial you've learned the basic workings of ZabbixCI! 🎉
+Congratulations, in this tutorial you've learned the basic workings of ZabbixCI!
+🎉
 
-Please refer to the [docs](https://github.com/retigra/ZabbixCI/tree/main/docs) for further information if needed
-or start a [discussion](https://github.com/retigra/ZabbixCI/discussions/new?category=q-a) if you have any questions on ZabbixCI usage and configuration.
+Please refer to the [docs](https://github.com/retigra/ZabbixCI/tree/main/docs)
+for further information if needed or start a
+[discussion](https://github.com/retigra/ZabbixCI/discussions/new?category=q-a)
+if you have any questions on ZabbixCI usage and configuration.
