@@ -295,6 +295,11 @@ def read_args(args: list[str] | None = None):
         "--git-author-email",
         help="Git author email",
     )
+    git_group.add_argument(
+        "-m",
+        "--git-commit-message",
+        help="Git commit message",
+    )
 
     zabbixci_advanced_group = method_parser.add_argument_group("ZabbixCI advanced")
 
