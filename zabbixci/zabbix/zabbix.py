@@ -107,6 +107,10 @@ class Zabbix:
                         "updateExisting": True,
                         "deleteMissing": True,
                     },
+                    "host_groups": {
+                        "createMissing": True,
+                        "updateExisting": True,
+                    },
                     "httptests": {
                         "createMissing": True,
                         "updateExisting": True,
