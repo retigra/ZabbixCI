@@ -82,7 +82,11 @@ class Zabbix:
                             "template_groups": {
                                 "createMissing": True,
                                 "updateExisting": True,
-                            }
+                            },
+                            "host_groups": {
+                                "createMissing": True,
+                                "updateExisting": True,
+                            },
                         }
                         if self.api_version >= 7.0
                         else {
@@ -106,10 +110,6 @@ class Zabbix:
                         "createMissing": True,
                         "updateExisting": True,
                         "deleteMissing": True,
-                    },
-                    "host_groups": {
-                        "createMissing": True,
-                        "updateExisting": True,
                     },
                     "httptests": {
                         "createMissing": True,
