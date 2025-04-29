@@ -7,8 +7,6 @@ permissions:
 on:
   release:
     types: [published]
-  pull_request:
-    types: [opened, synchronize]
 
 jobs:
   build:
