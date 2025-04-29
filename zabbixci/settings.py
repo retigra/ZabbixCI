@@ -50,6 +50,8 @@ class Settings:
     REGEX_MATCHING: bool = False
     ICON_MAP_WHITELIST: str = ""
     ICON_MAP_BLACKLIST: str = ""
+    ZABBIX_KWARGS: dict = {}
+    GIT_KWARGS: dict = {}
 
     @classmethod
     def get_template_whitelist(cls):
@@ -88,6 +90,10 @@ class Settings:
     @classmethod
     def from_env(cls):
         for key, value in cls.__dict__.items():
+            # Dict values can only be set in the yaml config file
+            if isinstance(value, dict):
+                continue
+
             if key in os.environ:
                 if isinstance(value, bool):
                     setattr(cls, key, os.environ[key].lower() == "true")
