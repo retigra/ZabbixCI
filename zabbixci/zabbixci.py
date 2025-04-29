@@ -46,6 +46,7 @@ class ZabbixCI:
             url=self._settings.ZABBIX_URL,
             validate_certs=not self._settings.INSECURE_SSL_VERIFY,
             ssl_context=self._ssl_context,
+            **self._settings.ZABBIX_KWARGS,
         )
 
         if self._settings.ZABBIX_USER and self._settings.ZABBIX_PASSWORD:
@@ -70,7 +71,7 @@ class ZabbixCI:
         if git_cb is None:
             git_cb = GitCredentials().create_git_callback()
 
-        self._git = Git(self._settings.CACHE_PATH, git_cb)
+        self._git = Git(self._settings.CACHE_PATH, git_cb, **self._settings.GIT_KWARGS)
 
     async def push(self) -> bool:
         """
