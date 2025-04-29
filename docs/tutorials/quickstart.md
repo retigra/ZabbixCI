@@ -48,11 +48,12 @@ You should now be able to run ZabbixCI:
 
 ```console
 user@localhost:~$ zabbixci
-usage: zabbixci [-h] [-c CONFIG] [--root-template-group ROOT_TEMPLATE_GROUP] [--template-prefix-path TEMPLATE_PREFIX_PATH] [--image-prefix-path IMAGE_PREFIX_PATH] [--icon-map-prefix-path ICON_MAP_PREFIX_PATH] [--template-whitelist TEMPLATE_WHITELIST] [--template-blacklist TEMPLATE_BLACKLIST] [--image-whitelist IMAGE_WHITELIST]
-                [--image-blacklist IMAGE_BLACKLIST] [--icon-map-whitelist ICON_MAP_WHITELIST] [--icon-map-blacklist ICON_MAP_BLACKLIST] [--cache-path CACHE_PATH] [--dry-run [DRY_RUN]] [--vendor VENDOR] [--set-version [SET_VERSION]] [--sync-templates [SYNC_TEMPLATES]] [--sync-icons [SYNC_ICONS]] [--sync-backgrounds [SYNC_BACKGROUNDS]]
-                [--sync-icon-maps [SYNC_ICON_MAPS]] [--icon-sizes ICON_SIZES] [--background-sizes BACKGROUND_SIZES] [--zabbix-url ZABBIX_URL] [--zabbix-user ZABBIX_USER] [--zabbix-password ZABBIX_PASSWORD] [--zabbix-token ZABBIX_TOKEN] [--remote REMOTE] [--pull-branch PULL_BRANCH] [--push-branch PUSH_BRANCH] [--git-username GIT_USERNAME]
-                [--git-password GIT_PASSWORD] [--git-pubkey GIT_PUBKEY] [--git-privkey GIT_PRIVKEY] [--git-keypassphrase GIT_KEYPASSPHRASE] [--git-author-name GIT_AUTHOR_NAME] [--git-author-email GIT_AUTHOR_EMAIL] [-m GIT_COMMIT_MESSAGE] [-v [VERBOSE]] [-vv [DEBUG]] [-vvv [DEBUG_ALL]] [--batch-size BATCH_SIZE]
-                [--ignore-template-version [IGNORE_TEMPLATE_VERSION]] [--insecure-ssl-verify [INSECURE_SSL_VERIFY]] [--ca-bundle CA_BUNDLE] [--regex-matching [REGEX_MATCHING]]
+usage: zabbixci [-h] [-c CONFIG] [--root-template-group ROOT_TEMPLATE_GROUP] [--template-prefix-path TEMPLATE_PREFIX_PATH] [--image-prefix-path IMAGE_PREFIX_PATH] [--icon-map-prefix-path ICON_MAP_PREFIX_PATH] [--template-whitelist TEMPLATE_WHITELIST] [--template-blacklist TEMPLATE_BLACKLIST]
+                [--image-whitelist IMAGE_WHITELIST] [--image-blacklist IMAGE_BLACKLIST] [--icon-map-whitelist ICON_MAP_WHITELIST] [--icon-map-blacklist ICON_MAP_BLACKLIST] [--cache-path CACHE_PATH] [--dry-run [DRY_RUN]] [--vendor VENDOR] [--set-version [SET_VERSION]]
+                [--sync-templates [SYNC_TEMPLATES]] [--sync-icons [SYNC_ICONS]] [--sync-backgrounds [SYNC_BACKGROUNDS]] [--sync-icon-maps [SYNC_ICON_MAPS]] [--icon-sizes ICON_SIZES] [--background-sizes BACKGROUND_SIZES] [--zabbix-url ZABBIX_URL] [--zabbix-user ZABBIX_USER]
+                [--zabbix-password ZABBIX_PASSWORD] [--zabbix-token ZABBIX_TOKEN] [--remote REMOTE] [--pull-branch PULL_BRANCH] [--push-branch PUSH_BRANCH] [--git-username GIT_USERNAME] [--git-password GIT_PASSWORD] [--git-pubkey GIT_PUBKEY] [--git-privkey GIT_PRIVKEY]
+                [--git-keypassphrase GIT_KEYPASSPHRASE] [--git-author-name GIT_AUTHOR_NAME] [--git-author-email GIT_AUTHOR_EMAIL] [-m GIT_COMMIT_MESSAGE] [-v [VERBOSE]] [-vv [DEBUG]] [-vvv [DEBUG_ALL]] [--batch-size BATCH_SIZE] [--ignore-template-version [IGNORE_TEMPLATE_VERSION]]
+                [--skip-version-check [SKIP_VERSION_CHECK]] [--insecure-ssl-verify [INSECURE_SSL_VERIFY]] [--ca-bundle CA_BUNDLE] [--regex-matching [REGEX_MATCHING]]
                 {push,pull,clearcache,version,generate-icons,generate-backgrounds}
 zabbixci: error: the following arguments are required: action
 user@localhost:~$
