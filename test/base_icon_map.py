@@ -30,6 +30,7 @@ class BaseIconMap:
         Settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
         Settings.REMOTE = DEV_GIT_REMOTE
         Settings.REGEX_MATCHING = False
+        Settings.SKIP_VERSION_CHECK = True
         Settings.SET_VERSION = True
 
         Settings.SYNC_TEMPLATES = False
