@@ -3,11 +3,14 @@ from unittest import TestCase
 from zabbixci.cli import read_args
 from zabbixci.settings import Settings
 
+# Setting keys that are not available as CLI arguments
+IGNORED_KEYS_CLI = ["ZABBIX_KWARGS", "GIT_KWARGS", "ACTION"]
+
 
 def test_cli_arg(
     key: str, value, test_value: str
 ) -> tuple[str | None, int | str | bool] | None:
-    if not key.isupper() or key.startswith("_") or key == "ACTION":
+    if not key.isupper() or key.startswith("_") or key in IGNORED_KEYS_CLI:
         return None
 
     arguments: list[str] = []
