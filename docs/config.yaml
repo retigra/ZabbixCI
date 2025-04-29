@@ -290,3 +290,9 @@ ca_bundle: ""
 # Mandatory: no
 # Default: false
 regex_matching: false
+
+### Option: skip_version_check
+# Skip version check for Zabbix.
+# Mandatory: no
+# Default: false
+skip_version_check: false

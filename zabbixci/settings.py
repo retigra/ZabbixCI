@@ -52,6 +52,7 @@ class Settings:
     ICON_MAP_BLACKLIST: str = ""
     ZABBIX_KWARGS: dict = {}
     GIT_KWARGS: dict = {}
+    SKIP_VERSION_CHECK: bool = False
 
     @classmethod
     def get_template_whitelist(cls):

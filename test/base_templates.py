@@ -29,6 +29,7 @@ class BaseTemplates:
         Settings.ZABBIX_URL = DEV_ZABBIX_URL
         Settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
         Settings.REMOTE = DEV_GIT_REMOTE
+        Settings.SKIP_VERSION_CHECK = True
         Settings.REGEX_MATCHING = False
         Settings.SET_VERSION = True
 
