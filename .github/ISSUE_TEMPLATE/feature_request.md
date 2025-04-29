@@ -4,17 +4,30 @@ about: Suggest an idea for this project
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+<!--- Remove sections that do not apply -->
+<!--- Advice for the reporter: Please use this template to report bugs or feature requests only. -->
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+Issues should only be created for bugs, feature requests, or other topics
+related to the **development** of the project. For general questions, please use
+the
+[Discussions](https://github.com/retigra/ZabbixCI/discussions/categories/q-a)
+section.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+<!--- Provide a general summary of the issue in the Title above -->
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+## Wanted Behavior
+
+<!--- Tell us what should happen -->
+
+## Current Behavior (if any)
+
+<!--- Tell us what happens instead of the expected behavior -->
+
+## Context (Environment)
+
+- ZabbixCI version:
+- Zabbix version:
+- Python version:
+- Operating system version:
