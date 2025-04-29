@@ -50,6 +50,7 @@ class Settings:
     REGEX_MATCHING: bool = False
     ICON_MAP_WHITELIST: str = ""
     ICON_MAP_BLACKLIST: str = ""
+    SKIP_VERSION_CHECK: bool = False
 
     @classmethod
     def get_template_whitelist(cls):

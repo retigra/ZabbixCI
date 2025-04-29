@@ -46,6 +46,7 @@ class ZabbixCI:
             url=self._settings.ZABBIX_URL,
             validate_certs=not self._settings.INSECURE_SSL_VERIFY,
             ssl_context=self._ssl_context,
+            skip_version_check=self._settings.SKIP_VERSION_CHECK,
         )
 
         if self._settings.ZABBIX_USER and self._settings.ZABBIX_PASSWORD:
