@@ -50,6 +50,9 @@ class Settings:
     REGEX_MATCHING: bool = False
     ICON_MAP_WHITELIST: str = ""
     ICON_MAP_BLACKLIST: str = ""
+    ZABBIX_KWARGS: dict = {}
+    GIT_KWARGS: dict = {}
+    SKIP_VERSION_CHECK: bool = False
 
     @classmethod
     def get_template_whitelist(cls):
@@ -88,6 +91,10 @@ class Settings:
     @classmethod
     def from_env(cls):
         for key, value in cls.__dict__.items():
+            # Dict values can only be set in the yaml config file
+            if isinstance(value, dict):
+                continue
+
             if key in os.environ:
                 if isinstance(value, bool):
                     setattr(cls, key, os.environ[key].lower() == "true")
@@ -96,7 +103,7 @@ class Settings:
 
     @classmethod
     def read_config(cls, path):
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = yaml.load(f)
             for key, value in data.items():
                 setattr(cls, key.upper(), value)

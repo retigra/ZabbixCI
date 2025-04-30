@@ -351,6 +351,15 @@ def read_args(args: list[str] | None = None):
         explicit=True,
     )
     zabbixci_advanced_group.add_argument(
+        "--skip-version-check",
+        help="Skip version check for Zabbix API",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_advanced_group.add_argument(
         "--insecure-ssl-verify",
         help="Disable SSL verification for Zabbix API and git, only use for testing",
         const=True,

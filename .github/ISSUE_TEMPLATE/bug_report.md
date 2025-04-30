@@ -4,35 +4,47 @@ about: Create a report to help us improve
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+<!--- Remove sections that do not apply -->
+<!--- Advice for the reporter: Please use this template to report bugs or feature requests only. -->
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Issues should only be created for bugs, feature requests, or other topics
+related to the **development** of the project. For general questions, please use
+the
+[Discussions](https://github.com/retigra/ZabbixCI/discussions/categories/q-a)
+section.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+<!--- Provide a general summary of the issue in the Title above -->
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## Expected Behavior
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+<!--- Tell us what should happen -->
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+## Current Behavior
 
-**Additional context**
-Add any other context about the problem here.
+<!--- Tell us what happens instead of the expected behavior -->
+
+## Possible Solution
+
+<!--- Not obligatory, but suggest a fix/reason for the bug, -->
+
+## Steps to Reproduce
+
+<!--- Provide a link to a live example, or an unambiguous set of steps to -->
+<!--- reproduce this bug. Include code to reproduce, if relevant -->
+
+1.
+2.
+3.
+4.
+
+## Context (Environment)
+
+<!--- How has this issue affected you? What are you trying to accomplish? -->
+<!--- Providing context helps us come up with a solution that is most useful in the real world -->
+
+- ZabbixCI version:
+- Zabbix version:
+- Python version:
+- Operating system version:

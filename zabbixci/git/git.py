@@ -17,7 +17,7 @@ class Git:
     author: Signature
     _git_cb = None
 
-    def __init__(self, path: str, callbacks: RemoteCallbacks):
+    def __init__(self, path: str, callbacks: RemoteCallbacks, **kwargs):
         """
         Initialize the git repository
         """
@@ -31,6 +31,7 @@ class Git:
                 Settings.REMOTE,
                 path,
                 callbacks=self._git_cb,
+                **kwargs,
             )
         else:
             self._repository = Repository(path)
