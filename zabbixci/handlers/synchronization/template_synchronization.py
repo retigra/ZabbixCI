@@ -44,7 +44,7 @@ class TemplateHandler(TemplateValidationHandler):
 
             for index, response in enumerate(responses):
                 if isinstance(response, BaseException):
-                    logger.error("Error exporting template: %s", response)
+                    logger.warning("Error exporting template: %s", response)
 
                     # Retry the export
                     failed_exports.append(batch[index])
@@ -64,9 +64,11 @@ class TemplateHandler(TemplateValidationHandler):
                 zabbix_template.save()
                 logger.info("Exported Zabbix template: %s", zabbix_template.name)
 
-        if len(failed_exports):
+        if failed_exports:
             logger.warning(
-                "Failed to export %d templates, retrying", len(failed_exports)
+                "Failed to export %d %s, retrying",
+                len(failed_exports),
+                "templates" if (len(failed_exports) > 1) else "template",
             )
             await self.zabbix_export(failed_exports)
 
