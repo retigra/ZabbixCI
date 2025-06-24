@@ -190,10 +190,10 @@ class ZabbixCI:
                             template.updated_items,
                         )
 
-            # Commit and push the changes
-            self._git.add_all()
-
             if not Settings.DRY_RUN:
+                # Commit and push the changes
+                self._git.add_all()
+
                 # Generate commit message
                 self._git.commit(
                     Settings.GIT_COMMIT_MESSAGE or f"Committed Zabbix state from {host}"
