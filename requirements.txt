@@ -14,4 +14,4 @@ ruamel.yaml==0.18.14
 ruamel.yaml.clib==0.2.12
 Wand==0.6.13
 yarl==1.20.1
-zabbix-utils==2.0.2
+zabbix-utils==2.0.3
