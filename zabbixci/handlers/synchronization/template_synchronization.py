@@ -34,8 +34,8 @@ class TemplateHandler(TemplateValidationHandler):
 
         failed_exports = []
 
-        for batchIndex, batch in enumerate(batches):
-            logger.info("Processing batch %d/%d", batchIndex + 1, len(batches))
+        for batch_index, batch in enumerate(batches):
+            logger.info("Processing batch %d/%d", batch_index + 1, len(batches))
             coros = []
             for t in batch:
                 coros.append(self._zabbix.export_template_async([t["templateid"]]))

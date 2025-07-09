@@ -35,8 +35,8 @@ dependencies = [
     "pygit2>=1.17.0",
     "regex>=2024.11.6",
     "ruamel.yaml>=0.18.10",
-    "zabbix_utils>=2.0.2",
-    "Wand>=0.6.13"
+    "zabbix_utils>=2.0.3",
+    "Wand>=0.6.13",
 ]
 license = { file = "LICENSE.txt" }
 
@@ -63,9 +63,8 @@ include = ["zabbixci", "zabbixci.*"]
 [tool.setuptools_scm]
 version_file = "zabbixci/_version.py"
 
-[tool.isort]
-profile = "black"
+[tool.ruff.lint]
+select = ["E", "F", "B", "ERA001", "S501", "DJ", "G", "T20", "PIE", "N"]
 
-[tool.black]
-include = '\.pyi?$'
-exclude = '/(\.eggs|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist)/'
+# Ignore line-length
+ignore = ["E501"]

@@ -38,12 +38,12 @@ class BaseIconMap:
         Settings.SYNC_BACKGROUNDS = False
         Settings.SYNC_ICON_MAPS = True
 
-        Settings.ICON_MAP_BLACKLIST
+        Settings.ICON_MAP_BLACKLIST = ""
         Settings.ICON_MAP_WHITELIST = ""
 
         self.zci = ZabbixCI()
 
-    async def restoreState(self):
+    async def restore_state(self):
         self.zci._git.force_push(
             ["+refs/remotes/origin/test:refs/heads/main"],
             Settings.REMOTE,
@@ -67,7 +67,7 @@ class BaseIconMap:
     async def asyncSetUp(self):
         self.zci.create_git()
         await self.zci.create_zabbix()
-        await self.restoreState()
+        await self.restore_state()
 
     async def test_push_pull_remote_defaults(self):
         # Push default Zabbix templates to remote

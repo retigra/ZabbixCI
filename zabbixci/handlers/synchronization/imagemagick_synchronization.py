@@ -51,18 +51,17 @@ class ImagemagickHandler:
         files: list[str] = []
 
         if not Cache.is_within_cache(image_path):
-            logger.error(f"Image {image_path} is not within the cache")
+            logger.error("Image %s is not within the cache", image_path)
             return files
 
         with Image(filename=image_path) as image:
-
             for size in sizes:
                 file_name = f"{base_name}_({size}).png"
 
                 converted_image = cls._convert(image.clone(), size, "png")
                 converted_image.save(filename=f"{destination}/{file_name}")
 
-                logger.info(f"Created: {file_name}")
+                logger.info("Created: %s", file_name)
                 files.append(f"{destination}/{file_name}")
 
         return files
