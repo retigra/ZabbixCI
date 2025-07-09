@@ -6,7 +6,7 @@ from ruamel.yaml import YAML
 from zabbixci.assets.asset import Asset
 from zabbixci.assets.image import Image
 from zabbixci.cache.cache import Cache
-from zabbixci.exceptions import ZabbixIconMissingException
+from zabbixci.exceptions import ZabbixIconMissingError
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ class IconMapping:
 
         if not icon:
             # Unable to export icon map because iconId can not be converted to iconName
-            raise ZabbixIconMissingException(
+            raise ZabbixIconMissingError(
                 f"Icon {icon_mapping['iconid']} not found in images, unable to export icon map"
             )
 
@@ -186,7 +186,7 @@ class IconMap(Asset):
 
         if not icon:
             # Unable to export icon map because defaultIconId can not be converted to defaultIconName
-            raise ZabbixIconMissingException(
+            raise ZabbixIconMissingError(
                 f"Icon {icon_map['default_iconid']} not found in images, unable to export icon map"
             )
 
@@ -229,7 +229,7 @@ class IconMap(Asset):
 
             # Unable to import a icon_map without matching icon names to ids of current Zabbix server
             if not default_icon or not default_icon.image_id:
-                raise ZabbixIconMissingException(
+                raise ZabbixIconMissingError(
                     f"Icon {icon_map['default_icon_name']} not found in images, unable to import icon map"
                 )
 

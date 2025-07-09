@@ -1,14 +1,14 @@
-class BaseZabbixCIException(Exception):
+class BaseZabbixCIError(Exception):
     pass
 
 
-class GitException(BaseZabbixCIException):
+class GitError(BaseZabbixCIError):
     pass
 
 
-class ZabbixException(BaseZabbixCIException):
+class ZabbixError(BaseZabbixCIError):
     pass
 
 
-class ZabbixIconMissingException(ZabbixException):
+class ZabbixIconMissingError(ZabbixError):
     pass

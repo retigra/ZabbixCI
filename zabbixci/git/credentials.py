@@ -5,7 +5,7 @@ from urllib.request import Request, urlopen
 
 import pygit2
 
-from zabbixci.exceptions import GitException
+from zabbixci.exceptions import GitError
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ class RemoteCallbacksSecured(pygit2.RemoteCallbacks):
     def credentials(self, url, username_from_url, allowed_types):
         self._call_count += 1
         if self._call_count > 10 and not self._agent_active:
-            raise GitException(
+            raise GitError(
                 "SSH agent was unable to provide credentials, is your key added to the agent?"
             )
 
@@ -35,9 +35,10 @@ class RemoteCallbacksSecured(pygit2.RemoteCallbacks):
 
     def transfer_progress(self, stats):
         logger.debug(
-            f"Git: Transferred {stats.received_objects} objects, "
-            f"{stats.indexed_objects} indexed, "
-            f"{stats.total_objects} total"
+            "Git: Transferred %s objects, %s indexed, %s total",
+            stats.received_objects,
+            stats.indexed_objects,
+            stats.total_objects,
         )
         return True
 
@@ -78,12 +79,12 @@ class GitCredentials:
             )
             resp = urlopen(req, context=self._ssl_context)
 
-            logger.debug(f"Response from {hostname_str}: {resp.status}")
+            logger.debug("Response from %s: %s", hostname_str, resp.status)
 
             self._ssl_valid = True
             return True
         except urllib.error.URLError as e:
-            logger.error(f"Error validating SSL certificate: {e}")
+            logger.error("Error validating SSL certificate: %s", e)
             return False
 
     def create_git_callback(self):

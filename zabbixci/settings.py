@@ -79,12 +79,12 @@ class Settings:
         return cls.ICON_MAP_BLACKLIST.split(",") if cls.ICON_MAP_BLACKLIST else []
 
     @classmethod
-    def get_ICON_SIZES(cls):
+    def get_icon_sizes(cls):
         size_strings = cls.ICON_SIZES.split(",") if cls.ICON_SIZES else []
         return [int(size) for size in size_strings]
 
     @classmethod
-    def get_BACKGROUND_SIZES(cls):
+    def get_background_sizes(cls):
         size_strings = cls.BACKGROUND_SIZES.split(",") if cls.BACKGROUND_SIZES else []
         return [int(size) for size in size_strings]
 

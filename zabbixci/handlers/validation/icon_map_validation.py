@@ -31,7 +31,7 @@ class IconMapValidationHandler(Handler):
             changed_file, f"{Settings.CACHE_PATH}/{Settings.ICON_MAP_PREFIX_PATH}"
         ):
             logger.debug(
-                f"Skipping .yaml file {changed_file} outside of icon_map prefix path"
+                "Skipping .yaml file %s outside of icon_map prefix path", changed_file
             )
             return False
 
@@ -42,11 +42,11 @@ class IconMapValidationHandler(Handler):
             return False
 
         if self.enforce_whitelist(icon_map.name):
-            logger.debug(f"Skipping icon_map {icon_map.name} not in whitelist")
+            logger.debug("Skipping icon_map %s not in whitelist", icon_map.name)
             return False
 
         if self.enforce_blacklist(icon_map.name):
-            logger.debug(f"Skipping icon_map {icon_map.name} in blacklist")
+            logger.debug("Skipping icon_map %s in blacklist", icon_map.name)
             return False
 
         return True

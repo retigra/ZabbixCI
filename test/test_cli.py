@@ -42,7 +42,7 @@ def test_cli_arg(
         args = read_args(arguments)
         parsed_args = vars(args)
     except SystemExit:
-        print(f"Failed for: {arguments}")
+        print(f"Failed for: {arguments}")  # noqa: T201
 
     # Update settings
     for dkey, dvalue in parsed_args.items():

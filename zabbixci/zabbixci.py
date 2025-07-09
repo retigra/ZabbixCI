@@ -61,7 +61,8 @@ class ZabbixCI:
 
         if self._zabbix.zapi.version < 6.0:
             self.logger.error(
-                f"Zabbix server version {self._zabbix.zapi.version} is not supported (7.0+ required)"
+                "Zabbix server version %s is not supported (7.0+ required)",
+                self._zabbix.zapi.version,
             )
             raise SystemExit(1)
 
@@ -98,7 +99,8 @@ class ZabbixCI:
                 self._git.pull(Settings.REMOTE)
             except KeyError:
                 self.logger.info(
-                    f"Remote branch does not exist, using state from branch: {Settings.PULL_BRANCH}"
+                    "Remote branch does not exist, using state from branch: %s",
+                    Settings.PULL_BRANCH,
                 )
                 # Remote branch does not exist, we pull the default branch and create a new branch
                 self._git.switch_branch(Settings.PULL_BRANCH)
@@ -147,10 +149,10 @@ class ZabbixCI:
                 file = f"{Settings.CACHE_PATH}/{relative_path}"
 
                 if status == FileStatus.WT_DELETED:
-                    self.logger.info(f"Detected deletion of: {file}")
+                    self.logger.info("Detected deletion of: %s", file)
                     continue
 
-                self.logger.info(f"Detected change in: {file}")
+                self.logger.info("Detected change in: %s", file)
 
                 if not template_handler.read_validation(file):
                     continue
@@ -164,12 +166,12 @@ class ZabbixCI:
                 ):
                     set_vendor = Settings.VENDOR
                     template.set_vendor(set_vendor)
-                    self.logger.debug(f"Setting vendor to: {set_vendor}")
+                    self.logger.debug("Setting vendor to: %s", set_vendor)
 
                 if Settings.SET_VERSION and self._zabbix.api_version >= 7.0:
                     new_version = datetime.now(timezone.utc).strftime("%Y.%m.%d %H:%M")
                     template.set_version(new_version)
-                    self.logger.debug(f"Setting version to: {new_version}")
+                    self.logger.debug("Setting version to: %s", new_version)
 
                 if (template.new_version or template.new_vendor) and (
                     template.vendor and template.version
@@ -178,7 +180,7 @@ class ZabbixCI:
 
                     if not Settings.DRY_RUN:
                         self.logger.debug(
-                            f"Updating template metadata for: {template.name}"
+                            "Updating template metadata for: %s", template.name
                         )
                         self._zabbix.set_template(
                             next(
@@ -199,7 +201,9 @@ class ZabbixCI:
                     Settings.GIT_COMMIT_MESSAGE or f"Committed Zabbix state from {host}"
                 )
                 self.logger.info(
-                    f"Staged changes from {host} committed to {self._git.current_branch}"
+                    "Staged changes from %s committed to %s",
+                    host,
+                    self._git.current_branch,
                 )
         else:
             self.logger.info("No staged changes, updating remote with current state")
@@ -207,11 +211,17 @@ class ZabbixCI:
         if not self._settings.DRY_RUN:
             self._git.push(Settings.REMOTE)
             self.logger.info(
-                f"Committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+                "Committed %s new changes to %s:%s",
+                change_amount,
+                Settings.REMOTE,
+                Settings.PUSH_BRANCH,
             )
         else:
             self.logger.info(
-                f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+                "Dry run enabled, would have committed %s new changes to %s:%s",
+                change_amount,
+                Settings.REMOTE,
+                Settings.PUSH_BRANCH,
             )
 
         return change_amount > 0
@@ -272,8 +282,8 @@ class ZabbixCI:
             if flags == FileStatus.WT_NEW
         ]
 
-        self.logger.debug(f"Following files have changed on Git: {changed_files}")
-        self.logger.debug(f"Following files are deleted from Git: {deleted_files}")
+        self.logger.debug("Following files have changed on Git: %s", changed_files)
+        self.logger.debug("Following files are deleted from Git: %s", deleted_files)
 
         diff = self._git.diff()
         Git.print_diff(diff, invert=True)
@@ -358,8 +368,8 @@ class ZabbixCI:
 
         if failed_template_names:
             self.logger.error(
-                "Failed to import the following templates: "
-                f"{', '.join(failed_template_names)}"
+                "Failed to import the following templates: %s",
+                ", ".join(failed_template_names),
             )
 
         # clean local changes
@@ -399,7 +409,8 @@ class ZabbixCI:
                 self._git.pull(Settings.REMOTE)
             except KeyError:
                 self.logger.info(
-                    f"Remote branch does not exist, using state from branch: {Settings.PULL_BRANCH}"
+                    "Remote branch does not exist, using state from branch: %s",
+                    Settings.PULL_BRANCH,
                 )
                 # Remote branch does not exist, we pull the default branch and create a new branch
                 self._git.switch_branch(Settings.PULL_BRANCH)
@@ -425,7 +436,8 @@ class ZabbixCI:
                 # Generate commit message
                 self._git.commit(f"Generated {image_type}(s) from source files")
                 self.logger.info(
-                    f"Staged changes from generated images committed to {self._git.current_branch}"
+                    "Staged changes from generated images committed to %s",
+                    self._git.current_branch,
                 )
         else:
             self.logger.info("No staged changes, updating remote with current state")
@@ -433,11 +445,17 @@ class ZabbixCI:
         if not self._settings.DRY_RUN:
             self._git.push(Settings.REMOTE)
             self.logger.info(
-                f"Committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+                "Committed %s new changes to %s:%s",
+                change_amount,
+                Settings.REMOTE,
+                Settings.PUSH_BRANCH,
             )
         else:
             self.logger.info(
-                f"Dry run enabled, would have committed {change_amount} new changes to {Settings.REMOTE}:{Settings.PUSH_BRANCH}"
+                "Dry run enabled, would have committed %s new changes to %s:%s",
+                change_amount,
+                Settings.REMOTE,
+                Settings.PUSH_BRANCH,
             )
 
         return change_amount > 0

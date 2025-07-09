@@ -4,19 +4,20 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/retigra/ZabbixCI/pypi.yml?label=pypi%20build)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/retigra/ZabbixCI/ghcr.yaml?label=docker%20build)
 
-
 > [!WARNING]
-> This project is under active development, the code in the main branch should be relatively stable but things might break every now and then.
-> The releases that can be installed with `pip` are currently stable enough for testing.
-> If you run into unexpected bugs, please create an [issue](https://github.com/retigra/ZabbixCI/issues/new).
-> For questions about usage, please start a [discussion](https://github.com/retigra/ZabbixCI/discussions/new?category=q-a).
+> This project is under active development, the code in the main branch should
+> be relatively stable but things might break every now and then. The releases
+> that can be installed with `pip` are currently stable enough for testing. If
+> you run into unexpected bugs, please create an
+> [issue](https://github.com/retigra/ZabbixCI/issues/new). For questions about
+> usage, please start a
+> [discussion](https://github.com/retigra/ZabbixCI/discussions/new?category=q-a).
 
 # ZabbixCI
 
 ZabbixCI is a tool that adds continuous integration to Zabbix, allowing you to
 synchronize Zabbix assets with a Git repository. By using the Zabbix API,
-ZabbixCI can create, update, and delete assets across multiple Zabbix
-servers.
+ZabbixCI can create, update, and delete assets across multiple Zabbix servers.
 
 > [!NOTE]
 > ZabbixCI has no affiliation with [Zabbix SIA](https://www.zabbix.com).
@@ -25,32 +26,36 @@ servers.
 
 ZabbixCI provides the following features:
 
-* Easily installable through pip or run it as a container image
-* Fully configurable through cli arguments, config file and/or environment variables
-* Supports HTTP(S) and SSH auth for Git
-* Export assets from Zabbix and push them to Git
-* Pull assets from Git and import them in Zabbix
-* Only changed or new assets will be processed during Git push or Zabbix import actions
-* Removes deleted assets automatically (unless black- or whitelisting is used)
-* Use dry-run to verify behavior without changes to Zabbix or Git
-* Build with parallelization in mind to speed up the process (can be scaled for your needs)
-* (Optional) Support for private CA servers to verify certificates
-* (Optional) Allow black-/whitelisting of assets (supports regexp)
-* (Optional) Use separate branches for push and pull transactions
+- Easily installable through pip or run it as a container image
+- Fully configurable through cli arguments, config file and/or environment
+  variables
+- Supports HTTP(S) and SSH auth for Git
+- Export assets from Zabbix and push them to Git
+- Pull assets from Git and import them in Zabbix
+- Only changed or new assets will be processed during Git push or Zabbix import
+  actions
+- Removes deleted assets automatically (unless black- or whitelisting is used)
+- Use dry-run to verify behavior without changes to Zabbix or Git
+- Build with parallelization in mind to speed up the process (can be scaled for
+  your needs)
+- (Optional) Support for private CA servers to verify certificates
+- (Optional) Allow black-/whitelisting of assets (supports regexp)
+- (Optional) Use separate branches for push and pull transactions
 
 ### Additional template features
 
-* Sync your templates with Git
-* Built-in Zabbix version compatibility checking 
-* (Optional) Automatically populate empty vendor field with your own string
-* (Optional) Allow automatic versioning of exported templates based on timestamps
+- Sync your templates with Git
+- Built-in Zabbix version compatibility checking
+- (Optional) Automatically populate empty vendor field with your own string
+- (Optional) Allow automatic versioning of exported templates based on
+  timestamps
 
 ### Additional image (icons and backgrounds) features
 
-* Sync your map images with Git
-* Sync your icon-maps with Git 
-* Dynamically generate icons and backgrounds in predefined sizes
-* Use `.png` or `.svg` files as sources for image generation
+- Sync your map images with Git
+- Sync your icon-maps with Git
+- Dynamically generate icons and backgrounds in predefined sizes
+- Use `.png` or `.svg` files as sources for image generation
 
 ## Installation
 
@@ -78,8 +83,11 @@ free to use the method that best suits your workflow.
 
 ## Usage
 
-We have a [quickstart tutorial](https://github.com/retigra/ZabbixCI/tree/main/docs/tutorials/quickstart.md) for first time users.
-Please see the [Docs](https://github.com/retigra/ZabbixCI/tree/main/docs/README.md) for extended details if needed. 
+We have a
+[quickstart tutorial](https://github.com/retigra/ZabbixCI/tree/main/docs/tutorials/quickstart.md)
+for first time users. Please see the
+[Docs](https://github.com/retigra/ZabbixCI/tree/main/docs/README.md) for
+extended details if needed.
 
 # License
 
@@ -91,9 +99,10 @@ information.
 
 Contributions are welcome! Please take a look at the following guidelines:
 
-- Commit messages should follow the [Gitmoji](https://gitmoji.dev/) convention.
-- Code should be formatted using
-  [black](https://black.readthedocs.io/en/stable/).
+- Commit messages should follow the [Gitmoji](https://gitmoji.dev/) convention
+  or prefix with types (feat:, fix:, style:, etc.).
+- The codebase uses [ruff](https://docs.astral.sh/ruff/) for formatting and
+  linting.
 
 ## Star History
 
