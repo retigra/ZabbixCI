@@ -462,16 +462,16 @@ async def run_zabbixci(action: str):
             try:
                 await zabbixci.create_zabbix()
             except APINotSupported as e:
-                print(f"Zabbix API version not supported by zabbix_utils: {e}")
+                print(f"Zabbix API version not supported by zabbix_utils: {e}")  # noqa: T201
             except Exception:
                 pass
 
             if zabbixci._zabbix:
                 zapi_version = str(zabbixci._zabbix.zapi.version)
 
-            print(f"ZabbixCI version {__version__}")
-            print(f"ZabbixAPI version {zapi_version}")
-            print(
+            print(f"ZabbixCI version {__version__}")  # noqa: T201
+            print(f"ZabbixAPI version {zapi_version}")  # noqa: T201
+            print(  # noqa: T201
                 f"Python version {version_info.major}.{version_info.minor}.{version_info.micro}"
             )
 
