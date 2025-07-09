@@ -5,7 +5,7 @@ from urllib.request import Request, urlopen
 
 import pygit2
 
-from zabbixci.exceptions import GitException
+from zabbixci.exceptions import GitError
 from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ class RemoteCallbacksSecured(pygit2.RemoteCallbacks):
     def credentials(self, url, username_from_url, allowed_types):
         self._call_count += 1
         if self._call_count > 10 and not self._agent_active:
-            raise GitException(
+            raise GitError(
                 "SSH agent was unable to provide credentials, is your key added to the agent?"
             )
 

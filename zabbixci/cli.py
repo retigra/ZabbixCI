@@ -7,7 +7,7 @@ from typing import Sequence
 from zabbixci._version import __version__
 from zabbixci.cache.cache import Cache
 from zabbixci.cache.cleanup import Cleanup
-from zabbixci.exceptions import BaseZabbixCIException
+from zabbixci.exceptions import BaseZabbixCIError
 from zabbixci.logging import CustomFormatter, StatusCodeHandler
 from zabbixci.settings import Settings
 from zabbixci.zabbixci import ZabbixCI
@@ -499,11 +499,11 @@ async def run_zabbixci(action: str):
     except SystemExit as e:
         logger.debug("Script exited with code %s", e.code)
         exit_code = int(e.code or 1)
-    except BaseZabbixCIException as e:
+    except BaseZabbixCIError as e:
         logger.error(e)
         exit_code = 1
-    except Exception:
-        logger.error("Unexpected error:", exc_info=True)
+    except Exception as e:
+        logger.exception("Unexpected error:", e)
         exit_code = 129
     finally:
         if zabbixci._zabbix:

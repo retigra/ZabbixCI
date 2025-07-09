@@ -108,9 +108,9 @@ class ImageHandler(ImageValidationHandler):
                 file_name,
                 file_type,
                 (
-                    Settings.get_ICON_SIZES()
+                    Settings.get_icon_sizes()
                     if source_type == "icons"
-                    else Settings.get_BACKGROUND_SIZES()
+                    else Settings.get_background_sizes()
                 ),
             )
 
