@@ -41,7 +41,7 @@ class ImageHandler(ImageValidationHandler):
 
         images = self._zabbix.get_images(search)
 
-        logger.info(f"Found {len(images)} image(s) in Zabbix")
+        logger.info("Found %s image(s) in Zabbix", len(images))
 
         image_objects = []
 
@@ -63,7 +63,7 @@ class ImageHandler(ImageValidationHandler):
         if not Cache.exists(
             f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/source-{source_type}"
         ):
-            logger.info(f"No {source_type} icons found")
+            logger.info("No %s icons found", source_type)
             return []
 
         file_paths = Cache.get_files(
@@ -76,7 +76,7 @@ class ImageHandler(ImageValidationHandler):
         for path in file_paths:
             # Skip non-image files
             if not self.is_image(path):
-                logger.warning(f"Skipping non-image source file: {path}")
+                logger.warning("Skipping non-image source file: %s", path)
                 continue
 
             match_groups = regex.match(
@@ -86,7 +86,7 @@ class ImageHandler(ImageValidationHandler):
 
             if not match_groups:
                 logger.warning(
-                    f"Could not extract destination and file name from: {path}"
+                    "Could not extract destination and file name from: %s", path
                 )
                 continue
 
@@ -97,7 +97,7 @@ class ImageHandler(ImageValidationHandler):
             file_type = match_groups.group(3)
 
             if not file_name:
-                logger.warning(f"Could not extract file name from: {path}")
+                logger.warning("Could not extract file name from: %s", path)
                 continue
 
             Cache.makedirs(destination)
@@ -157,14 +157,14 @@ class ImageHandler(ImageValidationHandler):
                 continue
 
             images.append(image)
-            logger.info(f"Detected change in image: {image.name}")
+            logger.info("Detected change in image: %s", image.name)
 
         # Group images by level
         failed_images: list[Image] = []
 
         def __import_image(image: Image):
             if image.name in [t.name for t in image_objects]:
-                logger.info(f"Updating: {image.name}")
+                logger.info("Updating: %s", image.name)
 
                 old_image = next(
                     filter(lambda dt: dt.name == image.name, image_objects)
@@ -177,7 +177,7 @@ class ImageHandler(ImageValidationHandler):
                     }
                 )
             else:
-                logger.info(f"Creating: {image.name}")
+                logger.info("Creating: %s", image.name)
                 return self._zabbix.create_image(image.as_zabbix_dict())
 
         # Import the images
@@ -187,9 +187,10 @@ class ImageHandler(ImageValidationHandler):
                     __import_image(image)
                 except Exception as e:
                     logger.warning(
-                        f"Error importing image {image.name}, will try to import later"
+                        "Error importing image %s, will try to import later",
+                        image.name,
                     )
-                    logger.debug(f"Error details: {e}")
+                    logger.debug("Error details: %s", e)
                     failed_images.append(image)
 
         if len(failed_images):
@@ -197,7 +198,7 @@ class ImageHandler(ImageValidationHandler):
                 try:
                     __import_image(image)
                 except Exception as e:
-                    logger.error(f"Error importing image {image}: {e}")
+                    logger.error("Error importing image %s: %s", image.name, e)
 
         return [t.name for t in images]
 
@@ -229,18 +230,20 @@ class ImageHandler(ImageValidationHandler):
             image = Image.open(file)
 
             if not image:
-                logger.warning(f"Could not open to be deleted file: {file}")
+                logger.warning("Could not open to be deleted file: %s", file)
                 continue
 
             if not self.object_validation(image):
                 continue
 
             if image.name in imported_image_names:
-                logger.debug(f"Image {image.name} was just imported, skipping deletion")
+                logger.debug(
+                    "Image %s was just imported, skipping deletion", image.name
+                )
                 continue
 
             deletion_queue.append(image.name)
-            logger.info(f"Added {image.name} to deletion queue")
+            logger.info("Added %s to deletion queue", image.name)
 
         # Delete images in deletion queue
         if len(deletion_queue):
@@ -253,7 +256,7 @@ class ImageHandler(ImageValidationHandler):
                 if t.image_id
             ]
 
-            logger.info(f"Deleting {len(image_ids)} images from Zabbix")
+            logger.info("Deleting %s images from Zabbix", len(image_ids))
 
             if image_ids:
                 if not Settings.DRY_RUN:

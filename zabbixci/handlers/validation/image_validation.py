@@ -33,7 +33,7 @@ class ImageValidationHandler(Handler):
         if not Filesystem.is_within(
             changed_file, f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}"
         ):
-            logger.debug(f"Skipping .png file {changed_file} outside of prefix path")
+            logger.debug("Skipping .png file %s outside of prefix path", changed_file)
             return False
 
         return True
@@ -43,19 +43,19 @@ class ImageValidationHandler(Handler):
             return False
 
         if not Settings.SYNC_BACKGROUNDS and image.type == "background":
-            logger.debug(f"Skipping background image: {image.name}")
+            logger.debug("Skipping background image: %s", image.name)
             return False
 
         if not Settings.SYNC_ICONS and image.type == "icon":
-            logger.debug(f"Skipping icon image: {image.name}")
+            logger.debug("Skipping icon image: %s", image.name)
             return False
 
         if self.enforce_whitelist(image.name):
-            logger.debug(f"Skipping image {image.name} not in whitelist")
+            logger.debug("Skipping image %s not in whitelist", image.name)
             return False
 
         if self.enforce_blacklist(image.name):
-            logger.debug(f"Skipping image {image.name} in blacklist")
+            logger.debug("Skipping image %s in blacklist", image.name)
             return False
 
         return True

@@ -38,7 +38,7 @@ class BaseIconMap:
         Settings.SYNC_BACKGROUNDS = False
         Settings.SYNC_ICON_MAPS = True
 
-        Settings.ICON_MAP_BLACKLIST
+        Settings.ICON_MAP_BLACKLIST = ""
         Settings.ICON_MAP_WHITELIST = ""
 
         self.zci = ZabbixCI()

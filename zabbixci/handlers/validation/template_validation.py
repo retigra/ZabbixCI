@@ -35,7 +35,7 @@ class TemplateValidationHandler(Handler):
         if not Filesystem.is_within(
             changed_file, f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}"
         ):
-            logger.debug(f"Skipping .yaml file {changed_file} outside of prefix path")
+            logger.debug("Skipping .yaml file %s outside of prefix path", changed_file)
             return False
 
         return True
@@ -48,11 +48,11 @@ class TemplateValidationHandler(Handler):
             return False
 
         if self.enforce_blacklist(template.name):
-            logger.debug(f"Skipping blacklisted template: {template.name}")
+            logger.debug("Skipping blacklisted template: %s", template.name)
             return False
 
         if self.enforce_whitelist(template.name):
-            logger.debug(f"Skipping non whitelisted template: {template.name}")
+            logger.debug("Skipping non whitelisted template: %s", template.name)
             return False
 
         return True

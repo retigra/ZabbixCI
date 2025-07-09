@@ -42,7 +42,7 @@ class IconMapHandler(IconMapValidationHandler):
 
         icon_maps = self._zabbix.get_icon_maps(search)
 
-        logger.info(f"Found {len(icon_maps)} icon map(s) in Zabbix")
+        logger.info("Found {%s} icon map(s) in Zabbix", len(icon_maps))
 
         icon_map_objects = []
 
@@ -87,11 +87,11 @@ class IconMapHandler(IconMapValidationHandler):
                 continue
 
             icon_maps.append(icon_map)
-            logger.info(f"Detected change in image: {icon_map.name}")
+            logger.info("Detected change in image: %s", icon_map.name)
 
         def __import_icon_map(icon_map: IconMap):
             if icon_map.name in [t.name for t in icon_map_objects]:
-                logger.info(f"Updating: {icon_map.name}")
+                logger.info("Updating: %s", icon_map.name)
 
                 old_icon_map = next(
                     filter(lambda dt: dt.name == icon_map.name, icon_map_objects)
@@ -104,7 +104,7 @@ class IconMapHandler(IconMapValidationHandler):
                     }
                 )
             else:
-                logger.info(f"Creating: {icon_map.name}")
+                logger.info("Creating: %s", icon_map.name)
                 return self._zabbix.create_icon_map(icon_map.zabbix_dict)
 
         failed_icon_maps: list[IconMap] = []
@@ -116,9 +116,10 @@ class IconMapHandler(IconMapValidationHandler):
                     __import_icon_map(icon_map)
                 except Exception as e:
                     logger.warning(
-                        f"Error importing icon mapping {icon_map.name}, will try to import later"
+                        "Error importing icon mapping %s, will try to import later",
+                        icon_map.name,
                     )
-                    logger.debug(f"Error details: {e}")
+                    logger.debug("Error details: %s", e)
                     failed_icon_maps.append(icon_map)
 
         if len(failed_icon_maps):
@@ -127,7 +128,7 @@ class IconMapHandler(IconMapValidationHandler):
                     __import_icon_map(icon_map)
                 except Exception as e:
                     logger.error(
-                        f"Error importing icon mapping {icon_map.name}", exc_info=e
+                        "Error importing icon mapping %s: %s", icon_map.name, e
                     )
 
         return [t.name for t in icon_maps]
@@ -159,7 +160,7 @@ class IconMapHandler(IconMapValidationHandler):
             icon_map = IconMap.partial_open(file)
 
             if not icon_map:
-                logger.warning(f"Could not open to be deleted file: {file}")
+                logger.warning("Could not open to be deleted file: %s", file)
                 continue
 
             if not self.object_validation(icon_map):
@@ -167,12 +168,12 @@ class IconMapHandler(IconMapValidationHandler):
 
             if icon_map.name in imported_icon_map_names:
                 logger.debug(
-                    f"Icon map {icon_map.name} was just imported, skipping deletion"
+                    "Icon map %s was just imported, skipping deletion", icon_map.name
                 )
                 continue
 
             deletion_queue.append(icon_map.name)
-            logger.info(f"Added {icon_map.name} to deletion queue")
+            logger.info("Added %s to deletion queue", icon_map.name)
 
         if len(deletion_queue):
             icon_map_ids = [
@@ -182,7 +183,7 @@ class IconMapHandler(IconMapValidationHandler):
                 )
             ]
 
-            logger.info(f"Deleting {len(icon_map_ids)} icon map(s) from Zabbix")
+            logger.info("Deleting %s icon map(s) from Zabbix", len(icon_map_ids))
 
             if len(icon_map_ids):
                 if not Settings.DRY_RUN:

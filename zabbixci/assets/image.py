@@ -81,7 +81,7 @@ class Image(Asset):
             )
 
             if not matches:
-                logger.debug(f"Skipping invalid image path: {path}")
+                logger.debug("Skipping invalid image path: %s", path)
                 return None
 
             type = "icon" if matches[1] == "icons" else "background"
