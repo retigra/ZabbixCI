@@ -12,6 +12,8 @@ from zabbixci.logging import CustomFormatter, StatusCodeHandler
 from zabbixci.settings import Settings
 from zabbixci.zabbixci import ZabbixCI
 
+from zabbix_utils import APINotSupported
+
 logger = logging.getLogger(__name__)
 
 
@@ -406,7 +408,9 @@ def parse_cli(custom_args: list[str] | None = None):
     global_level = (
         logging.DEBUG
         if Settings.DEBUG_ALL
-        else logging.INFO if Settings.VERBOSE else logging.WARN
+        else logging.INFO
+        if Settings.VERBOSE
+        else logging.WARN
     )
 
     ch = logging.StreamHandler()
@@ -422,7 +426,9 @@ def parse_cli(custom_args: list[str] | None = None):
     zabbixci_logger.setLevel(
         logging.DEBUG
         if Settings.DEBUG or Settings.DEBUG_ALL
-        else logging.INFO if Settings.VERBOSE else logging.WARN
+        else logging.INFO
+        if Settings.VERBOSE
+        else logging.WARN
     )
 
     settings_debug = {
@@ -455,6 +461,8 @@ async def run_zabbixci(action: str):
             zapi_version = "Unknown"
             try:
                 await zabbixci.create_zabbix()
+            except APINotSupported as e:
+                print(f"Zabbix API version not supported by zabbix_utils: {e}")
             except Exception:
                 pass
 
