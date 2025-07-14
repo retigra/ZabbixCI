@@ -167,6 +167,7 @@ def read_args(args: list[str] | None = None):
         help="Cache path for git repository, defaults to ./cache",
     )
     zabbixci_group.add_argument(
+        "-n",
         "--dry-run",
         help="Enable or disable dry run.",
         const=True,
