@@ -61,7 +61,7 @@ class ZabbixCI:
 
         if self._zabbix.zapi.version < 6.0:
             self.logger.error(
-                "Zabbix server version %s is not supported (7.0+ required)",
+                "Zabbix server version %s is not supported (6.0+ required)",
                 self._zabbix.zapi.version,
             )
             raise SystemExit(1)
