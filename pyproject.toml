@@ -57,7 +57,8 @@ requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["zabbixci", "zabbixci.*"]
+include = ["zabbixci*"]
+exclude = ["zabbixci.tests*"]
 
 [tool.setuptools_scm]
 version_file = "zabbixci/_version.py"
