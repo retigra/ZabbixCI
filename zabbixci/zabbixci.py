@@ -50,18 +50,18 @@ class ZabbixCI:
             **self._settings.ZABBIX_KWARGS,
         )
 
-        if self._settings.ZABBIX_USER and self._settings.ZABBIX_PASSWORD:
+        if self._settings.ZABBIX_TOKEN:
+            self.logger.debug("Using token for Zabbix authentication")
+            await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
+        elif self._settings.ZABBIX_USER and self._settings.ZABBIX_PASSWORD:
             self.logger.debug("Using username and password for Zabbix authentication")
             await self._zabbix.zapi.login(
                 user=self._settings.ZABBIX_USER, password=self._settings.ZABBIX_PASSWORD
             )
-        elif self._settings.ZABBIX_TOKEN:
-            self.logger.debug("Using token for Zabbix authentication")
-            await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
 
         if self._zabbix.zapi.version < 6.0:
             self.logger.error(
-                "Zabbix server version %s is not supported (7.0+ required)",
+                "Zabbix server version %s is not supported (6.0+ required)",
                 self._zabbix.zapi.version,
             )
             raise SystemExit(1)
