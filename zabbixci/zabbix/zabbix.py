@@ -32,13 +32,20 @@ class Zabbix:
         self.zapi = AsyncZabbixAPI(*args, **kwargs, client_session=self._client_session)
 
     def _get_template_group(self, template_group_names: list[str]):
+        names = template_group_names + [f"{name}/*" for name in template_group_names]
+
+        params = {
+            "search": {"name": names},
+            "searchByAny": True,
+            "searchWildcardsEnabled": True,
+        }
+
         if self.api_version < 7.0:
-            return self.zapi.send_sync_request(
-                "hostgroup.get", {"search": {"name": template_group_names}}
-            )["result"]
+            return self.zapi.send_sync_request("hostgroup.get", params)["result"]
         else:
             return self.zapi.send_sync_request(
-                "templategroup.get", {"search": {"name": template_group_names}}
+                "templategroup.get",
+                params,
             )["result"]
 
     def get_templates(
