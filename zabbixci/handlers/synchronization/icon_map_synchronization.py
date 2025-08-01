@@ -42,7 +42,7 @@ class IconMapHandler(IconMapValidationHandler):
 
         icon_maps = self._zabbix.get_icon_maps(search)
 
-        logger.info("Found {%s} icon map(s) in Zabbix", len(icon_maps))
+        logger.info("Found %s icon map(s) in Zabbix", len(icon_maps))
 
         icon_map_objects = []
 
