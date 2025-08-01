@@ -34,23 +34,18 @@ class Zabbix:
     def _get_template_group(self, template_group_names: list[str]):
         names = template_group_names + [f"{name}/*" for name in template_group_names]
 
+        params = {
+            "search": {"name": names},
+            "searchByAny": True,
+            "searchWildcardsEnabled": True,
+        }
+
         if self.api_version < 7.0:
-            return self.zapi.send_sync_request(
-                "hostgroup.get",
-                {
-                    "search": {"name": names},
-                    "searchByAny": True,
-                    "searchWildcardsEnabled": True,
-                },
-            )["result"]
+            return self.zapi.send_sync_request("hostgroup.get", params)["result"]
         else:
             return self.zapi.send_sync_request(
                 "templategroup.get",
-                {
-                    "search": {"name": names},
-                    "searchByAny": True,
-                    "searchWildcardsEnabled": True,
-                },
+                params,
             )["result"]
 
     def get_templates(
