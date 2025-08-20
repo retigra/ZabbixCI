@@ -3,9 +3,11 @@ import os
 
 from zabbixci.assets.icon_map import IconMap
 from zabbixci.assets.image import Image
+from zabbixci.assets.script import Script
 from zabbixci.assets.template import Template
 from zabbixci.handlers.validation.icon_map_validation import IconMapValidationHandler
 from zabbixci.handlers.validation.image_validation import ImageValidationHandler
+from zabbixci.handlers.validation.script_validation import ScriptValidationHandler
 from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
 from zabbixci.settings import Settings
 
@@ -86,6 +88,27 @@ class Cleanup:
         return True
 
     @classmethod
+    def match_script_cleanup(cls, root: str, name: str):
+        if not Settings.SYNC_SCRIPTS:
+            return False
+
+        script_handler = ScriptValidationHandler()
+        file = os.path.join(root, name)
+
+        if not script_handler.read_validation(file):
+            return False
+
+        script = Script.open(file)
+
+        if not script:
+            return False
+
+        if not script_handler.object_validation(script):
+            return False
+
+        return True
+
+    @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:
         """
         Clean all .yaml (template) files from the cache directory
@@ -102,6 +125,7 @@ class Cleanup:
                     or cls.match_template_cleanup(root, name)
                     or cls.match_image_cleanup(root, name)
                     or cls.match_icon_map_cleanup(root, name)
+                    or cls.match_script_cleanup(root, name)
                 ):
                     os.remove(os.path.join(root, name))
 

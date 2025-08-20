@@ -11,7 +11,6 @@ reset = "\x1b[0m"
 
 
 class CustomFormatter(logging.Formatter):
-
     log_format = "%(asctime)s  [%(levelname)s]: %(message)s"
     formats: dict[str, str] = {}
 

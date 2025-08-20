@@ -208,5 +208,31 @@ class Zabbix:
     def delete_icon_maps(self, icon_map_ids: list[int]):
         return self.zapi.send_sync_request("iconmap.delete", icon_map_ids)["result"]
 
+    def get_scripts(self, search: list[str] | None = None):
+        """
+        Export scripts from Zabbix
+        """
+        if not search:
+            return self.zapi.send_sync_request("script.get", {"output": "extend"})[
+                "result"
+            ]
+        else:
+            return self.zapi.send_sync_request(
+                "script.get",
+                {
+                    "output": "extend",
+                    "filter": {"name": search},
+                },
+            )["result"]
+
+    def create_script(self, script: dict):
+        return self.zapi.send_sync_request("script.create", script)["result"]
+
+    def update_script(self, script: dict):
+        return self.zapi.send_sync_request("script.update", script)["result"]
+
+    def delete_scripts(self, script_ids: list[str]):
+        return self.zapi.send_sync_request("script.delete", script_ids)["result"]
+
     def get_server_version(self):
         return self.zapi.send_sync_request("apiinfo.version", need_auth=False)["result"]
