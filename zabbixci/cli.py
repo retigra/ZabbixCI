@@ -175,6 +175,20 @@ def read_args(args: list[str] | None = None):
         help="Comma separated list of scripts to exclude",
     )
     zabbixci_group.add_argument(
+        "--script-without-usrgrp",
+        help="Comma separated list of scripts to include without user group",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_group.add_argument(
+        "--script-default-usrgrp",
+        help="Default user group for scripts",
+        default=None,
+    )
+    zabbixci_group.add_argument(
         "--cache-path",
         help="Cache path for git repository, defaults to ./cache",
     )

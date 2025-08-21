@@ -54,6 +54,8 @@ class Settings:
     ICON_MAP_BLACKLIST: str = ""
     SCRIPT_WHITELIST: str = ""
     SCRIPT_BLACKLIST: str = ""
+    SCRIPT_WITHOUT_USRGRP: bool = False
+    SCRIPT_DEFAULT_USRGRP: str = "Zabbix administrators"
     ZABBIX_KWARGS: dict = {}
     GIT_KWARGS: dict = {}
     SKIP_VERSION_CHECK: bool = False
