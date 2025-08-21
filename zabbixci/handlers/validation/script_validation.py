@@ -47,12 +47,12 @@ class ScriptValidationHandler(Handler):
         if not script:
             return False
 
-        if self.enforce_blacklist(script.name):
-            logger.debug("Skipping blacklisted script: %s", script.name)
+        if self.enforce_blacklist(script.unique_name):
+            logger.debug("Skipping blacklisted script: %s", script.unique_name)
             return False
 
-        if self.enforce_whitelist(script.name):
-            logger.debug("Skipping non whitelisted script: %s", script.name)
+        if self.enforce_whitelist(script.unique_name):
+            logger.debug("Skipping non whitelisted script: %s", script.unique_name)
             return False
 
         return True
