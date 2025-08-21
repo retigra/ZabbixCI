@@ -45,6 +45,15 @@ class ScriptHandler(ScriptValidationHandler):
             if not self.object_validation(script_object):
                 continue
 
+            if Settings.SCRIPT_WITHOUT_USRGRP and script_object.usrgrpid:
+                script_object.usrgrpid = self._zabbix.get_user_group(
+                    Settings.SCRIPT_DEFAULT_USRGRP
+                )["name"]
+            elif script_object.usrgrpid:
+                script_object.usrgrpid = self._zabbix.get_user_group_id(
+                    script_object.usrgrpid
+                )["name"]
+
             script_object.save()
             script_objects.append(script_object)
 
@@ -78,14 +87,38 @@ class ScriptHandler(ScriptValidationHandler):
                 continue
 
             scripts.append(script)
-            logger.info("Detected change in script: %s", script.name)
+            logger.info("Detected change in script: %s", script.unique_name)
 
-        def __import_script(script: Script):
-            if script.name in [t.name for t in script_objects]:
-                logger.info("Updating: %s", script.name)
+        def __import_script(script_obj: Script):
+            script = Script(**script_obj.__dict__)
+
+            logger.debug(
+                "usrgrpid for script %s is %s", script.unique_name, script.usrgrpid
+            )
+
+            try:
+                script.usrgrpid = self._zabbix.get_user_group(script.usrgrpid)[
+                    "usrgrpid"
+                ]
+            except IndexError:
+                logger.warning(
+                    "User group not found for %s, using default %s. User group will not be synchronized with git",
+                    script.unique_name,
+                    Settings.SCRIPT_DEFAULT_USRGRP,
+                )
+                script.usrgrpid = self._zabbix.get_user_group(
+                    Settings.SCRIPT_DEFAULT_USRGRP
+                )["usrgrpid"]
+
+            if script.unique_name in [t.unique_name for t in script_objects]:
+                logger.info("Updating: %s", script.unique_name)
 
                 old_script = next(
-                    filter(lambda dt: dt.name == script.name, script_objects)
+                    filter(
+                        lambda dt: dt.unique_name == script.unique_name
+                        and script.menu_path == dt.menu_path,
+                        script_objects,
+                    )
                 )
 
                 return self._zabbix.update_script(
@@ -95,7 +128,7 @@ class ScriptHandler(ScriptValidationHandler):
                     }
                 )
             else:
-                logger.info("Creating: %s", script.name)
+                logger.info("Creating: %s", script.unique_name)
                 return self._zabbix.create_script(script.zabbix_dict)
 
         failed_scripts: list[Script] = []
@@ -108,7 +141,7 @@ class ScriptHandler(ScriptValidationHandler):
                 except Exception as e:
                     logger.warning(
                         "Error importing script %s, will try to import later",
-                        script.name,
+                        script.unique_name,
                     )
                     logger.debug("Error details: %s", e)
                     failed_scripts.append(script)
@@ -118,9 +151,11 @@ class ScriptHandler(ScriptValidationHandler):
                 try:
                     __import_script(script)
                 except Exception as e:
-                    logger.error("Error importing script %s: %s", script.name, e)
+                    logger.exception(
+                        "Error importing script %s: %s", script.unique_name, e
+                    )
 
-        return [t.name for t in scripts]
+        return [t.unique_name for t in scripts]
 
     def delete_file_changes(
         self,
@@ -155,20 +190,20 @@ class ScriptHandler(ScriptValidationHandler):
             if not self.object_validation(script):
                 continue
 
-            if script.name in imported_script_names:
+            if script.unique_name in imported_script_names:
                 logger.debug(
-                    "Script %s was just imported, skipping deletion", script.name
+                    "Script %s was just imported, skipping deletion", script.unique_name
                 )
                 continue
 
-            deletion_queue.append(script.name)
-            logger.info("Added %s to deletion queue", script.name)
+            deletion_queue.append(script.unique_name)
+            logger.info("Added %s to deletion queue", script.unique_name)
 
         if len(deletion_queue):
             script_ids = [
                 t.scriptid
                 for t in list(
-                    filter(lambda dt: dt.name in deletion_queue, script_objects)
+                    filter(lambda dt: dt.unique_name in deletion_queue, script_objects)
                 )
             ]
 
