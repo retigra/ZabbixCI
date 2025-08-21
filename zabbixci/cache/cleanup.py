@@ -111,7 +111,7 @@ class Cleanup:
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:
         """
-        Clean all .yaml (template) files from the cache directory
+        Clean all files in the cache directory that match import/export files
 
         If full is True, also remove the .git directory and all other files
         """
