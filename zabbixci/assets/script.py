@@ -2,6 +2,7 @@ from zabbixci.assets.asset import Asset
 from typing import TextIO, TypedDict
 from zabbixci.cache.cache import Cache
 from ruamel.yaml import YAML
+from os import path
 
 from zabbixci.settings import Settings
 
@@ -55,6 +56,12 @@ class Script(Asset):
         ]
 
     @property
+    def unique_name(self) -> str:
+        if self.menu_path:
+            return f"{self.menu_path}/{self.name}"
+        return self.name
+
+    @property
     def zabbix_dict(self) -> dict:
         return {
             "name": self.name,
@@ -105,12 +112,15 @@ class Script(Asset):
         yaml.dump(script_export, stream)
 
     def save(self):
+        # get folder structure to file
+        folder = path.dirname(self.unique_name)
+
         Cache.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.SCRIPT_PREFIX_PATH}",
+            f"{Settings.CACHE_PATH}/{Settings.SCRIPT_PREFIX_PATH}/{folder}",
         )
 
         with Cache.open(
-            f"{Settings.CACHE_PATH}/{Settings.SCRIPT_PREFIX_PATH}/{self.name}.yaml",
+            f"{Settings.CACHE_PATH}/{Settings.SCRIPT_PREFIX_PATH}/{folder}/{self.name}.yaml",
             "w",
         ) as file:
             self._yaml_dump(file)
