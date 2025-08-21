@@ -234,5 +234,32 @@ class Zabbix:
     def delete_scripts(self, script_ids: list[str]):
         return self.zapi.send_sync_request("script.delete", script_ids)["result"]
 
+    def get_user_group(self, group_name: str):
+        """
+        Get user group by name.
+        """
+        if group_name == "All":
+            return {"name": "All", "usrgrpid": "0"}
+
+        params = {
+            "output": "extend",
+            "filter": {"name": group_name},
+        }
+
+        return self.zapi.send_sync_request("usergroup.get", params)["result"][0]
+
+    def get_user_group_id(self, group_id: str):
+        """
+        Get user group by ID.
+        """
+        if group_id == "0":
+            return {"name": "All", "usrgrpid": "0"}
+
+        params = {
+            "usrgrpids": [group_id],
+        }
+
+        return self.zapi.send_sync_request("usergroup.get", params)["result"][0]
+
     def get_server_version(self):
         return self.zapi.send_sync_request("apiinfo.version", need_auth=False)["result"]
