@@ -212,12 +212,14 @@ class Zabbix:
         """
         Export scripts from Zabbix
         """
+        scripts = []
+
         if not search:
-            return self.zapi.send_sync_request("script.get", {"output": "extend"})[
+            scripts = self.zapi.send_sync_request("script.get", {"output": "extend"})[
                 "result"
             ]
         else:
-            return self.zapi.send_sync_request(
+            scripts = self.zapi.send_sync_request(
                 "script.get",
                 {
                     "output": "extend",
@@ -225,10 +227,35 @@ class Zabbix:
                 },
             )["result"]
 
+        if self.api_version < 7.0:
+            legacy_additions = {
+                "url": None,
+                "new_window": None,
+                "manualinput": None,
+                "manualinput_prompt": None,
+                "manualinput_validator": None,
+                "manualinput_validator_type": None,
+                "manualinput_default_value": None,
+            }
+
+            return [dict(**script, **legacy_additions) for script in scripts]
+
+        return scripts
+
     def create_script(self, script: dict):
+        none_keys = [k for k, v in script.items() if v is None]
+
+        for k in none_keys:
+            del script[k]
+
         return self.zapi.send_sync_request("script.create", script)["result"]
 
     def update_script(self, script: dict):
+        none_keys = [k for k, v in script.items() if v is None]
+
+        for k in none_keys:
+            del script[k]
+
         return self.zapi.send_sync_request("script.update", script)["result"]
 
     def delete_scripts(self, script_ids: list[str]):
