@@ -139,6 +139,10 @@ def read_args(args: list[str] | None = None):
         help="The path in the git repository, used to store the icon maps",
     )
     zabbixci_group.add_argument(
+        "--script-prefix-path",
+        help="The path in the git repository, used to store the scripts",
+    )
+    zabbixci_group.add_argument(
         "--template-whitelist",
         help="Comma separated list of templates to include",
     )
@@ -161,6 +165,28 @@ def read_args(args: list[str] | None = None):
     zabbixci_group.add_argument(
         "--icon-map-blacklist",
         help="Comma separated list of icon maps to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--script-whitelist",
+        help="Comma separated list of scripts to include",
+    )
+    zabbixci_group.add_argument(
+        "--script-blacklist",
+        help="Comma separated list of scripts to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--script-without-usrgrp",
+        help="Comma separated list of scripts to include without user group",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_group.add_argument(
+        "--script-default-usrgrp",
+        help="Default user group for scripts",
+        default=None,
     )
     zabbixci_group.add_argument(
         "--cache-path",
@@ -220,6 +246,15 @@ def read_args(args: list[str] | None = None):
     zabbixci_group.add_argument(
         "--sync-icon-maps",
         help="Synchronize icon maps between Zabbix and git",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_group.add_argument(
+        "--sync-scripts",
+        help="Synchronize scripts between Zabbix and git",
         const=True,
         default=None,
         type=str2bool,

@@ -231,6 +231,4 @@ class Template(Asset):
         """
         Create an individual template from a bulk Zabbix export
         """
-        # TODO: Prepare dict for export, otherwise remove this method and use the constructor directly
-
         return Template(export)

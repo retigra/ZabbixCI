@@ -37,6 +37,7 @@ class BaseIconMap:
         Settings.SYNC_ICONS = True
         Settings.SYNC_BACKGROUNDS = False
         Settings.SYNC_ICON_MAPS = True
+        Settings.SYNC_SCRIPTS = False
 
         Settings.ICON_MAP_BLACKLIST = ""
         Settings.ICON_MAP_WHITELIST = ""

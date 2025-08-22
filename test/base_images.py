@@ -37,6 +37,7 @@ class BaseImages:
         Settings.SYNC_ICONS = True
         Settings.SYNC_BACKGROUNDS = True
         Settings.SYNC_ICON_MAPS = False
+        Settings.SYNC_SCRIPTS = False
 
         Settings.IMAGE_BLACKLIST = ""
         Settings.IMAGE_WHITELIST = ""

@@ -64,7 +64,7 @@ exclude = ["zabbixci.tests*"]
 version_file = "zabbixci/_version.py"
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "ERA001", "S501", "DJ", "G", "T20", "PIE", "N"]
+select = ["E", "F", "B", "ERA001", "S501", "DJ", "G", "T20", "PIE", "N", "FIX"]
 
 # Ignore line-length
 ignore = ["E501"]
