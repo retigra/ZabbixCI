@@ -5,8 +5,11 @@ from ruamel.yaml import YAML
 from zabbix_utils import AsyncZabbixAPI  # type: ignore
 
 from zabbixci.assets import Template
+from logging import getLogger
 
 yaml = YAML()
+
+logger = getLogger(__name__)
 
 
 class Zabbix:
@@ -242,20 +245,84 @@ class Zabbix:
 
         return scripts
 
+    def map_script(self, script: dict):
+        """
+        Map script object for creation or updates. mainly for handling unwanted fields for Zabbix 6.0 and earlier.
+
+        Zabbix 6.0 only
+        """
+        if self.api_version >= 7.0:
+            return script
+
+        logger.debug("Mapping script object for Zabbix 6.0 compatibility.")
+
+        default_keys = [
+            "scriptid",
+            "name",
+            "type",
+            "command",
+            "scope",
+            "groupid",
+            "description",
+        ]
+        # Zabbix 6 API errors when unexpected fields were given on creation and updates. Even though these fields are returned on .get
+        allowed_fields = {
+            "type:authtype": {
+                "2:0": ["password"],
+                "2:1": ["publickey", "privatekey"],
+            },
+            "type": {
+                "0": [
+                    "execute_on",
+                ],
+                "2": ["authtype", "username", "port"],
+                "3": ["username", "password", "port"],
+                "5": ["timeout", "parameters"],
+            },
+            "scope": {
+                "2": ["menu_path", "host_access", "confirmation", "usrgrpid"],
+                "4": ["menu_path", "host_access", "confirmation", "usrgrpid"],
+            },
+        }
+
+        allowed_keys = default_keys[:]
+
+        for filter_key, filter_ruleset in allowed_fields.items():
+            match_keys = filter_key.split(":")
+
+            # For each ruleset in a key block
+            for match_values_blob, rule_values in filter_ruleset.items():
+                match_values = match_values_blob.split(":")
+
+                assert len(match_keys) == len(match_values)
+
+                applies = True
+
+                # Check if all rule match keys/values apply to the script
+                for key, value in zip(match_keys, match_values):
+                    if script.get(key) != value:
+                        applies = False
+                        break
+
+                # This ruleset does not apply for all keys in the key:key array, try the next one
+                if not applies:
+                    continue
+
+                allowed_keys.extend(rule_values)
+
+        for key in list(script.keys()):
+            if key not in allowed_keys:
+                logger.debug("Deleting key %s from script object", key)
+                del script[key]
+
+        return script
+
     def create_script(self, script: dict):
-        none_keys = [k for k, v in script.items() if v is None]
-
-        for k in none_keys:
-            del script[k]
-
+        self.map_script(script)
         return self.zapi.send_sync_request("script.create", script)["result"]
 
     def update_script(self, script: dict):
-        none_keys = [k for k, v in script.items() if v is None]
-
-        for k in none_keys:
-            del script[k]
-
+        self.map_script(script)
         return self.zapi.send_sync_request("script.update", script)["result"]
 
     def delete_scripts(self, script_ids: list[str]):
