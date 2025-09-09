@@ -1,7 +1,7 @@
 ![ZabbixCI cog logo](https://raw.githubusercontent.com/retigra/zabbixci/main/logo.png "ZabbixCI logo")
 
 ![PyPI - Version](https://img.shields.io/pypi/v/zabbixci)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/retigra/ZabbixCI/pypi.yml?label=pypi%20build)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/retigra/ZabbixCI/pypi.yaml?label=pypi%20build)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/retigra/ZabbixCI/ghcr.yaml?label=docker%20build)
 
 > [!WARNING]
