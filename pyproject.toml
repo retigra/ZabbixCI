@@ -49,8 +49,8 @@ Discussions = "https://github.com/retigra/ZabbixCI/discussions"
 [project.scripts]
 zabbixci = "zabbixci.cli:parse_cli"
 
-[project.optional-dependencies]
-dev = ["black>=24.10.0", "isort>=5.13.2", "flake8>=7.1.1"]
+[dependency-groups]
+dev = ["ruff>=0.12.1"]
 
 [build-system]
 requires = ["setuptools>=64", "setuptools_scm>=8"]
