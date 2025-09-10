@@ -9,6 +9,7 @@ RUN apt update && apt install -y git && apt-get clean
 COPY pyproject.toml /app
 COPY uv.lock /app/uv.lock
 COPY .git /app/.git
+RUN mkdir /app/zabbixci
 
 RUN uv sync --locked --no-install-project --no-dev
 
