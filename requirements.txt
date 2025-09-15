@@ -24,7 +24,7 @@ propcache==0.3.2
     # via
     #   aiohttp
     #   yarl
-pycparser==2.22
+pycparser==2.23
     # via cffi
 pygit2==1.18.1
     # via zabbixci (pyproject.toml)
