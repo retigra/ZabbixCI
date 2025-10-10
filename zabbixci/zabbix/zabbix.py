@@ -299,7 +299,7 @@ class Zabbix:
                 applies = True
 
                 # Check if all rule match keys/values apply to the script
-                for key, value in zip(match_keys, match_values):
+                for key, value in zip(match_keys, match_values, strict=True):
                     if script.get(key) != value:
                         applies = False
                         break
