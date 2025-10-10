@@ -14,7 +14,7 @@ DEV_GIT_REMOTE = getenv("REMOTE")
 CACHE_PATH = getenv("CACHE_PATH")
 
 
-class BaseTemplates:
+class BaseScripts:
     def setUp(self):
         Settings.CACHE_PATH = CACHE_PATH
         self.cache = Cache(Settings.CACHE_PATH)
@@ -23,7 +23,7 @@ class BaseTemplates:
             Cleanup.cleanup_cache(full=True)
 
         logging.basicConfig(
-            level=logging.ERROR,
+            level=logging.WARNING,
             format="%(asctime)s - %(name)s - %(message)s",
         )
 
@@ -34,14 +34,14 @@ class BaseTemplates:
         Settings.REGEX_MATCHING = False
         Settings.SET_VERSION = True
 
-        Settings.SYNC_TEMPLATES = True
+        Settings.SYNC_TEMPLATES = False
         Settings.SYNC_ICONS = False
         Settings.SYNC_BACKGROUNDS = False
         Settings.SYNC_ICON_MAPS = False
-        Settings.SYNC_SCRIPTS = False
+        Settings.SYNC_SCRIPTS = True
 
-        Settings.TEMPLATE_WHITELIST = ""
-        Settings.TEMPLATE_BLACKLIST = ""
+        Settings.SCRIPT_WHITELIST = ""
+        Settings.SCRIPT_BLACKLIST = ""
 
         self.zci = ZabbixCI()
 
@@ -54,14 +54,14 @@ class BaseTemplates:
         Cleanup.cleanup_cache(full=True)
         self.zci.create_git()
 
-        whitelist = Settings.TEMPLATE_WHITELIST
-        blacklist = Settings.TEMPLATE_BLACKLIST
+        whitelist = Settings.SCRIPT_WHITELIST
+        blacklist = Settings.SCRIPT_BLACKLIST
 
         # Restore the state of Zabbix
         await self.zci.pull()
 
-        Settings.TEMPLATE_WHITELIST = whitelist
-        Settings.TEMPLATE_BLACKLIST = blacklist
+        Settings.SCRIPT_WHITELIST = whitelist
+        Settings.SCRIPT_BLACKLIST = blacklist
 
     async def asyncSetUp(self):
         self.zci.create_git()
@@ -76,62 +76,52 @@ class BaseTemplates:
         changed = await self.zci.pull()
         self.assertFalse(changed)
 
-    async def test_template_change(self):
-        # Rename a template
-        template_id = self.zci._zabbix.get_templates_name(["Windows by Zabbix agent"])[
-            0
-        ]["templateid"]
-        self.zci._zabbix.set_template(
-            template_id, {"name": "Windows by Zabbix agent (renamed)"}
-        )
+    async def test_script_change(self):
+        # Rename a script
+        script = self.zci._zabbix.get_scripts(["Detect operating system"])[0]
+        self.zci._zabbix.update_script({**script, "description": "Hello world"})
 
         # Push changes to git
         changed = await self.zci.push()
-        self.assertTrue(changed, "Template change not detected")
+        self.assertTrue(changed, "Script change not detected")
 
         # Revert changes in Zabbix
-        self.zci._zabbix.set_template(template_id, {"name": "Windows by Zabbix agent"})
-
+        self.zci._zabbix.update_script({**script, "description": ""})
         # Restore to Git version
         changed = await self.zci.pull()
-        self.assertTrue(changed, "Template was not restored")
+        self.assertTrue(changed, "Script was not restored")
 
         # Assert Git version is imported back into Zabbix
-        matches = self.zci._zabbix.get_templates(
-            [Settings.ROOT_TEMPLATE_GROUP], ["Windows by Zabbix agent"]
-        )
-        self.assertEqual(len(matches), 1, "Template not found")
+        matches = self.zci._zabbix.get_scripts(["Detect operating system"])
+        self.assertEqual(len(matches), 1, "Script not found")
 
-    async def test_template_rename(self):
-        # Rename a template
-        template_id = self.zci._zabbix.get_templates_name(["Linux by Zabbix agent"])[0][
-            "templateid"
-        ]
-        self.zci._zabbix.set_template(template_id, {"host": "Linux by Zabbix 00000"})
+    async def test_script_rename(self):
+        # Rename a script
+        script = self.zci._zabbix.get_scripts(["Detect operating system"])[0]
+
+        self.zci._zabbix.update_script(
+            {**script, "name": "Detect operating system (renamed)"}
+        )
 
         # Push changes to git
         changed = await self.zci.push()
         self.assertTrue(changed, "Renaming not detected")
 
         # Make changes in Zabbix
-        self.zci._zabbix.set_template(template_id, {"host": "Linux by Zabbix agent"})
+        self.zci._zabbix.update_script({**script, "name": "Detect operating system"})
 
         # Restore to Git version
         changed = await self.zci.pull()
-        self.assertTrue(changed, "Template was not restored")
+        self.assertTrue(changed, "Script was not restored")
 
         # Assert Git version is restored
-        matches = self.zci._zabbix.get_templates(
-            [Settings.ROOT_TEMPLATE_GROUP], ["Linux by Zabbix 00000"]
-        )
-        self.assertEqual(len(matches), 1, "Template not found")
+        matches = self.zci._zabbix.get_scripts(["Detect operating system (renamed)"])
+        self.assertEqual(len(matches), 1, "Script not found")
 
-    async def test_template_delete(self):
-        # Delete a template
-        template_id = self.zci._zabbix.get_templates_name(
-            ["Acronis Cyber Protect Cloud by HTTP"]
-        )[0]["templateid"]
-        self.zci._zabbix.delete_templates([template_id])
+    async def test_script_delete(self):
+        # Delete a script
+        script_id = self.zci._zabbix.get_scripts(["Traceroute"])[0]["scriptid"]
+        self.zci._zabbix.delete_scripts([script_id])
 
         # Push changes to git
         changed = await self.zci.push()
@@ -145,14 +135,6 @@ class BaseTemplates:
         Settings.PULL_BRANCH = "main"
         changed = await self.zci.pull()
         self.assertTrue(changed, "Template deletion from Git was not detected")
-
-    async def test_push_to_new_branch(self):
-        Settings.PUSH_BRANCH = "new-branch"
-
-        # Push default Zabbix templates to remote
-        await self.zci.push()
-
-        Settings.PUSH_BRANCH = "main"
 
     async def asyncTearDown(self):
         await self.zci._zabbix.zapi.logout()

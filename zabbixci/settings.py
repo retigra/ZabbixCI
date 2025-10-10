@@ -24,6 +24,7 @@ class Settings:
     TEMPLATE_PREFIX_PATH: str = "templates"
     IMAGE_PREFIX_PATH: str = "images"
     ICON_MAP_PREFIX_PATH: str = "icon-maps"
+    SCRIPT_PREFIX_PATH: str = "scripts"
     TEMPLATE_WHITELIST: str = ""
     TEMPLATE_BLACKLIST: str = ""
     CACHE_PATH: str = "./cache"
@@ -43,6 +44,7 @@ class Settings:
     SYNC_BACKGROUNDS: bool = False
     SYNC_TEMPLATES: bool = True
     SYNC_ICON_MAPS: bool = False
+    SYNC_SCRIPTS: bool = False
     IMAGE_WHITELIST: str = ""
     IMAGE_BLACKLIST: str = ""
     ICON_SIZES: str = "24,48,64,128"
@@ -50,6 +52,10 @@ class Settings:
     REGEX_MATCHING: bool = False
     ICON_MAP_WHITELIST: str = ""
     ICON_MAP_BLACKLIST: str = ""
+    SCRIPT_WHITELIST: str = ""
+    SCRIPT_BLACKLIST: str = ""
+    SCRIPT_WITHOUT_USRGRP: bool = False
+    SCRIPT_DEFAULT_USRGRP: str = "Zabbix administrators"
     ZABBIX_KWARGS: dict = {}
     GIT_KWARGS: dict = {}
     SKIP_VERSION_CHECK: bool = False
@@ -77,6 +83,14 @@ class Settings:
     @classmethod
     def get_icon_map_blacklist(cls):
         return cls.ICON_MAP_BLACKLIST.split(",") if cls.ICON_MAP_BLACKLIST else []
+
+    @classmethod
+    def get_script_whitelist(cls):
+        return cls.SCRIPT_WHITELIST.split(",") if cls.SCRIPT_WHITELIST else []
+
+    @classmethod
+    def get_script_blacklist(cls):
+        return cls.SCRIPT_BLACKLIST.split(",") if cls.SCRIPT_BLACKLIST else []
 
     @classmethod
     def get_icon_sizes(cls):

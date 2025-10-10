@@ -13,6 +13,7 @@ from zabbixci.git import Git, GitCredentials
 from zabbixci.handlers.synchronization.icon_map_synchronization import IconMapHandler
 from zabbixci.handlers.synchronization.image_synchronization import ImageHandler
 from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
+from zabbixci.handlers.synchronization.script_syncronization import ScriptHandler
 from zabbixci.settings import Settings
 from zabbixci.zabbix import Zabbix
 
@@ -115,10 +116,12 @@ class ZabbixCI:
         template_handler = TemplateHandler(self._zabbix)
         image_handler = ImageHandler(self._zabbix)
         icon_map_handler = IconMapHandler(self._zabbix)
+        script_handler = ScriptHandler(self._zabbix)
 
         template_objects = await template_handler.templates_to_cache()
         image_objects = image_handler.images_to_cache()
         icon_map_handler.icon_map_to_cache(image_objects)
+        script_handler.script_to_cache()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -258,10 +261,12 @@ class ZabbixCI:
         template_handler = TemplateHandler(self._zabbix)
         image_handler = ImageHandler(self._zabbix)
         icon_map_handler = IconMapHandler(self._zabbix)
+        script_handler = ScriptHandler(self._zabbix)
 
         template_objects = await template_handler.templates_to_cache()
         image_objects = image_handler.images_to_cache()
         icon_map_objects = icon_map_handler.icon_map_to_cache(image_objects)
+        script_objects = script_handler.script_to_cache()
 
         # Check if there are any changes to commit
         if self._git.has_changes:
@@ -319,6 +324,14 @@ class ZabbixCI:
             deleted_files, imported_images, image_objects
         )
 
+        imported_scripts = script_handler.import_file_changes(
+            changed_files, script_objects
+        )
+
+        deleted_scripts = script_handler.delete_file_changes(
+            deleted_files, imported_scripts, script_objects
+        )
+
         has_changes = bool(
             imported_template_ids
             or deleted_template_names
@@ -326,6 +339,8 @@ class ZabbixCI:
             or deleted_image_names
             or imported_icon_maps
             or deleted_icon_map_names
+            or imported_scripts
+            or deleted_scripts
         )
 
         # Inform user about the changes
@@ -346,6 +361,11 @@ class ZabbixCI:
                 len(imported_icon_maps),
                 len(deleted_icon_map_names),
             )
+            self.logger.info(
+                "Would have imported %s scripts, deleted %s scripts",
+                len(imported_scripts),
+                len(deleted_scripts),
+            )
         else:
             if has_changes:
                 self.logger.info(
@@ -362,6 +382,11 @@ class ZabbixCI:
                     "Imported %s icon maps, deleted %s icon maps",
                     len(imported_icon_maps),
                     len(deleted_icon_map_names),
+                )
+                self.logger.info(
+                    "Imported %s scripts, deleted %s scripts",
+                    len(imported_scripts),
+                    len(deleted_scripts),
                 )
             else:
                 self.logger.info("No changes detected, Zabbix is up to date")

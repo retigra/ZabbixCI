@@ -11,11 +11,12 @@ from zabbixci.settings import Settings
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
 DEV_GIT_REMOTE = getenv("REMOTE")
+CACHE_PATH = getenv("CACHE_PATH")
 
 
 class BaseIconMap:
     def setUp(self):
-        Settings.CACHE_PATH = "/tmp/zabbixci"
+        Settings.CACHE_PATH = CACHE_PATH
         self.cache = Cache(Settings.CACHE_PATH)
 
         if os.path.exists(Settings.CACHE_PATH):
@@ -37,6 +38,7 @@ class BaseIconMap:
         Settings.SYNC_ICONS = True
         Settings.SYNC_BACKGROUNDS = False
         Settings.SYNC_ICON_MAPS = True
+        Settings.SYNC_SCRIPTS = False
 
         Settings.ICON_MAP_BLACKLIST = ""
         Settings.ICON_MAP_WHITELIST = ""
