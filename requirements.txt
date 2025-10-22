@@ -6,7 +6,7 @@ aiohttp==3.12.15
     # via zabbixci (pyproject.toml)
 aiosignal==1.4.0
     # via aiohttp
-attrs==25.3.0
+attrs==25.4.0
     # via aiohttp
 cffi==2.0.0
     # via pygit2
