@@ -133,10 +133,17 @@ class TemplateHandler(TemplateValidationHandler):
         if Settings.CREATE_TEMPLATE_GROUPS:
             # Create all parent template groups if they don't exist
             for group_path in template.groups:
-                for group in group_path:
+                for index, _ in enumerate(group_path):
+                    full_name = group_path[0 : index + 1]
+                    group = "/".join(full_name)
+
                     if group in self._existing_template_groups:
+                        logger.debug(
+                            "Template group %s already exists, skipping creation", group
+                        )
                         continue
 
+                    logger.info("Creating template group: %s", group)
                     self._zabbix.create_template_group(group)
                     self._existing_template_groups.append(group)
 
