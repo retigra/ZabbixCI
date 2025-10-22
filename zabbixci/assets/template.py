@@ -42,11 +42,24 @@ class Template(Asset):
         return self._template["uuid"]
 
     @property
-    def template_ids(self):
+    def template_ids(self) -> list[str]:
         """
         List of UUIDs that are included in this Zabbix export
         """
         return [template["uuid"] for template in self._export["templates"]]
+
+    @property
+    def groups(self) -> list[list[str]]:
+        """
+        List of all groups in the template as lists split by '/'
+        """
+        group_list: list[list[str]] = []
+
+        for group in self._template["groups"]:
+            split = regex.split(r"\/+", group["name"])
+            group_list.append(split)
+
+        return group_list
 
     @property
     def primary_group(self) -> str:

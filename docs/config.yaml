@@ -296,3 +296,9 @@ regex_matching: false
 # Mandatory: no
 # Default: false
 skip_version_check: false
+
+### Option: create_template_groups
+# Create template group tree if it does not exist.
+# Mandatory: no
+# Default: true
+create_template_groups: true

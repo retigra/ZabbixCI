@@ -34,7 +34,7 @@ class Zabbix:
 
         self.zapi = AsyncZabbixAPI(*args, **kwargs, client_session=self._client_session)
 
-    def _get_template_group(self, template_group_names: list[str]):
+    def get_template_group(self, template_group_names: list[str]) -> list[dict]:
         names = template_group_names + [f"{name}/*" for name in template_group_names]
 
         params = {
@@ -51,12 +51,22 @@ class Zabbix:
                 params,
             )["result"]
 
+    def create_template_group(self, group_name: str):
+        if self.api_version < 7.0:
+            return self.zapi.send_sync_request(
+                "hostgroup.create", {"name": group_name}
+            )["result"]
+        else:
+            return self.zapi.send_sync_request(
+                "templategroup.create", {"name": group_name}
+            )["result"]
+
     def get_templates(
         self, template_group_names: list[str], filter_list: list[str] | None = None
     ):
-        ids = self._get_template_group(template_group_names)
+        groups = self.get_template_group(template_group_names)
 
-        template_group_ids = [group["groupid"] for group in ids]
+        template_group_ids = [group["groupid"] for group in groups]
 
         if filter_list:
             return self.zapi.send_sync_request(
@@ -266,6 +276,7 @@ class Zabbix:
             "description",
         ]
         # Zabbix 6 API errors when unexpected fields were given on creation and updates. Even though these fields are returned on .get
+        # Filter defines matching keys and resulting matching values, creating a ruleset for the then specified allowed fields in the form of a string list
         allowed_fields = {
             "type:authtype": {
                 "2:0": ["password"],
