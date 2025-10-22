@@ -59,6 +59,7 @@ class Settings:
     ZABBIX_KWARGS: dict = {}
     GIT_KWARGS: dict = {}
     SKIP_VERSION_CHECK: bool = False
+    CREATE_TEMPLATE_GROUPS: bool = True
 
     @classmethod
     def get_template_whitelist(cls):
