@@ -22,9 +22,17 @@ class TemplateHandler(TemplateValidationHandler):
     """
 
     _zabbix: Zabbix
+    _existing_template_groups: list[str] = []
 
     def __init__(self, zabbix: Zabbix):
         self._zabbix = zabbix
+
+        if Settings.CREATE_TEMPLATE_GROUPS:
+            # Fetch existing template groups from Zabbix
+            self._existing_template_groups = [
+                t["name"]
+                for t in self._zabbix.get_template_group([Settings.ROOT_TEMPLATE_GROUP])
+            ]
 
     async def zabbix_export(self, templates: list[dict]):
         batches = [
@@ -96,7 +104,7 @@ class TemplateHandler(TemplateValidationHandler):
         """
         Validation steps to perform on a template before it is imported into Zabbix
         """
-        if not super().object_validation(template):
+        if not super().object_validation(template) or not template:
             return False
 
         zabbix_version = self._zabbix.get_server_version()
@@ -115,6 +123,24 @@ class TemplateHandler(TemplateValidationHandler):
             return False
 
         return True
+
+    def _import_template(self, template: Template):
+        """
+        Import a single template into Zabbix
+
+        :param template: Template object to import
+        """
+        if Settings.CREATE_TEMPLATE_GROUPS:
+            # Create all parent template groups if they don't exist
+            for group_path in template.groups:
+                for group in group_path:
+                    if group in self._existing_template_groups:
+                        continue
+
+                    self._zabbix.create_template_group(group)
+                    self._existing_template_groups.append(group)
+
+        self._zabbix.import_template(template)
 
     def import_file_changes(
         self, changed_files: list[str]
@@ -164,8 +190,7 @@ class TemplateHandler(TemplateValidationHandler):
                         template.name,
                         template.level(templates),
                     )
-                    self._zabbix.import_template(template)
-
+                    self._import_template(template)
                     success_templates.extend(template.template_ids)
                 except (APIRequestError, ProcessingError) as e:
                     logger.warning(
@@ -176,9 +201,9 @@ class TemplateHandler(TemplateValidationHandler):
                     retry_templates.append(template)
         else:
             # Dry-run is enabled, don't import but increment success count
-            success_templates.extend(
-                [t.template_ids for t in templates if t.template_ids]
-            )
+            for t in templates:
+                if t.template_ids:
+                    success_templates.extend(t.template_ids)
 
         if retry_templates:
             for template in retry_templates:
@@ -188,7 +213,7 @@ class TemplateHandler(TemplateValidationHandler):
                         template.name,
                         template.level(templates),
                     )
-                    self._zabbix.import_template(template)
+                    self._import_template(template)
 
                     success_templates.extend(template.template_ids)
                 except (APIRequestError, ProcessingError) as e:
