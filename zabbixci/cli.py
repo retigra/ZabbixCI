@@ -269,6 +269,15 @@ def read_args(args: list[str] | None = None):
         "--background-sizes",
         help="Comma separated list of background sizes to generate",
     )
+    zabbixci_group.add_argument(
+        "--create-template-groups",
+        help="Create template group tree if it does not exist",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
 
     zabbix_group = method_parser.add_argument_group("Zabbix")
 
