@@ -13,7 +13,7 @@ from zabbixci.git import Git, GitCredentials
 from zabbixci.handlers.synchronization.icon_map_synchronization import IconMapHandler
 from zabbixci.handlers.synchronization.image_synchronization import ImageHandler
 from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
-from zabbixci.handlers.synchronization.script_syncronization import ScriptHandler
+from zabbixci.handlers.synchronization.script_synchronization import ScriptHandler
 from zabbixci.settings import Settings
 from zabbixci.zabbix import Zabbix
 
