@@ -34,7 +34,7 @@ ruamel-yaml==0.18.14
     # via zabbixci (pyproject.toml)
 ruamel-yaml-clib==0.2.12
     # via ruamel-yaml
-typing-extensions==4.14.1
+typing-extensions==4.15.0
     # via aiosignal
 wand==0.6.13
     # via zabbixci (pyproject.toml)
