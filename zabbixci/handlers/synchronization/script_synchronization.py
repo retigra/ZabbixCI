@@ -146,7 +146,7 @@ class ScriptHandler(ScriptValidationHandler):
                     logger.debug("Error details: %s", e)
                     failed_scripts.append(script)
 
-        if len(failed_scripts):
+        if failed_scripts:
             for script in failed_scripts:
                 try:
                     __import_script(script)
@@ -199,7 +199,7 @@ class ScriptHandler(ScriptValidationHandler):
             deletion_queue.append(script.unique_name)
             logger.info("Added %s to deletion queue", script.unique_name)
 
-        if len(deletion_queue):
+        if deletion_queue:
             script_ids = [
                 t.scriptid
                 for t in list(
@@ -209,7 +209,7 @@ class ScriptHandler(ScriptValidationHandler):
 
             logger.info("Deleting %s script(s) from Zabbix", len(script_ids))
 
-            if len(script_ids):
+            if script_ids:
                 if not Settings.DRY_RUN:
                     self._zabbix.delete_scripts(script_ids)
 

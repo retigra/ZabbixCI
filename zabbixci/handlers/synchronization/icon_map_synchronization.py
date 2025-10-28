@@ -122,7 +122,7 @@ class IconMapHandler(IconMapValidationHandler):
                     logger.debug("Error details: %s", e)
                     failed_icon_maps.append(icon_map)
 
-        if len(failed_icon_maps):
+        if failed_icon_maps:
             for icon_map in failed_icon_maps:
                 try:
                     __import_icon_map(icon_map)
@@ -175,7 +175,7 @@ class IconMapHandler(IconMapValidationHandler):
             deletion_queue.append(icon_map.name)
             logger.info("Added %s to deletion queue", icon_map.name)
 
-        if len(deletion_queue):
+        if deletion_queue:
             icon_map_ids = [
                 t.icon_mapid
                 for t in list(
@@ -185,7 +185,7 @@ class IconMapHandler(IconMapValidationHandler):
 
             logger.info("Deleting %s icon map(s) from Zabbix", len(icon_map_ids))
 
-            if len(icon_map_ids):
+            if icon_map_ids:
                 if not Settings.DRY_RUN:
                     self._zabbix.delete_icon_maps(icon_map_ids)
 

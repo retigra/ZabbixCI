@@ -286,7 +286,7 @@ class TemplateHandler(TemplateValidationHandler):
 
             logger.info("Deleting %d templates from Zabbix", len(template_ids))
 
-            if len(template_ids):
+            if template_ids:
                 if not Settings.DRY_RUN:
                     self._zabbix.delete_templates(template_ids)
 

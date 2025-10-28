@@ -12,8 +12,8 @@ from zabbixci.cache.cleanup import Cleanup
 from zabbixci.git import Git, GitCredentials
 from zabbixci.handlers.synchronization.icon_map_synchronization import IconMapHandler
 from zabbixci.handlers.synchronization.image_synchronization import ImageHandler
-from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
 from zabbixci.handlers.synchronization.script_synchronization import ScriptHandler
+from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
 from zabbixci.settings import Settings
 from zabbixci.zabbix import Zabbix
 
@@ -366,30 +366,29 @@ class ZabbixCI:
                 len(imported_scripts),
                 len(deleted_scripts),
             )
+        elif has_changes:
+            self.logger.info(
+                "Imported %s templates, deleted %s templates",
+                len(imported_template_ids),
+                len(deleted_template_names),
+            )
+            self.logger.info(
+                "Imported %s images, deleted %s images",
+                len(imported_images),
+                len(deleted_image_names),
+            )
+            self.logger.info(
+                "Imported %s icon maps, deleted %s icon maps",
+                len(imported_icon_maps),
+                len(deleted_icon_map_names),
+            )
+            self.logger.info(
+                "Imported %s scripts, deleted %s scripts",
+                len(imported_scripts),
+                len(deleted_scripts),
+            )
         else:
-            if has_changes:
-                self.logger.info(
-                    "Imported %s templates, deleted %s templates",
-                    len(imported_template_ids),
-                    len(deleted_template_names),
-                )
-                self.logger.info(
-                    "Imported %s images, deleted %s images",
-                    len(imported_images),
-                    len(deleted_image_names),
-                )
-                self.logger.info(
-                    "Imported %s icon maps, deleted %s icon maps",
-                    len(imported_icon_maps),
-                    len(deleted_icon_map_names),
-                )
-                self.logger.info(
-                    "Imported %s scripts, deleted %s scripts",
-                    len(imported_scripts),
-                    len(deleted_scripts),
-                )
-            else:
-                self.logger.info("No changes detected, Zabbix is up to date")
+            self.logger.info("No changes detected, Zabbix is up to date")
 
         if failed_template_names:
             self.logger.error(

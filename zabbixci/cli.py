@@ -1,8 +1,10 @@
 import argparse
 import asyncio
 import logging
+from collections.abc import Sequence
 from sys import argv, exit, version_info
-from typing import Sequence
+
+from zabbix_utils import APINotSupported
 
 from zabbixci._version import __version__
 from zabbixci.cache.cache import Cache
@@ -11,8 +13,6 @@ from zabbixci.exceptions import BaseZabbixCIError
 from zabbixci.logging import CustomFormatter, StatusCodeHandler
 from zabbixci.settings import Settings
 from zabbixci.zabbixci import ZabbixCI
-
-from zabbix_utils import APINotSupported
 
 logger = logging.getLogger(__name__)
 

@@ -1,3 +1,4 @@
+from logging import getLogger
 from ssl import SSLContext
 
 import aiohttp
@@ -5,7 +6,6 @@ from ruamel.yaml import YAML
 from zabbix_utils import AsyncZabbixAPI  # type: ignore
 
 from zabbixci.assets import Template
-from logging import getLogger
 
 yaml = YAML()
 

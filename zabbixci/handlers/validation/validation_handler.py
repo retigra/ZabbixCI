@@ -8,7 +8,7 @@ from zabbixci.settings import Settings
 logger = logging.getLogger(__name__)
 
 
-class Handler(object, metaclass=ABCMeta):
+class Handler(metaclass=ABCMeta):
     @abstractmethod
     def get_whitelist(self) -> list[str] | str:
         raise NotImplementedError()

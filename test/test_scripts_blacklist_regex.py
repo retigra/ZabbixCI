@@ -1,7 +1,6 @@
 import unittest
 from os import getenv
 
-
 from base_scripts import BaseScripts
 
 from zabbixci.settings import Settings

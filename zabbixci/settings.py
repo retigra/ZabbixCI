@@ -118,7 +118,7 @@ class Settings:
 
     @classmethod
     def read_config(cls, path):
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = yaml.load(f)
             for key, value in data.items():
                 setattr(cls, key.upper(), value)
