@@ -258,8 +258,7 @@ class ImageHandler(ImageValidationHandler):
 
             logger.info("Deleting %s images from Zabbix", len(image_ids))
 
-            if image_ids:
-                if not Settings.DRY_RUN:
-                    self._zabbix.delete_images(image_ids)
+            if image_ids and not Settings.DRY_RUN:
+                self._zabbix.delete_images(image_ids)
 
         return deletion_queue

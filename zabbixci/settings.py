@@ -1,4 +1,5 @@
 import os
+from typing import ClassVar
 
 from ruamel.yaml import YAML
 
@@ -6,7 +7,7 @@ yaml = YAML()
 
 
 class Settings:
-    _DYN_IMG_EXT = ["png", "jpg", "jpeg", "gif", "bmp", "svg"]
+    _DYN_IMG_EXT: ClassVar[list[str]] = ["png", "jpg", "jpeg", "gif", "bmp", "svg"]
     VERBOSE: bool | None = False
     DEBUG: bool | None = False
     DEBUG_ALL: bool | None = False
@@ -56,8 +57,8 @@ class Settings:
     SCRIPT_BLACKLIST: str = ""
     SCRIPT_WITHOUT_USRGRP: bool = False
     SCRIPT_DEFAULT_USRGRP: str = "Zabbix administrators"
-    ZABBIX_KWARGS: dict = {}
-    GIT_KWARGS: dict = {}
+    ZABBIX_KWARGS: ClassVar[dict] = {}
+    GIT_KWARGS: ClassVar[dict] = {}
     SKIP_VERSION_CHECK: bool = False
     CREATE_TEMPLATE_GROUPS: bool = True
 

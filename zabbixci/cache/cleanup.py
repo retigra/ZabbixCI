@@ -32,10 +32,7 @@ class Cleanup:
             logger.warning("Could not open file %s as a template", file)
             return False
 
-        if not template_handler.object_validation(template):
-            return False
-
-        return True
+        return template_handler.object_validation(template)
 
     @classmethod
     def match_image_cleanup(cls, root: str, name: str):
@@ -57,10 +54,7 @@ class Cleanup:
         if not image:
             return False
 
-        if not image_handler.object_validation(image):
-            return False
-
-        return True
+        return image_handler.object_validation(image)
 
     @classmethod
     def match_icon_map_cleanup(cls, root: str, name: str):
@@ -82,10 +76,7 @@ class Cleanup:
         if not icon_map_handler:
             return False
 
-        if not icon_map_handler.object_validation(icon_map):
-            return False
-
-        return True
+        return icon_map_handler.object_validation(icon_map)
 
     @classmethod
     def match_script_cleanup(cls, root: str, name: str):
@@ -103,10 +94,7 @@ class Cleanup:
         if not script:
             return False
 
-        if not script_handler.object_validation(script):
-            return False
-
-        return True
+        return script_handler.object_validation(script)
 
     @classmethod
     def cleanup_cache(cls, full: bool = False) -> None:

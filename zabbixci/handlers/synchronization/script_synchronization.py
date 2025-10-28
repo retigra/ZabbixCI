@@ -209,8 +209,7 @@ class ScriptHandler(ScriptValidationHandler):
 
             logger.info("Deleting %s script(s) from Zabbix", len(script_ids))
 
-            if script_ids:
-                if not Settings.DRY_RUN:
-                    self._zabbix.delete_scripts(script_ids)
+            if script_ids and not Settings.DRY_RUN:
+                self._zabbix.delete_scripts(script_ids)
 
         return deletion_queue

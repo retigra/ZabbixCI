@@ -39,7 +39,11 @@ class CustomArgumentParser(argparse.ArgumentParser):
     Customized ArgumentParser with supporting code to calculate the explicit arguments, and parse them for boolean values when they are set explicitly (key=value)
     """
 
-    explicit_arguments: list[str] = []
+    explicit_arguments: list[str]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.explicit_arguments = []
 
     def parse_args(self, args: Sequence[str] | None = None, namespace=None):
         """
@@ -47,10 +51,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
         """
         argument_list: list[str] = []
 
-        if args is None:
-            argument_list = argv[1:]
-        else:
-            argument_list = list(args)
+        argument_list = argv[1:] if args is None else list(args)
 
         for i, arg in enumerate(argument_list):
             if arg in self.explicit_arguments:
@@ -508,7 +509,7 @@ async def run_zabbixci(action: str):
                 await zabbixci.create_zabbix()
             except APINotSupported as e:
                 print(f"Zabbix API version not supported by zabbix_utils: {e}")  # noqa: T201
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
 
             if zabbixci._zabbix:
@@ -547,8 +548,8 @@ async def run_zabbixci(action: str):
     except BaseZabbixCIError as e:
         logger.error(e)
         exit_code = 1
-    except Exception as e:
-        logger.exception("Unexpected error:", e)
+    except Exception:
+        logger.exception("Unexpected error:")
         exit_code = 129
     finally:
         if zabbixci._zabbix:

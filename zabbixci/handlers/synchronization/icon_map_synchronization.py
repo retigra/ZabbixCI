@@ -185,8 +185,7 @@ class IconMapHandler(IconMapValidationHandler):
 
             logger.info("Deleting %s icon map(s) from Zabbix", len(icon_map_ids))
 
-            if icon_map_ids:
-                if not Settings.DRY_RUN:
-                    self._zabbix.delete_icon_maps(icon_map_ids)
+            if icon_map_ids and not Settings.DRY_RUN:
+                self._zabbix.delete_icon_maps(icon_map_ids)
 
         return deletion_queue

@@ -15,7 +15,7 @@ from zabbixci.handlers.synchronization.image_synchronization import ImageHandler
 from zabbixci.handlers.synchronization.script_synchronization import ScriptHandler
 from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
 from zabbixci.settings import Settings
-from zabbixci.zabbix import Zabbix
+from zabbixci.zabbix import Zabbix, ZabbixConstants
 
 
 class ZabbixCI:
@@ -60,7 +60,7 @@ class ZabbixCI:
                 user=self._settings.ZABBIX_USER, password=self._settings.ZABBIX_PASSWORD
             )
 
-        if self._zabbix.zapi.version < 6.0:
+        if self._zabbix.zapi.version < ZabbixConstants.MINIMAL_VERSION:
             self.logger.error(
                 "Zabbix server version %s is not supported (6.0+ required)",
                 self._zabbix.zapi.version,
@@ -165,13 +165,18 @@ class ZabbixCI:
                 if (
                     Settings.VENDOR
                     and not template.vendor
-                    and self._zabbix.api_version >= 7.0
+                    and self._zabbix.api_version
+                    >= ZabbixConstants.VENDOR_SUPPORTED_VERSION
                 ):
                     set_vendor = Settings.VENDOR
                     template.set_vendor(set_vendor)
                     self.logger.debug("Setting vendor to: %s", set_vendor)
 
-                if Settings.SET_VERSION and self._zabbix.api_version >= 7.0:
+                if (
+                    Settings.SET_VERSION
+                    and self._zabbix.api_version
+                    >= ZabbixConstants.VENDOR_SUPPORTED_VERSION
+                ):
                     new_version = datetime.now(timezone.utc).strftime("%Y.%m.%d %H:%M")
                     template.set_version(new_version)
                     self.logger.debug("Setting version to: %s", new_version)

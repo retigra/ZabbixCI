@@ -13,8 +13,7 @@ class Cache(Filesystem):
 
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, "_instance"):
-            cls._instance = super(Cache, cls).__new__(cls)
-            cls._instance.cache = {}
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, cache_dir: str):

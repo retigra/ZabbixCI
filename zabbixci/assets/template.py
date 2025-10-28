@@ -112,22 +112,14 @@ class Template(Asset):
         if "vendor" not in self._template:
             return ""
 
-        return (
-            self._template["vendor"]["name"]
-            if "name" in self._template["vendor"]
-            else ""
-        )
+        return self._template["vendor"].get("name", "")
 
     @property
     def version(self):
         if "vendor" not in self._template:
             return ""
 
-        return (
-            self._template["vendor"]["version"]
-            if "version" in self._template["vendor"]
-            else ""
-        )
+        return self._template["vendor"].get("version", "")
 
     @property
     def updated_items(self):

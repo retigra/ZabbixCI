@@ -12,6 +12,13 @@ yaml = YAML()
 logger = getLogger(__name__)
 
 
+class ZabbixConstants:
+    MINIMAL_VERSION = 6.0
+    VENDOR_SUPPORTED_VERSION = 7.0
+    LEGACY_SCRIPT_API_VERSION_THRESHOLD = 7.0
+    TEMPLATE_GROUP_API_VERSION_THRESHOLD = 7.0
+
+
 class Zabbix:
     zapi: AsyncZabbixAPI
     _client_session = None
@@ -43,7 +50,7 @@ class Zabbix:
             "searchWildcardsEnabled": True,
         }
 
-        if self.api_version < 7.0:
+        if self.api_version < ZabbixConstants.TEMPLATE_GROUP_API_VERSION_THRESHOLD:
             return self.zapi.send_sync_request("hostgroup.get", params)["result"]
         else:
             return self.zapi.send_sync_request(
@@ -52,7 +59,7 @@ class Zabbix:
             )["result"]
 
     def create_template_group(self, group_name: str):
-        if self.api_version < 7.0:
+        if self.api_version < ZabbixConstants.TEMPLATE_GROUP_API_VERSION_THRESHOLD:
             return self.zapi.send_sync_request(
                 "hostgroup.create", {"name": group_name}
             )["result"]
@@ -108,7 +115,8 @@ class Zabbix:
                                 "updateExisting": True,
                             },
                         }
-                        if self.api_version >= 7.0
+                        if self.api_version
+                        >= ZabbixConstants.TEMPLATE_GROUP_API_VERSION_THRESHOLD
                         else {
                             "groups": {
                                 "createMissing": True,
@@ -240,7 +248,7 @@ class Zabbix:
                 },
             )["result"]
 
-        if self.api_version < 7.0:
+        if self.api_version < ZabbixConstants.LEGACY_SCRIPT_API_VERSION_THRESHOLD:
             legacy_additions = {
                 "url": None,
                 "new_window": None,
@@ -261,7 +269,7 @@ class Zabbix:
 
         Zabbix 6.0 only
         """
-        if self.api_version >= 7.0:
+        if self.api_version >= ZabbixConstants.LEGACY_SCRIPT_API_VERSION_THRESHOLD:
             return script
 
         logger.debug("Mapping script object for Zabbix 6.0 compatibility.")
@@ -304,8 +312,6 @@ class Zabbix:
             # For each ruleset in a key block
             for match_values_blob, rule_values in filter_ruleset.items():
                 match_values = match_values_blob.split(":")
-
-                assert len(match_keys) == len(match_values)
 
                 applies = True
 

@@ -109,3 +109,11 @@ select = [
     # Ruff-specific rules
     "RUF",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"zabbixci/zabbixci.py" = [
+    # Alow many statements in function
+    "PLR0915",
+    # Allow many branches in function
+    "PLR0912",
+]
