@@ -67,6 +67,12 @@ version_file = "zabbixci/_version.py"
 ignore = [
     # Ignore line-length
     "E501",
+    # Ignore too many arguments
+    "PLR0913",
+    # Ignore too many statements
+    "PLR0915",
+    # Ignore too many branches
+    "PLR0912",
 ]
 
 select = [
@@ -108,12 +114,4 @@ select = [
     "PL",
     # Ruff-specific rules
     "RUF",
-]
-
-[tool.ruff.lint.per-file-ignores]
-"zabbixci/zabbixci.py" = [
-    # Alow many statements in function
-    "PLR0915",
-    # Allow many branches in function
-    "PLR0912",
 ]
