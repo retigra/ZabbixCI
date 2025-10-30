@@ -229,7 +229,7 @@ class Git:
             f"refs/remotes/origin/{branch}"
         ).target
 
-        merge_result, merge_pref = self._repository.merge_analysis(remote_id)
+        merge_result, _merge_pref = self._repository.merge_analysis(remote_id)
 
         if merge_result & MergeAnalysis.UP_TO_DATE:
             logger.debug("Already up to date")
@@ -264,18 +264,12 @@ class Git:
 
             for hunk in patch.hunks:
                 for line in hunk.lines:
-                    if (
-                        line.origin == "+"
-                        and not invert
-                        or line.origin == "-"
-                        and invert
+                    if (line.origin == "+" and not invert) or (
+                        line.origin == "-" and invert
                     ):
                         log_entry += f"\033[92m+{line.content}\033[0m"
-                    elif (
-                        line.origin == "-"
-                        and not invert
-                        or line.origin == "+"
-                        and invert
+                    elif (line.origin == "-" and not invert) or (
+                        line.origin == "+" and invert
                     ):
                         log_entry += f"\033[91m-{line.content}\033[0m"
                     else:

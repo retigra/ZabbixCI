@@ -25,10 +25,7 @@ def test_cli_arg(
             None,
             test_value == "true",
         )
-    elif isinstance(value, int):
-        arguments.append(f"--{key.lower().replace('_', '-')}")
-        expected_value = (test_value, test_value)
-    elif isinstance(value, str) or not value:
+    elif isinstance(value, (int, str)) or not value:
         arguments.append(f"--{key.lower().replace('_', '-')}")
         expected_value = (test_value, test_value)
     if expected_value[0]:

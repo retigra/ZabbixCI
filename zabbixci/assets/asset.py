@@ -1,5 +1,5 @@
 from abc import ABCMeta
 
 
-class Asset(object, metaclass=ABCMeta):
+class Asset(metaclass=ABCMeta):  # noqa: B024
     pass

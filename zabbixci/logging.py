@@ -12,7 +12,7 @@ reset = "\x1b[0m"
 
 class CustomFormatter(logging.Formatter):
     log_format = "%(asctime)s  [%(levelname)s]: %(message)s"
-    formats: dict[str, str] = {}
+    formats: dict[int, str]
 
     def __init__(self):
         super().__init__()

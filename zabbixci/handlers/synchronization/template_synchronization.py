@@ -22,7 +22,7 @@ class TemplateHandler(TemplateValidationHandler):
     """
 
     _zabbix: Zabbix
-    _existing_template_groups: list[str] = []
+    _existing_template_groups: list[str]
 
     def __init__(self, zabbix: Zabbix):
         self._zabbix = zabbix
@@ -286,8 +286,7 @@ class TemplateHandler(TemplateValidationHandler):
 
             logger.info("Deleting %d templates from Zabbix", len(template_ids))
 
-            if len(template_ids):
-                if not Settings.DRY_RUN:
-                    self._zabbix.delete_templates(template_ids)
+            if template_ids and not Settings.DRY_RUN:
+                self._zabbix.delete_templates(template_ids)
 
         return deletion_queue

@@ -11,6 +11,9 @@ from zabbixci.settings import Settings
 logger = logging.getLogger(__name__)
 
 
+SSH_AGENT_CALL_TIMEOUT = 10
+
+
 class RemoteCallbacksSecured(pygit2.RemoteCallbacks):
     _credentials = None
 
@@ -23,7 +26,7 @@ class RemoteCallbacksSecured(pygit2.RemoteCallbacks):
 
     def credentials(self, url, username_from_url, allowed_types):
         self._call_count += 1
-        if self._call_count > 10 and not self._agent_active:
+        if self._call_count > SSH_AGENT_CALL_TIMEOUT and not self._agent_active:
             raise GitError(
                 "SSH agent was unable to provide credentials, is your key added to the agent?"
             )
@@ -77,7 +80,7 @@ class GitCredentials:
                 f"https://{hostname_str}",
                 method="GET",
             )
-            resp = urlopen(req, context=self._ssl_context)
+            resp = urlopen(req, context=self._ssl_context)  # noqa: S310
 
             logger.debug("Response from %s: %s", hostname_str, resp.status)
 

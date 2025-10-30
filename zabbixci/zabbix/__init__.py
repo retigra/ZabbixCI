@@ -1,3 +1,3 @@
-from .zabbix import Zabbix
+from .zabbix import Zabbix, ZabbixConstants
 
-__all__ = ["Zabbix"]
+__all__ = ["Zabbix", "ZabbixConstants"]

@@ -193,7 +193,7 @@ class ImageHandler(ImageValidationHandler):
                     logger.debug("Error details: %s", e)
                     failed_images.append(image)
 
-        if len(failed_images):
+        if failed_images:
             for image in failed_images:
                 try:
                     __import_image(image)
@@ -246,7 +246,7 @@ class ImageHandler(ImageValidationHandler):
             logger.info("Added %s to deletion queue", image.name)
 
         # Delete images in deletion queue
-        if len(deletion_queue):
+        if deletion_queue:
             image_ids = [
                 # Get image IDs from Zabbix
                 t.image_id
@@ -258,8 +258,7 @@ class ImageHandler(ImageValidationHandler):
 
             logger.info("Deleting %s images from Zabbix", len(image_ids))
 
-            if image_ids:
-                if not Settings.DRY_RUN:
-                    self._zabbix.delete_images(image_ids)
+            if image_ids and not Settings.DRY_RUN:
+                self._zabbix.delete_images(image_ids)
 
         return deletion_queue

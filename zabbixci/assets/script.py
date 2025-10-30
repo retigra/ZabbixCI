@@ -1,9 +1,10 @@
-from zabbixci.assets.asset import Asset
-from typing import TextIO, TypedDict
-from zabbixci.cache.cache import Cache
-from ruamel.yaml import YAML
 from os import path
+from typing import TextIO, TypedDict
 
+from ruamel.yaml import YAML
+
+from zabbixci.assets.asset import Asset
+from zabbixci.cache.cache import Cache
 from zabbixci.settings import Settings
 
 yaml = YAML()
