@@ -314,11 +314,16 @@ class ZabbixCI:
         Git.print_diff(diff, invert=True)
 
         # Store exported Zabbix state in a rollback branch
-        if self.settings.CREATE_ROLLBACK_BRANCH:
+        if (
+            self.settings.CREATE_ROLLBACK_BRANCH
+            and not self.settings.DRY_RUN
+            and self._git.has_changes
+        ):
             operational_branch_name = self._git.current_branch
 
-            rollback_branch_name = f"rollback/{self.settings.PULL_BRANCH}/"
+            rollback_branch_name = f"rollback/{self.settings.PULL_BRANCH}/{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
+            before_commit_revision = self._git.get_current_revision()
             self._git.switch_branch(rollback_branch_name)
 
             # Commit and push the changes
@@ -330,10 +335,11 @@ class ZabbixCI:
                 or f"Rollback commit of Zabbix state before pulling changes from {operational_branch_name}"
             )
 
-            self._git.force_push(
-                [f"refs/heads/{rollback_branch_name}"],
-                self.settings.REMOTE,
-            )
+            if self.settings.PUSH_ROLLBACK_BRANCH:
+                self._git.force_push(
+                    [f"refs/heads/{rollback_branch_name}"],
+                    self.settings.REMOTE,
+                )
 
             self.logger.info(
                 "Created rollback branch %s from %s",
@@ -341,7 +347,18 @@ class ZabbixCI:
                 operational_branch_name,
             )
 
+            # Switch back to operational branch and restore acquired files from Zabbix
             self._git.switch_branch(operational_branch_name)
+
+            rollback_branch_id = self._git.lookup_reference(
+                f"refs/heads/{rollback_branch_name}"
+            ).target
+
+            rollback_branch_oid = self._git.get(rollback_branch_id)
+            self._git.checkout_tree(rollback_branch_oid)
+
+            # Reset rollback commit to restore Zabbix changed files
+            self._git.reset(before_commit_revision, ResetMode.MIXED)
 
         # Sync the file cache with the desired git state
         self._git.reset(current_revision, ResetMode.HARD)
