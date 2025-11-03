@@ -29,7 +29,7 @@ class ZabbixCI:
     settings: ApplicationSettings
 
     def __init__(self, settings: ApplicationSettings, logger=None):
-        self.settings = ApplicationSettings(settings)
+        self.settings = settings
 
         if logger:
             self.logger = logger
