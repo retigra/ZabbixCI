@@ -114,6 +114,7 @@ class Script(Asset):
         script_export = self.__dict__.copy()
 
         del script_export["scriptid"]  # scriptid is not part of the export
+        del script_export["settings"]  # settings is not part of the export
 
         yaml.dump(script_export, stream)
 
