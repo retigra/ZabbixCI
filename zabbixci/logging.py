@@ -1,8 +1,6 @@
 import logging
 from os import environ
 
-from zabbixci.settings import Settings
-
 grey = "\x1b[38;20m"
 yellow = "\x1b[33;20m"
 red = "\x1b[31;20m"
@@ -14,10 +12,10 @@ class CustomFormatter(logging.Formatter):
     log_format = "%(asctime)s  [%(levelname)s]: %(message)s"
     formats: dict[int, str]
 
-    def __init__(self):
+    def __init__(self, debug: bool = False, debug_all: bool = False):
         super().__init__()
 
-        if Settings.DEBUG or Settings.DEBUG_ALL:
+        if debug or debug_all:
             self.log_format = "%(asctime)s [%(name)s]  [%(levelname)s]: %(message)s"
 
         term = environ.get("TERM", "dumb")

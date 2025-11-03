@@ -1,12 +1,9 @@
 import asyncio
-import logging
-import os
 from os import getenv
 
+from test.base_test import BaseTest
 from zabbixci import ZabbixCI
-from zabbixci.cache.cache import Cache
 from zabbixci.cache.cleanup import Cleanup
-from zabbixci.settings import Settings
 
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
@@ -14,54 +11,45 @@ DEV_GIT_REMOTE = getenv("REMOTE")
 CACHE_PATH = getenv("CACHE_PATH")
 
 
-class BaseScripts:
+class BaseScripts(BaseTest):
     def setUp(self):
-        Settings.CACHE_PATH = CACHE_PATH
-        self.cache = Cache(Settings.CACHE_PATH)
+        self.prep()
 
-        if os.path.exists(Settings.CACHE_PATH):
-            Cleanup.cleanup_cache(full=True)
+        self.settings.ZABBIX_URL = DEV_ZABBIX_URL
+        self.settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
+        self.settings.REMOTE = DEV_GIT_REMOTE
+        self.settings.SKIP_VERSION_CHECK = True
+        self.settings.REGEX_MATCHING = False
+        self.settings.SET_VERSION = True
 
-        logging.basicConfig(
-            level=logging.WARNING,
-            format="%(asctime)s - %(name)s - %(message)s",
-        )
+        self.settings.SYNC_TEMPLATES = False
+        self.settings.SYNC_ICONS = False
+        self.settings.SYNC_BACKGROUNDS = False
+        self.settings.SYNC_ICON_MAPS = False
+        self.settings.SYNC_SCRIPTS = True
 
-        Settings.ZABBIX_URL = DEV_ZABBIX_URL
-        Settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
-        Settings.REMOTE = DEV_GIT_REMOTE
-        Settings.SKIP_VERSION_CHECK = True
-        Settings.REGEX_MATCHING = False
-        Settings.SET_VERSION = True
+        self.settings.SCRIPT_WHITELIST = ""
+        self.settings.SCRIPT_BLACKLIST = ""
 
-        Settings.SYNC_TEMPLATES = False
-        Settings.SYNC_ICONS = False
-        Settings.SYNC_BACKGROUNDS = False
-        Settings.SYNC_ICON_MAPS = False
-        Settings.SYNC_SCRIPTS = True
-
-        Settings.SCRIPT_WHITELIST = ""
-        Settings.SCRIPT_BLACKLIST = ""
-
-        self.zci = ZabbixCI()
+        self.zci = ZabbixCI(self.settings)
 
     async def restore_state(self):
         self.zci._git.force_push(
             ["+refs/remotes/origin/test:refs/heads/main"],
-            Settings.REMOTE,
+            self.settings.REMOTE,
         )
 
         Cleanup.cleanup_cache(full=True)
         self.zci.create_git()
 
-        whitelist = Settings.SCRIPT_WHITELIST
-        blacklist = Settings.SCRIPT_BLACKLIST
+        whitelist = self.settings.SCRIPT_WHITELIST
+        blacklist = self.settings.SCRIPT_BLACKLIST
 
         # Restore the state of Zabbix
         await self.zci.pull()
 
-        Settings.SCRIPT_WHITELIST = whitelist
-        Settings.SCRIPT_BLACKLIST = blacklist
+        self.settings.SCRIPT_WHITELIST = whitelist
+        self.settings.SCRIPT_BLACKLIST = blacklist
 
     async def asyncSetUp(self):
         self.zci.create_git()
@@ -127,12 +115,12 @@ class BaseScripts:
         changed = await self.zci.push()
         self.assertTrue(changed, "Deletion from Zabbix not detected")
 
-        Settings.PULL_BRANCH = "test"
+        self.settings.PULL_BRANCH = "test"
 
         changed = await self.zci.pull()
         self.assertTrue(changed, "Template was not restored")
 
-        Settings.PULL_BRANCH = "main"
+        self.settings.PULL_BRANCH = "main"
         changed = await self.zci.pull()
         self.assertTrue(changed, "Template deletion from Git was not detected")
 

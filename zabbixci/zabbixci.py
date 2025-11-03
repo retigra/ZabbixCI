@@ -14,7 +14,7 @@ from zabbixci.handlers.synchronization.icon_map_synchronization import IconMapHa
 from zabbixci.handlers.synchronization.image_synchronization import ImageHandler
 from zabbixci.handlers.synchronization.script_synchronization import ScriptHandler
 from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 from zabbixci.zabbix import Zabbix, ZabbixConstants
 
 
@@ -22,16 +22,27 @@ class ZabbixCI:
     logger = logging.getLogger(__name__)
     yaml = YAML()
 
-    _zabbix: Zabbix | None = None
-    _git: Git | None = None
+    _zabbix: Zabbix
+    _git: Git
+    _ssl_context: ssl.SSLContext
 
-    _ssl_context = None
+    settings: ApplicationSettings
 
-    def __init__(self, settings=Settings, logger=None):
-        self._settings = settings
+    def __init__(self, settings: ApplicationSettings, logger=None):
+        self.settings = ApplicationSettings(settings)
 
         if logger:
             self.logger = logger
+
+    @classmethod
+    def copy(cls, instance: "ZabbixCI") -> "ZabbixCI":
+        """
+        Create a copy of the ZabbixCI instance, shares the Zabbix and Git objects with the original
+        """
+        new_instance = cls(instance.settings)
+        new_instance._zabbix = instance._zabbix
+        new_instance._git = instance._git
+        return new_instance
 
     async def create_zabbix(self) -> None:
         """
@@ -39,25 +50,26 @@ class ZabbixCI:
         """
         # Construct the SSL context if a CA bundle is provided
 
-        if Settings.CA_BUNDLE:
+        if self.settings.CA_BUNDLE:
             self._ssl_context = ssl.create_default_context()
-            self._ssl_context.load_verify_locations(Settings.CA_BUNDLE)
+            self._ssl_context.load_verify_locations(self.settings.CA_BUNDLE)
 
         self._zabbix = Zabbix(
-            url=self._settings.ZABBIX_URL,
-            validate_certs=not self._settings.INSECURE_SSL_VERIFY,
+            url=self.settings.ZABBIX_URL,
+            validate_certs=not self.settings.INSECURE_SSL_VERIFY,
             ssl_context=self._ssl_context,
-            skip_version_check=self._settings.SKIP_VERSION_CHECK,
-            **self._settings.ZABBIX_KWARGS,
+            skip_version_check=self.settings.SKIP_VERSION_CHECK,
+            **self.settings.ZABBIX_KWARGS,
         )
 
-        if self._settings.ZABBIX_TOKEN:
+        if self.settings.ZABBIX_TOKEN:
             self.logger.debug("Using token for Zabbix authentication")
-            await self._zabbix.zapi.login(token=self._settings.ZABBIX_TOKEN)
-        elif self._settings.ZABBIX_USER and self._settings.ZABBIX_PASSWORD:
+            await self._zabbix.zapi.login(token=self.settings.ZABBIX_TOKEN)
+        elif self.settings.ZABBIX_USER and self.settings.ZABBIX_PASSWORD:
             self.logger.debug("Using username and password for Zabbix authentication")
             await self._zabbix.zapi.login(
-                user=self._settings.ZABBIX_USER, password=self._settings.ZABBIX_PASSWORD
+                user=self.settings.ZABBIX_USER,
+                password=self.settings.ZABBIX_PASSWORD,
             )
 
         if self._zabbix.zapi.version < ZabbixConstants.MINIMAL_VERSION:
@@ -72,9 +84,9 @@ class ZabbixCI:
         Create a Git object with the appropriate credentials
         """
         if git_cb is None:
-            git_cb = GitCredentials().create_git_callback()
+            git_cb = GitCredentials(self.settings).create_git_callback()
 
-        self._git = Git(self._settings.CACHE_PATH, git_cb, **self._settings.GIT_KWARGS)
+        self._git = Git(self.settings.CACHE_PATH, git_cb, **self.settings.GIT_KWARGS)
 
     async def push(self) -> bool:
         """
@@ -85,38 +97,38 @@ class ZabbixCI:
                 "ZabbixCI has not been initialized, call create_zabbix() and create_git() first"
             )
 
-        if not Settings.REMOTE:
+        if not self.settings.REMOTE:
             raise ValueError("Remote repository not set")
 
-        self._git.fetch(Settings.REMOTE)
+        self._git.fetch(self.settings.REMOTE)
 
         if not self._git.is_empty:
             # If the repository is empty, new branches can't be created. But it is
             # safe to push to the default branch
-            self._git.switch_branch(Settings.PUSH_BRANCH)
+            self._git.switch_branch(self.settings.PUSH_BRANCH)
 
             # Pull the latest remote state
             try:
-                self._git.pull(Settings.REMOTE)
+                self._git.pull(self.settings.REMOTE)
             except KeyError:
                 self.logger.info(
                     "Remote branch does not exist, using state from branch: %s",
-                    Settings.PULL_BRANCH,
+                    self.settings.PULL_BRANCH,
                 )
                 # Remote branch does not exist, we pull the default branch and create a new branch
-                self._git.switch_branch(Settings.PULL_BRANCH)
-                self._git.pull(Settings.REMOTE)
+                self._git.switch_branch(self.settings.PULL_BRANCH)
+                self._git.pull(self.settings.REMOTE)
 
                 # Create a new branch
-                self._git.switch_branch(Settings.PUSH_BRANCH)
+                self._git.switch_branch(self.settings.PUSH_BRANCH)
 
         # Reflect current Zabbix state in the cache
-        Cleanup.cleanup_cache()
+        Cleanup.cleanup_cache(self.settings)
 
-        template_handler = TemplateHandler(self._zabbix)
-        image_handler = ImageHandler(self._zabbix)
-        icon_map_handler = IconMapHandler(self._zabbix)
-        script_handler = ScriptHandler(self._zabbix)
+        template_handler = TemplateHandler(self._zabbix, self.settings)
+        image_handler = ImageHandler(self._zabbix, self.settings)
+        icon_map_handler = IconMapHandler(self._zabbix, self.settings)
+        script_handler = ScriptHandler(self._zabbix, self.settings)
 
         template_objects = await template_handler.templates_to_cache()
         image_objects = image_handler.images_to_cache()
@@ -149,7 +161,7 @@ class ZabbixCI:
             change_amount = len(changes)
 
             for relative_path, status in changes.items():
-                file = f"{Settings.CACHE_PATH}/{relative_path}"
+                file = f"{self.settings.CACHE_PATH}/{relative_path}"
 
                 if status == FileStatus.WT_DELETED:
                     self.logger.info("Detected deletion of: %s", file)
@@ -160,20 +172,20 @@ class ZabbixCI:
                 if not template_handler.read_validation(file):
                     continue
 
-                template = Template.open(file)
+                template = Template.open(file, self.settings)
 
                 if (
-                    Settings.VENDOR
+                    self.settings.VENDOR
                     and not template.vendor
                     and self._zabbix.api_version
                     >= ZabbixConstants.VENDOR_SUPPORTED_VERSION
                 ):
-                    set_vendor = Settings.VENDOR
+                    set_vendor = self.settings.VENDOR
                     template.set_vendor(set_vendor)
                     self.logger.debug("Setting vendor to: %s", set_vendor)
 
                 if (
-                    Settings.SET_VERSION
+                    self.settings.SET_VERSION
                     and self._zabbix.api_version
                     >= ZabbixConstants.VENDOR_SUPPORTED_VERSION
                 ):
@@ -186,7 +198,7 @@ class ZabbixCI:
                 ):
                     template.save()
 
-                    if not Settings.DRY_RUN:
+                    if not self.settings.DRY_RUN:
                         self.logger.debug(
                             "Updating template metadata for: %s", template.name
                         )
@@ -200,13 +212,14 @@ class ZabbixCI:
                             template.updated_items,
                         )
 
-            if not Settings.DRY_RUN:
+            if not self.settings.DRY_RUN:
                 # Commit and push the changes
                 self._git.add_all()
 
                 # Generate commit message
                 self._git.commit(
-                    Settings.GIT_COMMIT_MESSAGE or f"Committed Zabbix state from {host}"
+                    self.settings.GIT_COMMIT_MESSAGE
+                    or f"Committed Zabbix state from {host}"
                 )
                 self.logger.info(
                     "Staged changes from %s committed to %s",
@@ -216,20 +229,20 @@ class ZabbixCI:
         else:
             self.logger.info("No staged changes, updating remote with current state")
 
-        if not self._settings.DRY_RUN:
-            self._git.push(Settings.REMOTE)
+        if not self.settings.DRY_RUN:
+            self._git.push(self.settings.REMOTE)
             self.logger.info(
                 "Committed %s new changes to %s:%s",
                 change_amount,
-                Settings.REMOTE,
-                Settings.PUSH_BRANCH,
+                self.settings.REMOTE,
+                self.settings.PUSH_BRANCH,
             )
         else:
             self.logger.info(
                 "Dry run enabled, would have committed %s new changes to %s:%s",
                 change_amount,
-                Settings.REMOTE,
-                Settings.PUSH_BRANCH,
+                self.settings.REMOTE,
+                self.settings.PUSH_BRANCH,
             )
 
         return change_amount > 0
@@ -243,17 +256,17 @@ class ZabbixCI:
                 "ZabbixCI has not been initialized, call create_zabbix() and create_git() first"
             )
 
-        if not Settings.REMOTE:
+        if not self.settings.REMOTE:
             raise ValueError("Remote repository not set")
 
-        self._git.switch_branch(Settings.PULL_BRANCH)
+        self._git.switch_branch(self.settings.PULL_BRANCH)
 
         # Pull the latest remote state, untracked changes are preserved
-        self._git.pull(Settings.REMOTE)
+        self._git.pull(self.settings.REMOTE)
 
         self._git.reset(
             self._git.lookup_reference(
-                f"refs/remotes/origin/{Settings.PULL_BRANCH}"
+                f"refs/remotes/origin/{self.settings.PULL_BRANCH}"
             ).target,
             ResetMode.HARD,
         )
@@ -261,12 +274,12 @@ class ZabbixCI:
         current_revision = self._git.get_current_revision()
 
         # Reflect current Zabbix state in the cache
-        Cleanup.cleanup_cache()
+        Cleanup.cleanup_cache(self.settings)
 
-        template_handler = TemplateHandler(self._zabbix)
-        image_handler = ImageHandler(self._zabbix)
-        icon_map_handler = IconMapHandler(self._zabbix)
-        script_handler = ScriptHandler(self._zabbix)
+        template_handler = TemplateHandler(self._zabbix, self.settings)
+        image_handler = ImageHandler(self._zabbix, self.settings)
+        icon_map_handler = IconMapHandler(self._zabbix, self.settings)
+        script_handler = ScriptHandler(self._zabbix, self.settings)
 
         template_objects = await template_handler.templates_to_cache()
         image_objects = image_handler.images_to_cache()
@@ -282,12 +295,12 @@ class ZabbixCI:
         # Get the changed files, we compare the untracked changes with the desired.
         # When we have a new untracked file, that means it was deleted in the desired state.
         changed_files: list[str] = [
-            f"{Settings.CACHE_PATH}/{path}"
+            f"{self.settings.CACHE_PATH}/{path}"
             for path, flags in status.items()
             if flags in [FileStatus.WT_DELETED, FileStatus.WT_MODIFIED]
         ]
         deleted_files: list[str] = [
-            f"{Settings.CACHE_PATH}/{path}"
+            f"{self.settings.CACHE_PATH}/{path}"
             for path, flags in status.items()
             if flags == FileStatus.WT_NEW
         ]
@@ -349,7 +362,7 @@ class ZabbixCI:
         )
 
         # Inform user about the changes
-        if Settings.DRY_RUN:
+        if self.settings.DRY_RUN:
             self.logger.info("Dry run enabled, no changes will be made to Zabbix")
             self.logger.info(
                 "Would have imported %s templates, deleted %s templates",
@@ -414,14 +427,14 @@ class ZabbixCI:
                 "ZabbixCI has not been initialized, call create_zabbix() and create_git() first"
             )
 
-        if not Settings.REMOTE:
+        if not self.settings.REMOTE:
             raise ValueError("Remote repository not set")
 
-        self._git.fetch(Settings.REMOTE)
+        self._git.fetch(self.settings.REMOTE)
 
         self.logger.info("Generating icons from Zabbix")
 
-        image_handler = ImageHandler(self._zabbix)
+        image_handler = ImageHandler(self._zabbix, self.settings)
 
         if image_type == "background":
             image_handler.generate_backgrounds()
@@ -431,22 +444,22 @@ class ZabbixCI:
         if not self._git.is_empty:
             # If the repository is empty, new branches can't be created. But it is
             # safe to push to the default branch
-            self._git.switch_branch(Settings.PUSH_BRANCH)
+            self._git.switch_branch(self.settings.PUSH_BRANCH)
 
             # Pull the latest remote state
             try:
-                self._git.pull(Settings.REMOTE)
+                self._git.pull(self.settings.REMOTE)
             except KeyError:
                 self.logger.info(
                     "Remote branch does not exist, using state from branch: %s",
-                    Settings.PULL_BRANCH,
+                    self.settings.PULL_BRANCH,
                 )
                 # Remote branch does not exist, we pull the default branch and create a new branch
-                self._git.switch_branch(Settings.PULL_BRANCH)
-                self._git.pull(Settings.REMOTE)
+                self._git.switch_branch(self.settings.PULL_BRANCH)
+                self._git.pull(self.settings.REMOTE)
 
                 # Create a new branch
-                self._git.switch_branch(Settings.PUSH_BRANCH)
+                self._git.switch_branch(self.settings.PUSH_BRANCH)
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -461,7 +474,7 @@ class ZabbixCI:
             # Commit and push the changes
             self._git.add_all()
 
-            if not Settings.DRY_RUN:
+            if not self.settings.DRY_RUN:
                 # Generate commit message
                 self._git.commit(f"Generated {image_type}(s) from source files")
                 self.logger.info(
@@ -471,20 +484,20 @@ class ZabbixCI:
         else:
             self.logger.info("No staged changes, updating remote with current state")
 
-        if not self._settings.DRY_RUN:
-            self._git.push(Settings.REMOTE)
+        if not self.settings.DRY_RUN:
+            self._git.push(self.settings.REMOTE)
             self.logger.info(
                 "Committed %s new changes to %s:%s",
                 change_amount,
-                Settings.REMOTE,
-                Settings.PUSH_BRANCH,
+                self.settings.REMOTE,
+                self.settings.PUSH_BRANCH,
             )
         else:
             self.logger.info(
                 "Dry run enabled, would have committed %s new changes to %s:%s",
                 change_amount,
-                Settings.REMOTE,
-                Settings.PUSH_BRANCH,
+                self.settings.REMOTE,
+                self.settings.PUSH_BRANCH,
             )
 
         return change_amount > 0

@@ -8,7 +8,7 @@ from zabbixci.handlers.synchronization.imagemagick_synchronization import (
     ImagemagickHandler,
 )
 from zabbixci.handlers.validation.image_validation import ImageValidationHandler
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 from zabbixci.zabbix.zabbix import Zabbix
 
 logger = logging.getLogger(__name__)
@@ -16,21 +16,22 @@ logger = logging.getLogger(__name__)
 
 class ImageHandler(ImageValidationHandler):
     """
-    Handler for importing images into Zabbix based on changed files. Includes validation steps based on settings.
+    Handler for importing images into Zabbix based on changed files. Includes validation steps based on self.settings.
 
     :param zabbix: Zabbix instance
     """
 
     _zabbix: Zabbix
 
-    def __init__(self, zabbix: Zabbix):
+    def __init__(self, zabbix: Zabbix, settings: ApplicationSettings):
+        super().__init__(settings)
         self._zabbix = zabbix
 
     def images_to_cache(self) -> list[Image]:
         """
         Export Zabbix images to the cache
         """
-        if not Settings.SYNC_ICONS and not Settings.SYNC_BACKGROUNDS:
+        if not self.settings.SYNC_ICONS and not self.settings.SYNC_BACKGROUNDS:
             return []
 
         search = (
@@ -46,7 +47,7 @@ class ImageHandler(ImageValidationHandler):
         image_objects = []
 
         for image in images:
-            image_object = Image.from_zabbix(image)
+            image_object = Image.from_zabbix(image, self.settings)
 
             if not self.object_validation(image_object):
                 continue
@@ -61,17 +62,17 @@ class ImageHandler(ImageValidationHandler):
         Read icons from source dir and create different sizes for Zabbix.
         """
         if not Cache.exists(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/source-{source_type}"
+            f"{self.settings.CACHE_PATH}/{self.settings.IMAGE_PREFIX_PATH}/source-{source_type}"
         ):
             logger.info("No %s icons found", source_type)
             return []
 
         file_paths = Cache.get_files(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/source-{source_type}"
+            f"{self.settings.CACHE_PATH}/{self.settings.IMAGE_PREFIX_PATH}/source-{source_type}"
         )
 
         changed_files = []
-        full_cache_path = Cache.real_path(Settings.CACHE_PATH)
+        full_cache_path = Cache.real_path(self.settings.CACHE_PATH)
 
         for path in file_paths:
             # Skip non-image files
@@ -80,7 +81,7 @@ class ImageHandler(ImageValidationHandler):
                 continue
 
             match_groups = regex.match(
-                rf"({full_cache_path}\/{Settings.IMAGE_PREFIX_PATH}\/source-{source_type}\/?.*)/(.+)\.(\w+)",
+                rf"({full_cache_path}\/{self.settings.IMAGE_PREFIX_PATH}\/source-{source_type}\/?.*)/(.+)\.(\w+)",
                 path,
             )
 
@@ -108,9 +109,9 @@ class ImageHandler(ImageValidationHandler):
                 file_name,
                 file_type,
                 (
-                    Settings.get_icon_sizes()
+                    self.settings.get_icon_sizes()
                     if source_type == "icons"
-                    else Settings.get_background_sizes()
+                    else self.settings.get_background_sizes()
                 ),
             )
 
@@ -144,14 +145,14 @@ class ImageHandler(ImageValidationHandler):
         """
         images: list[Image] = []
 
-        if not Settings.SYNC_ICONS and not Settings.SYNC_BACKGROUNDS:
+        if not self.settings.SYNC_ICONS and not self.settings.SYNC_BACKGROUNDS:
             return []
 
         for file in changed_files:
             if not self.read_validation(file):
                 continue
 
-            image = Image.open(file)
+            image = Image.open(file, self.settings)
 
             if not self.object_validation(image):
                 continue
@@ -182,7 +183,7 @@ class ImageHandler(ImageValidationHandler):
 
         # Import the images
         for image in images:
-            if not Settings.DRY_RUN:
+            if not self.settings.DRY_RUN:
                 try:
                     __import_image(image)
                 except Exception as e:
@@ -219,7 +220,7 @@ class ImageHandler(ImageValidationHandler):
         """
         deletion_queue: list[str] = []
 
-        if not Settings.SYNC_ICONS and not Settings.SYNC_BACKGROUNDS:
+        if not self.settings.SYNC_ICONS and not self.settings.SYNC_BACKGROUNDS:
             return []
 
         # Check if deleted files are images and if they are imported, if not add to deletion queue
@@ -227,7 +228,7 @@ class ImageHandler(ImageValidationHandler):
             if not self.read_validation(file):
                 continue
 
-            image = Image.open(file)
+            image = Image.open(file, self.settings)
 
             if not image:
                 logger.warning("Could not open to be deleted file: %s", file)
@@ -258,7 +259,7 @@ class ImageHandler(ImageValidationHandler):
 
             logger.info("Deleting %s images from Zabbix", len(image_ids))
 
-            if image_ids and not Settings.DRY_RUN:
+            if image_ids and not self.settings.DRY_RUN:
                 self._zabbix.delete_images(image_ids)
 
         return deletion_queue

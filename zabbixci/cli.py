@@ -11,7 +11,7 @@ from zabbixci.cache.cache import Cache
 from zabbixci.cache.cleanup import Cleanup
 from zabbixci.exceptions import BaseZabbixCIError
 from zabbixci.logging import CustomFormatter, StatusCodeHandler
-from zabbixci.settings import Settings
+from zabbixci.settings import ZabbixCISettings
 from zabbixci.zabbixci import ZabbixCI
 
 logger = logging.getLogger(__name__)
@@ -439,23 +439,24 @@ def parse_cli(custom_args: list[str] | None = None):
 
     param custom_args: Custom arguments to parse instead of reading from the command line
     """
-    Settings.from_env()
+    settings = ZabbixCISettings()
+    settings.from_env()
 
     args = read_args(custom_args)
     arguments = vars(args)
 
     if args.config:
-        Settings.read_config(args.config)
+        settings.read_config(args.config)
 
     for key, value in arguments.items():
         if value is not None:
-            setattr(Settings, key.upper(), value)
+            setattr(settings, key.upper(), value)
 
     global_level = (
         logging.DEBUG
-        if Settings.DEBUG_ALL
+        if settings.DEBUG_ALL
         else logging.INFO
-        if Settings.VERBOSE
+        if settings.VERBOSE
         else logging.WARN
     )
 
@@ -471,14 +472,14 @@ def parse_cli(custom_args: list[str] | None = None):
     zabbixci_logger = logging.getLogger("zabbixci")
     zabbixci_logger.setLevel(
         logging.DEBUG
-        if Settings.DEBUG or Settings.DEBUG_ALL
+        if settings.DEBUG or settings.DEBUG_ALL
         else logging.INFO
-        if Settings.VERBOSE
+        if settings.VERBOSE
         else logging.WARN
     )
 
     settings_debug = {
-        **Settings.__dict__,
+        **settings.__dict__,
         "ZABBIX_PASSWORD": "********",
         "ZABBIX_TOKEN": "********",
         "REMOTE": "********",
@@ -486,17 +487,16 @@ def parse_cli(custom_args: list[str] | None = None):
 
     logger.debug("Settings: %s", settings_debug)
 
-    Cache(Settings.CACHE_PATH)
+    Cache(settings.CACHE_PATH)
 
     if args.action == "clearcache":
-        Cleanup.cleanup_cache(full=True)
+        Cleanup.cleanup_cache(settings, full=True)
     else:
-        asyncio.run(run_zabbixci(args.action))
+        zabbixci = ZabbixCI(settings)
+        asyncio.run(run_zabbixci(zabbixci, args.action))
 
 
-async def run_zabbixci(action: str):
-    zabbixci = ZabbixCI()
-
+async def run_zabbixci(zabbixci: ZabbixCI, action: str):
     status_handler = StatusCodeHandler()
     logging.getLogger().addHandler(status_handler)
 

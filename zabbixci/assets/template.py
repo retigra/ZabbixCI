@@ -7,7 +7,7 @@ from ruamel.yaml import YAML
 
 from zabbixci.assets.asset import Asset
 from zabbixci.cache import Cache
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 
 yaml = YAML()
 
@@ -24,6 +24,8 @@ class Template(Asset):
 
     new_version = False
     new_vendor = False
+
+    settings: ApplicationSettings
 
     @property
     def is_template(self):
@@ -73,7 +75,7 @@ class Template(Asset):
         # specifying the lowest child in the hierarchy
         for group in self._template["groups"]:
             name: str = group["name"]
-            if Settings.ROOT_TEMPLATE_GROUP not in name:
+            if self.settings.ROOT_TEMPLATE_GROUP not in name:
                 continue
 
             split = regex.split(r"\/+", name)
@@ -90,7 +92,7 @@ class Template(Asset):
         The primary group of the template, without the root group
         """
         match_group = regex.match(
-            rf"{Settings.ROOT_TEMPLATE_GROUP}\/+(.+)", self.primary_group
+            rf"{self.settings.ROOT_TEMPLATE_GROUP}\/+(.+)", self.primary_group
         )
 
         return match_group.group(1) if match_group else ""
@@ -136,8 +138,9 @@ class Template(Asset):
 
         return updates
 
-    def __init__(self, export: dict):
+    def __init__(self, export: dict, settings: ApplicationSettings):
         self._export = export
+        self.settings = settings
 
     def __str__(self):
         return self.name
@@ -194,11 +197,11 @@ class Template(Asset):
         Save the template to the cache
         """
         Cache.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}",
+            f"{self.settings.CACHE_PATH}/{self.settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}",
         )
 
         with Cache.open(
-            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['template']}.yaml",
+            f"{self.settings.CACHE_PATH}/{self.settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['template']}.yaml",
             "w",
         ) as file:
             self._yaml_dump(file)
@@ -224,16 +227,16 @@ class Template(Asset):
         return self._level
 
     @staticmethod
-    def open(path: str):
+    def open(path: str, settings: ApplicationSettings):
         """
         Open a template from the cache
         """
         with Cache.open(path, "r") as file:
-            return Template(yaml.load(file)["zabbix_export"])
+            return Template(yaml.load(file)["zabbix_export"], settings=settings)
 
     @staticmethod
-    def from_zabbix(export: dict):
+    def from_zabbix(export: dict, settings: ApplicationSettings):
         """
         Create an individual template from a bulk Zabbix export
         """
-        return Template(export)
+        return Template(export, settings=settings)

@@ -5,7 +5,6 @@ from ruamel.yaml import YAML
 from zabbixci.assets.template import Template
 from zabbixci.cache.filesystem import Filesystem
 from zabbixci.handlers.validation.validation_handler import Handler
-from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
 yaml = YAML()
@@ -13,16 +12,16 @@ yaml = YAML()
 
 class TemplateValidationHandler(Handler):
     """
-    Handler for importing templates into Zabbix based on changed files. Includes validation steps based on settings.
+    Handler for importing templates into Zabbix based on changed files. Includes validation steps based on self.settings.
 
     :param zabbix: Zabbix instance
     """
 
     def get_whitelist(self):
-        return Settings.get_template_whitelist()
+        return self.settings.get_template_whitelist()
 
     def get_blacklist(self):
-        return Settings.get_template_blacklist()
+        return self.settings.get_template_blacklist()
 
     def read_validation(self, changed_file: str) -> bool:
         """
@@ -33,7 +32,8 @@ class TemplateValidationHandler(Handler):
 
         # Check if file is within the desired path
         if not Filesystem.is_within(
-            changed_file, f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}"
+            changed_file,
+            f"{self.settings.CACHE_PATH}/{self.settings.TEMPLATE_PREFIX_PATH}",
         ):
             logger.debug("Skipping .yaml file %s outside of prefix path", changed_file)
             return False
