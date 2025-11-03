@@ -311,6 +311,36 @@ class ZabbixCI:
         diff = self._git.diff()
         Git.print_diff(diff, invert=True)
 
+        # Store exported Zabbix state in a rollback branch
+        if self.settings.CREATE_ROLLBACK_BRANCH:
+            operational_branch_name = self._git.current_branch
+
+            rollback_branch_name = f"rollback/{self.settings.PULL_BRANCH}/"
+
+            self._git.switch_branch(rollback_branch_name)
+
+            # Commit and push the changes
+            self._git.add_all()
+
+            # Generate commit message
+            self._git.commit(
+                self.settings.GIT_COMMIT_MESSAGE
+                or f"Rollback commit of Zabbix state before pulling changes from {operational_branch_name}"
+            )
+
+            self._git.force_push(
+                [f"refs/heads/{rollback_branch_name}"],
+                self.settings.REMOTE,
+            )
+
+            self.logger.info(
+                "Created rollback branch %s from %s",
+                rollback_branch_name,
+                operational_branch_name,
+            )
+
+            self._git.switch_branch(operational_branch_name)
+
         # Sync the file cache with the desired git state
         self._git.reset(current_revision, ResetMode.HARD)
 
