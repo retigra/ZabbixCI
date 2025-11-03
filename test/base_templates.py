@@ -2,6 +2,7 @@ import asyncio
 from os import getenv
 
 from base_test import BaseTest
+
 from zabbixci import ZabbixCI
 from zabbixci.cache.cleanup import Cleanup
 
