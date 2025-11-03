@@ -1,6 +1,5 @@
 import os
-from copy import deepcopy
-from typing import TYPE_CHECKING, ClassVar, Self
+from typing import TYPE_CHECKING
 
 from ruamel.yaml import YAML
 
@@ -11,67 +10,121 @@ yaml = YAML()
 
 
 class ApplicationSettings:
-    def __init__(self, settings: Self | None = None):
-        if settings:
-            for key, value in settings.__dict__.items():
-                setattr(self, key, deepcopy(value))
-
-    _DYN_IMG_EXT: ClassVar[list[str]] = ["png", "jpg", "jpeg", "gif", "bmp", "svg"]
-    VERBOSE: bool | None = False
-    DEBUG: bool | None = False
-    DEBUG_ALL: bool | None = False
-    ZABBIX_URL: str | None = "http://localhost:8080"
-    ZABBIX_USER: str | None = None
-    ZABBIX_PASSWORD: str | None = None
-    ZABBIX_TOKEN: str | None = None
+    _DYN_IMG_EXT: list[str]
+    VERBOSE: bool
+    DEBUG: bool
+    DEBUG_ALL: bool
+    ZABBIX_URL: str
+    ZABBIX_USER: str | None
+    ZABBIX_PASSWORD: str | None
+    ZABBIX_TOKEN: str | None
     REMOTE: str
-    ROOT_TEMPLATE_GROUP: str = "Templates"
-    GIT_AUTHOR_NAME: str = "ZabbixCI"
-    GIT_AUTHOR_EMAIL: str = "zabbixci@localhost"
-    GIT_COMMIT_MESSAGE: str | None = None
-    PULL_BRANCH: str = "main"
-    PUSH_BRANCH: str = "main"
-    TEMPLATE_PREFIX_PATH: str = "templates"
-    IMAGE_PREFIX_PATH: str = "images"
-    ICON_MAP_PREFIX_PATH: str = "icon-maps"
-    SCRIPT_PREFIX_PATH: str = "scripts"
-    TEMPLATE_WHITELIST: str = ""
-    TEMPLATE_BLACKLIST: str = ""
-    CACHE_PATH: str = "./cache"
-    BATCH_SIZE: int = 5
-    IGNORE_TEMPLATE_VERSION: bool = False
-    INSECURE_SSL_VERIFY: bool = False
-    GIT_USERNAME: str = "git"
-    GIT_PASSWORD: str | None = None
-    GIT_PUBKEY: str | None = None
-    GIT_PRIVKEY: str | None = None
-    GIT_KEYPASSPHRASE: str | None = None
-    CA_BUNDLE: str | None = None
-    DRY_RUN: bool = False
-    VENDOR: str | None = None
-    SET_VERSION: bool = False
-    SYNC_ICONS: bool = False
-    SYNC_BACKGROUNDS: bool = False
-    SYNC_TEMPLATES: bool = True
-    SYNC_ICON_MAPS: bool = False
-    SYNC_SCRIPTS: bool = False
-    IMAGE_WHITELIST: str = ""
-    IMAGE_BLACKLIST: str = ""
-    ICON_SIZES: str = "24,48,64,128"
-    BACKGROUND_SIZES: str = "480,720,1080"
-    REGEX_MATCHING: bool = False
-    ICON_MAP_WHITELIST: str = ""
-    ICON_MAP_BLACKLIST: str = ""
-    SCRIPT_WHITELIST: str = ""
-    SCRIPT_BLACKLIST: str = ""
-    SCRIPT_WITHOUT_USRGRP: bool = False
-    SCRIPT_DEFAULT_USRGRP: str = "Zabbix administrators"
-    ZABBIX_KWARGS: ClassVar[dict] = {}
-    GIT_KWARGS: ClassVar[dict] = {}
-    SKIP_VERSION_CHECK: bool = False
-    CREATE_TEMPLATE_GROUPS: bool = True
-    CREATE_ROLLBACK_BRANCH: bool = True
-    PUSH_ROLLBACK_BRANCH: bool = False
+    ROOT_TEMPLATE_GROUP: str
+    GIT_AUTHOR_NAME: str
+    GIT_AUTHOR_EMAIL: str
+    GIT_COMMIT_MESSAGE: str | None
+    PULL_BRANCH: str
+    PUSH_BRANCH: str
+    TEMPLATE_PREFIX_PATH: str
+    IMAGE_PREFIX_PATH: str
+    ICON_MAP_PREFIX_PATH: str
+    SCRIPT_PREFIX_PATH: str
+    TEMPLATE_WHITELIST: str
+    TEMPLATE_BLACKLIST: str
+    CACHE_PATH: str
+    BATCH_SIZE: int
+    IGNORE_TEMPLATE_VERSION: bool
+    INSECURE_SSL_VERIFY: bool
+    GIT_USERNAME: str
+    GIT_PASSWORD: str | None
+    GIT_PUBKEY: str | None
+    GIT_PRIVKEY: str | None
+    GIT_KEYPASSPHRASE: str | None
+    CA_BUNDLE: str | None
+    DRY_RUN: bool
+    VENDOR: str | None
+    SET_VERSION: bool
+    SYNC_ICONS: bool
+    SYNC_BACKGROUNDS: bool
+    SYNC_TEMPLATES: bool
+    SYNC_ICON_MAPS: bool
+    SYNC_SCRIPTS: bool
+    IMAGE_WHITELIST: str
+    IMAGE_BLACKLIST: str
+    ICON_SIZES: str
+    BACKGROUND_SIZES: str
+    REGEX_MATCHING: bool
+    ICON_MAP_WHITELIST: str
+    ICON_MAP_BLACKLIST: str
+    SCRIPT_WHITELIST: str
+    SCRIPT_BLACKLIST: str
+    SCRIPT_WITHOUT_USRGRP: bool
+    SCRIPT_DEFAULT_USRGRP: str
+    ZABBIX_KWARGS: dict
+    GIT_KWARGS: dict
+    SKIP_VERSION_CHECK: bool
+    CREATE_TEMPLATE_GROUPS: bool
+    CREATE_ROLLBACK_BRANCH: bool
+    PUSH_ROLLBACK_BRANCH: bool
+
+    def __init__(self) -> None:
+        # defaults moved from class-level assignments
+        self._DYN_IMG_EXT = ["png", "jpg", "jpeg", "gif", "bmp", "svg"]
+        self.VERBOSE = False
+        self.DEBUG = False
+        self.DEBUG_ALL = False
+        self.ZABBIX_URL = "http://localhost:8080"
+        self.ZABBIX_USER = None
+        self.ZABBIX_PASSWORD = None
+        self.ZABBIX_TOKEN = None
+        self.REMOTE = ""
+        self.ROOT_TEMPLATE_GROUP = "Templates"
+        self.GIT_AUTHOR_NAME = "ZabbixCI"
+        self.GIT_AUTHOR_EMAIL = "zabbixci@localhost"
+        self.GIT_COMMIT_MESSAGE = None
+        self.PULL_BRANCH = "main"
+        self.PUSH_BRANCH = "main"
+        self.TEMPLATE_PREFIX_PATH = "templates"
+        self.IMAGE_PREFIX_PATH = "images"
+        self.ICON_MAP_PREFIX_PATH = "icon-maps"
+        self.SCRIPT_PREFIX_PATH = "scripts"
+        self.TEMPLATE_WHITELIST = ""
+        self.TEMPLATE_BLACKLIST = ""
+        self.CACHE_PATH = "./cache"
+        self.BATCH_SIZE = 5
+        self.IGNORE_TEMPLATE_VERSION = False
+        self.INSECURE_SSL_VERIFY = False
+        self.GIT_USERNAME = "git"
+        self.GIT_PASSWORD = None
+        self.GIT_PUBKEY = None
+        self.GIT_PRIVKEY = None
+        self.GIT_KEYPASSPHRASE = None
+        self.CA_BUNDLE = None
+        self.DRY_RUN = False
+        self.VENDOR = None
+        self.SET_VERSION = False
+        self.SYNC_ICONS = False
+        self.SYNC_BACKGROUNDS = False
+        self.SYNC_TEMPLATES = True
+        self.SYNC_ICON_MAPS = False
+        self.SYNC_SCRIPTS = False
+        self.IMAGE_WHITELIST = ""
+        self.IMAGE_BLACKLIST = ""
+        self.ICON_SIZES = "24,48,64,128"
+        self.BACKGROUND_SIZES = "480,720,1080"
+        self.REGEX_MATCHING = False
+        self.ICON_MAP_WHITELIST = ""
+        self.ICON_MAP_BLACKLIST = ""
+        self.SCRIPT_WHITELIST = ""
+        self.SCRIPT_BLACKLIST = ""
+        self.SCRIPT_WITHOUT_USRGRP = False
+        self.SCRIPT_DEFAULT_USRGRP = "Zabbix administrators"
+        self.ZABBIX_KWARGS = {}
+        self.GIT_KWARGS = {}
+        self.SKIP_VERSION_CHECK = False
+        self.CREATE_TEMPLATE_GROUPS = True
+        self.CREATE_ROLLBACK_BRANCH = True
+        self.PUSH_ROLLBACK_BRANCH = False
 
     def get_template_whitelist(self):
         return self.TEMPLATE_WHITELIST.split(",") if self.TEMPLATE_WHITELIST else []
@@ -116,6 +169,8 @@ class ZabbixCISettings(ApplicationSettings):
             if key in os.environ:
                 if isinstance(value, bool):
                     setattr(self, key, os.environ[key].lower() == "true")
+                elif isinstance(value, int):
+                    setattr(self, key, int(os.environ[key]))
                 else:
                     setattr(self, key, os.environ[key])
 
