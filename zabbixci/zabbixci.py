@@ -86,7 +86,9 @@ class ZabbixCI:
         if git_cb is None:
             git_cb = GitCredentials(self.settings).create_git_callback()
 
-        self._git = Git(self.settings.CACHE_PATH, git_cb, **self.settings.GIT_KWARGS)
+        self._git = Git(
+            self.settings.CACHE_PATH, git_cb, self.settings, **self.settings.GIT_KWARGS
+        )
 
     async def push(self) -> bool:
         """
