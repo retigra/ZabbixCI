@@ -24,7 +24,7 @@ class ZabbixCI:
 
     _zabbix: Zabbix
     _git: Git
-    _ssl_context: ssl.SSLContext
+    _ssl_context: ssl.SSLContext | None = None
 
     settings: ApplicationSettings
 
