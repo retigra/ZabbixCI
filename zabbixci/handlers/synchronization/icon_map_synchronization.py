@@ -19,6 +19,7 @@ class IconMapHandler(IconMapValidationHandler):
     _zabbix: Zabbix
 
     def __init__(self, zabbix: Zabbix, settings: ApplicationSettings):
+        super().__init__(settings)
         self._zabbix = zabbix
 
     def icon_map_to_cache(self, images: list[Image]) -> list[IconMap]:

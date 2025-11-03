@@ -227,6 +227,32 @@ class Git:
         remote.push(specs, callbacks=self._git_cb)
         self._mark_agent_active()
 
+    def merge_ff(self, treeish):
+        self.checkout_tree(treeish)
+
+        try:
+            self._repository.head.set_target(treeish)
+        except Exception as e:
+            logger.error("Failed to fast-forward: %s", e)
+
+    def checkout_tree(self, treeish):
+        """
+        Checkout the given treeish
+        """
+        self._repository.checkout_tree(treeish)
+
+    def get(self, oid):
+        """
+        Get an object from the repository by its OID
+        """
+        return self._repository.get(oid)
+
+    def merge_analysis(self, oid):
+        """
+        Perform a merge analysis with the given OID
+        """
+        return self._repository.merge_analysis(oid)
+
     def pull(self, remote_url: str, branch: str | None = None):
         """
         Pull the changes from the remote repository, merge them with the local repository
@@ -241,23 +267,16 @@ class Git:
 
         remote.fetch(callbacks=self._git_cb)
 
-        remote_id = self._repository.lookup_reference(
-            f"refs/remotes/origin/{branch}"
-        ).target
+        remote_id = self.lookup_reference(f"refs/remotes/origin/{branch}").target
 
-        merge_result, _merge_pref = self._repository.merge_analysis(remote_id)
+        merge_result, _merge_pref = self.merge_analysis(remote_id)
 
         if merge_result & MergeAnalysis.UP_TO_DATE:
             logger.debug("Already up to date")
             return
 
         if merge_result & MergeAnalysis.FASTFORWARD:
-            self._repository.checkout_tree(self._repository.get(remote_id))
-
-            try:
-                self._repository.head.set_target(remote_id)
-            except Exception as e:
-                logger.error("Failed to fast-forward: %s", e)
+            self.merge_ff(self.get(remote_id))
 
         if merge_result & MergeAnalysis.NORMAL:
             self._repository.merge(remote_id)

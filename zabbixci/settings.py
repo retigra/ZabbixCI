@@ -71,6 +71,7 @@ class ApplicationSettings:
     SKIP_VERSION_CHECK: bool = False
     CREATE_TEMPLATE_GROUPS: bool = True
     CREATE_ROLLBACK_BRANCH: bool = True
+    PUSH_ROLLBACK_BRANCH: bool = False
 
     def get_template_whitelist(self):
         return self.TEMPLATE_WHITELIST.split(",") if self.TEMPLATE_WHITELIST else []
