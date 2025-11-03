@@ -169,6 +169,8 @@ class ZabbixCISettings(ApplicationSettings):
             if key in os.environ:
                 if isinstance(value, bool):
                     setattr(self, key, os.environ[key].lower() == "true")
+                elif isinstance(value, int):
+                    setattr(self, key, int(os.environ[key]))
                 else:
                     setattr(self, key, os.environ[key])
 
