@@ -1,12 +1,21 @@
 import os
-from typing import ClassVar
+from copy import deepcopy
+from typing import TYPE_CHECKING, ClassVar, Self
 
 from ruamel.yaml import YAML
+
+if TYPE_CHECKING:
+    from _typeshed import FileDescriptorOrPath
 
 yaml = YAML()
 
 
-class Settings:
+class ApplicationSettings:
+    def __init__(self, settings: Self | None = None):
+        if settings:
+            for key, value in settings.__dict__.items():
+                setattr(self, key, deepcopy(value))
+
     _DYN_IMG_EXT: ClassVar[list[str]] = ["png", "jpg", "jpeg", "gif", "bmp", "svg"]
     VERBOSE: bool | None = False
     DEBUG: bool | None = False
@@ -15,7 +24,7 @@ class Settings:
     ZABBIX_USER: str | None = None
     ZABBIX_PASSWORD: str | None = None
     ZABBIX_TOKEN: str | None = None
-    REMOTE: str | None = None
+    REMOTE: str
     ROOT_TEMPLATE_GROUP: str = "Templates"
     GIT_AUTHOR_NAME: str = "ZabbixCI"
     GIT_AUTHOR_EMAIL: str = "zabbixci@localhost"
@@ -61,65 +70,59 @@ class Settings:
     GIT_KWARGS: ClassVar[dict] = {}
     SKIP_VERSION_CHECK: bool = False
     CREATE_TEMPLATE_GROUPS: bool = True
+    CREATE_ROLLBACK_BRANCH: bool = True
 
-    @classmethod
-    def get_template_whitelist(cls):
-        return cls.TEMPLATE_WHITELIST.split(",") if cls.TEMPLATE_WHITELIST else []
+    def get_template_whitelist(self):
+        return self.TEMPLATE_WHITELIST.split(",") if self.TEMPLATE_WHITELIST else []
 
-    @classmethod
-    def get_template_blacklist(cls):
-        return cls.TEMPLATE_BLACKLIST.split(",") if cls.TEMPLATE_BLACKLIST else []
+    def get_template_blacklist(self):
+        return self.TEMPLATE_BLACKLIST.split(",") if self.TEMPLATE_BLACKLIST else []
 
-    @classmethod
-    def get_image_whitelist(cls):
-        return cls.IMAGE_WHITELIST.split(",") if cls.IMAGE_WHITELIST else []
+    def get_image_whitelist(self):
+        return self.IMAGE_WHITELIST.split(",") if self.IMAGE_WHITELIST else []
 
-    @classmethod
-    def get_image_blacklist(cls):
-        return cls.IMAGE_BLACKLIST.split(",") if cls.IMAGE_BLACKLIST else []
+    def get_image_blacklist(self):
+        return self.IMAGE_BLACKLIST.split(",") if self.IMAGE_BLACKLIST else []
 
-    @classmethod
-    def get_icon_map_whitelist(cls):
-        return cls.ICON_MAP_WHITELIST.split(",") if cls.ICON_MAP_WHITELIST else []
+    def get_icon_map_whitelist(self):
+        return self.ICON_MAP_WHITELIST.split(",") if self.ICON_MAP_WHITELIST else []
 
-    @classmethod
-    def get_icon_map_blacklist(cls):
-        return cls.ICON_MAP_BLACKLIST.split(",") if cls.ICON_MAP_BLACKLIST else []
+    def get_icon_map_blacklist(self):
+        return self.ICON_MAP_BLACKLIST.split(",") if self.ICON_MAP_BLACKLIST else []
 
-    @classmethod
-    def get_script_whitelist(cls):
-        return cls.SCRIPT_WHITELIST.split(",") if cls.SCRIPT_WHITELIST else []
+    def get_script_whitelist(self):
+        return self.SCRIPT_WHITELIST.split(",") if self.SCRIPT_WHITELIST else []
 
-    @classmethod
-    def get_script_blacklist(cls):
-        return cls.SCRIPT_BLACKLIST.split(",") if cls.SCRIPT_BLACKLIST else []
+    def get_script_blacklist(self):
+        return self.SCRIPT_BLACKLIST.split(",") if self.SCRIPT_BLACKLIST else []
 
-    @classmethod
-    def get_icon_sizes(cls):
-        size_strings = cls.ICON_SIZES.split(",") if cls.ICON_SIZES else []
+    def get_icon_sizes(self):
+        size_strings = self.ICON_SIZES.split(",") if self.ICON_SIZES else []
         return [int(size) for size in size_strings]
 
-    @classmethod
-    def get_background_sizes(cls):
-        size_strings = cls.BACKGROUND_SIZES.split(",") if cls.BACKGROUND_SIZES else []
+    def get_background_sizes(self):
+        size_strings = self.BACKGROUND_SIZES.split(",") if self.BACKGROUND_SIZES else []
         return [int(size) for size in size_strings]
 
-    @classmethod
-    def from_env(cls):
-        for key, value in cls.__dict__.items():
+
+class ZabbixCISettings(ApplicationSettings):
+    def from_env(self):
+        for key, value in self.__dict__.items():
             # Dict values can only be set in the yaml config file
             if isinstance(value, dict):
                 continue
 
             if key in os.environ:
                 if isinstance(value, bool):
-                    setattr(cls, key, os.environ[key].lower() == "true")
+                    setattr(self, key, os.environ[key].lower() == "true")
                 else:
-                    setattr(cls, key, os.environ[key])
+                    setattr(self, key, os.environ[key])
 
-    @classmethod
-    def read_config(cls, path):
-        with open(path, encoding="utf-8") as f:
+    def read_config(self, file: "FileDescriptorOrPath"):
+        with open(file, encoding="utf-8") as f:
             data = yaml.load(f)
             for key, value in data.items():
-                setattr(cls, key.upper(), value)
+                setattr(self, key.upper(), value)
+
+
+__all__ = ["ApplicationSettings", "ZabbixCISettings"]

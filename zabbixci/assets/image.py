@@ -5,7 +5,7 @@ import regex
 
 from zabbixci.assets.asset import Asset
 from zabbixci.cache.cache import Cache
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +15,21 @@ class Image(Asset):
     image: bytes
     name: str
     type: str
+    settings: ApplicationSettings
 
     def __init__(
-        self, base64: str, name: str, type: str = "icon", image_id: int | None = None
+        self,
+        base64: str,
+        name: str,
+        settings: ApplicationSettings,
+        type: str = "icon",
+        image_id: int | None = None,
     ):
         self.image = b64decode(base64)
         self.name = name
         self.type = type
         self.image_id = image_id
+        self.settings = settings
 
     def __str__(self):
         return f"{self.name} ({self.type})"
@@ -35,17 +42,19 @@ class Image(Asset):
         name_folders = self.name.split("/")[0:-1]
 
         Cache.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self._type_folder}/{'/'.join(name_folders)}",
+            f"{self.settings.CACHE_PATH}/{self.settings.IMAGE_PREFIX_PATH}/{self._type_folder}/{'/'.join(name_folders)}",
         )
 
         with Cache.open(
-            f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}/{self._type_folder}/{self.name}.png",
+            f"{self.settings.CACHE_PATH}/{self.settings.IMAGE_PREFIX_PATH}/{self._type_folder}/{self.name}.png",
             "wb",
         ) as file:
             file.write(self.image)
 
     def load(self, path: str):
-        with Cache.open(f"{Settings.CACHE_PATH}/{path}/{self.name}.png", "rb") as file:
+        with Cache.open(
+            f"{self.settings.CACHE_PATH}/{path}/{self.name}.png", "rb"
+        ) as file:
             self.image = file.read()
 
     def as_zabbix_dict(self):
@@ -56,10 +65,10 @@ class Image(Asset):
         }
 
     def minify(self):
-        return Image("", self.name, self.type, self.image_id)
+        return Image("", self.name, self.settings, self.type, self.image_id)
 
     @classmethod
-    def from_zabbix(cls, image: dict):
+    def from_zabbix(cls, image: dict, settings: ApplicationSettings):
         """
         Create an Image object from a Zabbix API image object
 
@@ -68,15 +77,17 @@ class Image(Asset):
         return cls(
             image["image"],
             image["name"],
+            settings,
             "icon" if image["imagetype"] == "1" else "background",
             image["imageid"],
         )
 
     @classmethod
-    def open(cls, path: str):
+    def open(cls, path: str, settings: ApplicationSettings):
         with Cache.open(path, "rb") as file:
             matches = regex.match(
-                f".*{Settings.IMAGE_PREFIX_PATH}/(icons|backgrounds)/(.*).png", path
+                f".*{settings.IMAGE_PREFIX_PATH}/(icons|backgrounds)/(.*).png",
+                path,
             )
 
             if not matches:
@@ -84,4 +95,4 @@ class Image(Asset):
                 return None
 
             type = "icon" if matches[1] == "icons" else "background"
-            return cls(b64encode(file.read()).decode(), matches[2], type)
+            return cls(b64encode(file.read()).decode(), matches[2], settings, type)

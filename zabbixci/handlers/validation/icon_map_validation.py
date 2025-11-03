@@ -3,21 +3,20 @@ import logging
 from zabbixci.assets.icon_map import IconMap
 from zabbixci.cache.filesystem import Filesystem
 from zabbixci.handlers.validation.validation_handler import Handler
-from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
 
 
 class IconMapValidationHandler(Handler):
     """
-    Handler for importing icon maps into Zabbix based on changed files. Includes validation steps based on settings.
+    Handler for importing icon maps into Zabbix based on changed files. Includes validation steps based on self.settings.
     """
 
     def get_whitelist(self):
-        return Settings.get_icon_map_whitelist()
+        return self.settings.get_icon_map_whitelist()
 
     def get_blacklist(self):
-        return Settings.get_icon_map_blacklist()
+        return self.settings.get_icon_map_blacklist()
 
     def read_validation(self, changed_file: str) -> bool:
         """
@@ -28,7 +27,8 @@ class IconMapValidationHandler(Handler):
 
         # Check if file is within the desired path
         if not Filesystem.is_within(
-            changed_file, f"{Settings.CACHE_PATH}/{Settings.ICON_MAP_PREFIX_PATH}"
+            changed_file,
+            f"{self.settings.CACHE_PATH}/{self.settings.ICON_MAP_PREFIX_PATH}",
         ):
             logger.debug(
                 "Skipping .yaml file %s outside of icon_map prefix path", changed_file

@@ -1,13 +1,13 @@
 import logging
 import os
 
-from pygit2 import Diff, RemoteCallbacks, Signature, clone_repository
+from pygit2 import Commit, Diff, GitError, RemoteCallbacks, Signature, clone_repository
 from pygit2.enums import CheckoutStrategy, MergeAnalysis
 from pygit2.repository import Repository
 
 from zabbixci.cache.cache import Cache
 from zabbixci.git.credentials import RemoteCallbacksSecured
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 
 logger = logging.getLogger(__name__)
 
@@ -16,19 +16,29 @@ class Git:
     _repository: Repository
     author: Signature
     _git_cb = None
+    settings: ApplicationSettings
 
-    def __init__(self, path: str, callbacks: RemoteCallbacks, **kwargs):
+    def __init__(
+        self,
+        path: str,
+        callbacks: RemoteCallbacks,
+        settings: ApplicationSettings,
+        **kwargs,
+    ):
         """
         Initialize the git repository
         """
+        self.settings = settings
         self._git_cb = callbacks
-        self.author = Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
+        self.author = Signature(
+            self.settings.GIT_AUTHOR_NAME, self.settings.GIT_AUTHOR_EMAIL
+        )
 
         if not os.path.exists(path):
             Cache.makedirs(path)
 
             self._repository = clone_repository(
-                Settings.REMOTE,
+                self.settings.REMOTE,
                 path,
                 callbacks=self._git_cb,
                 **kwargs,
@@ -114,8 +124,14 @@ class Git:
         Create a branch
         """
         try:
+            peel = self._repository.head.peel(None)
+
+            if not isinstance(peel, Commit):
+                raise GitError("Cannot create branch, HEAD is not a commit")
+
             self._repository.branches.local.create(
-                branch, self._repository.head.peel(None)
+                branch,
+                peel,
             )
         except Exception as e:
             logger.error("Failed to create branch: %s", e)

@@ -50,7 +50,11 @@ Discussions = "https://github.com/retigra/ZabbixCI/discussions"
 zabbixci = "zabbixci.cli:parse_cli"
 
 [dependency-groups]
-dev = ["ruff>=0.12.1"]
+dev = [
+    "mypy>=1.18.2",
+    "ruff>=0.12.1",
+    "types-regex>=2025.10.23.20251023",
+]
 
 [build-system]
 requires = ["setuptools>=64", "setuptools_scm>=8"]

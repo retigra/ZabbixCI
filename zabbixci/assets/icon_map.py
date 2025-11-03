@@ -7,7 +7,7 @@ from zabbixci.assets.asset import Asset
 from zabbixci.assets.image import Image
 from zabbixci.cache.cache import Cache
 from zabbixci.exceptions import ZabbixIconMissingError
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 
 logger = logging.getLogger(__name__)
 yaml = YAML()
@@ -25,6 +25,7 @@ class IconMapping:
     # Additional items for export
     icon_map_name: str
     icon_name: str
+    settings: ApplicationSettings
 
     def __init__(
         self,
@@ -77,7 +78,13 @@ class IconMapping:
         }
 
     @classmethod
-    def from_zabbix(cls, icon_mapping: dict, icon_map_name: str, images: list[Image]):
+    def from_zabbix(
+        cls,
+        icon_mapping: dict,
+        icon_map_name: str,
+        images: list[Image],
+        settings: ApplicationSettings,
+    ):
         """
         Create an IconMapping object from a Zabbix API response.
 
@@ -112,6 +119,7 @@ class IconMap(Asset):
     default_iconid: int
     default_icon_name: str
     mappings: list[IconMapping]
+    settings: ApplicationSettings
 
     def __init__(
         self,
@@ -120,12 +128,14 @@ class IconMap(Asset):
         default_iconid: int,
         default_icon_name: str,
         mappings: list[IconMapping],
+        settings: ApplicationSettings,
     ):
         self.icon_mapid = icon_mapid
         self.name = name
         self.default_iconid = default_iconid
         self.default_icon_name = default_icon_name
         self.mappings = mappings
+        self.settings = settings
 
     def __str__(self):
         return f"{self.name}"
@@ -135,11 +145,11 @@ class IconMap(Asset):
 
     def save(self):
         Cache.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.ICON_MAP_PREFIX_PATH}/",
+            f"{self.settings.CACHE_PATH}/{self.settings.ICON_MAP_PREFIX_PATH}/",
         )
 
         with Cache.open(
-            f"{Settings.CACHE_PATH}/{Settings.ICON_MAP_PREFIX_PATH}/{self.name}.yaml",
+            f"{self.settings.CACHE_PATH}/{self.settings.ICON_MAP_PREFIX_PATH}/{self.name}.yaml",
             "w",
         ) as file:
             self._yaml_dump(file)
@@ -161,7 +171,9 @@ class IconMap(Asset):
         }
 
     @classmethod
-    def from_zabbix(cls, icon_map: dict, icons: list[Image]):
+    def from_zabbix(
+        cls, icon_map: dict, icons: list[Image], settings: ApplicationSettings
+    ):
         """
         Create an IconMap object from a Zabbix API response.
 
@@ -173,7 +185,7 @@ class IconMap(Asset):
         :return: IconMap object or None when the object could not be created
         """
         mappings = [
-            IconMapping.from_zabbix(mapping, icon_map["name"], icons)
+            IconMapping.from_zabbix(mapping, icon_map["name"], icons, settings)
             for mapping in icon_map["mappings"]
         ]
 
@@ -196,10 +208,11 @@ class IconMap(Asset):
             icon_map["default_iconid"],
             icon.name,
             mappings,
+            settings,
         )
 
     @classmethod
-    def partial_open(cls, path: str):
+    def partial_open(cls, path: str, settings: ApplicationSettings):
         """
         Load an IconMap object from a file. Without Zabbix instance mappings (ids)
         """
@@ -212,10 +225,11 @@ class IconMap(Asset):
                 0,
                 icon_map["default_icon_name"],
                 [],
+                settings,
             )
 
     @classmethod
-    def open(cls, path: str, images: list[Image]):
+    def open(cls, path: str, images: list[Image], settings: ApplicationSettings):
         """
         Load an IconMap object from a file.
         """
@@ -259,4 +273,5 @@ class IconMap(Asset):
                 default_icon.image_id,
                 icon_map["default_icon_name"],
                 [icon_mapping(mapping, images) for mapping in icon_map["mappings"]],
+                settings,
             )

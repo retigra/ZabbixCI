@@ -5,7 +5,7 @@ from ruamel.yaml import YAML
 
 from zabbixci.assets.asset import Asset
 from zabbixci.cache.cache import Cache
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 
 yaml = YAML()
 
@@ -47,13 +47,17 @@ class Script(Asset):
     manualinput_validator_type: str
     manualinput_default_value: str
     parameters: list[ScriptParameter]
+    settings: ApplicationSettings
 
-    def __init__(self, **kwargs):
+    def __init__(self, settings: ApplicationSettings, **kwargs):
+        self.settings = settings
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 
         self.parameters = [
-            ScriptParameter(**param) for param in kwargs.get("parameters", [])
+            {"name": param.get("name", ""), "value": param.get("value", "")}
+            for param in kwargs.get("parameters", [])
         ]
 
     @property
@@ -94,11 +98,12 @@ class Script(Asset):
         }
 
     @classmethod
-    def from_zabbix(cls, script: dict):
+    def from_zabbix(cls, script: dict, settings: ApplicationSettings):
         """
         Construct Script object from Zabbix API response.
         """
         return cls(
+            settings=settings,
             **script,
         )
 
@@ -117,19 +122,19 @@ class Script(Asset):
         folder = path.dirname(self.unique_name)
 
         Cache.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.SCRIPT_PREFIX_PATH}/{folder}",
+            f"{self.settings.CACHE_PATH}/{self.settings.SCRIPT_PREFIX_PATH}/{folder}",
         )
 
         with Cache.open(
-            f"{Settings.CACHE_PATH}/{Settings.SCRIPT_PREFIX_PATH}/{folder}/{self.name}.yaml",
+            f"{self.settings.CACHE_PATH}/{self.settings.SCRIPT_PREFIX_PATH}/{folder}/{self.name}.yaml",
             "w",
         ) as file:
             self._yaml_dump(file)
 
     @staticmethod
-    def open(path: str):
+    def open(path: str, settings: ApplicationSettings):
         """
         Open a template from the cache
         """
         with Cache.open(path, "r") as file:
-            return Script(**yaml.load(file))
+            return Script(**yaml.load(file), settings=settings)

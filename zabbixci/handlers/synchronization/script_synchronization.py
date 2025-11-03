@@ -2,7 +2,7 @@ import logging
 
 from zabbixci.assets.script import Script
 from zabbixci.handlers.validation.script_validation import ScriptValidationHandler
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 from zabbixci.zabbix.zabbix import Zabbix
 
 logger = logging.getLogger(__name__)
@@ -10,21 +10,22 @@ logger = logging.getLogger(__name__)
 
 class ScriptHandler(ScriptValidationHandler):
     """
-    Handler for importing scripts into Zabbix based on changed files. Includes validation steps based on settings.
+    Handler for importing scripts into Zabbix based on changed files. Includes validation steps based on self.settings.
 
     :param zabbix: Zabbix instance
     """
 
     _zabbix: Zabbix
 
-    def __init__(self, zabbix: Zabbix):
+    def __init__(self, zabbix: Zabbix, settings: ApplicationSettings):
+        super().__init__(settings)
         self._zabbix = zabbix
 
     def script_to_cache(self) -> list[Script]:
         """
         Export Zabbix scripts to cache.
         """
-        if not Settings.SYNC_SCRIPTS:
+        if not self.settings.SYNC_SCRIPTS:
             return []
 
         search = (
@@ -40,14 +41,14 @@ class ScriptHandler(ScriptValidationHandler):
         script_objects = []
 
         for script in scripts:
-            script_object = Script.from_zabbix(script)
+            script_object = Script.from_zabbix(script, self.settings)
 
             if not self.object_validation(script_object):
                 continue
 
-            if Settings.SCRIPT_WITHOUT_USRGRP and script_object.usrgrpid:
+            if self.settings.SCRIPT_WITHOUT_USRGRP and script_object.usrgrpid:
                 script_object.usrgrpid = self._zabbix.get_user_group(
-                    Settings.SCRIPT_DEFAULT_USRGRP
+                    self.settings.SCRIPT_DEFAULT_USRGRP
                 )["name"]
             elif script_object.usrgrpid:
                 script_object.usrgrpid = self._zabbix.get_user_group_id(
@@ -74,14 +75,14 @@ class ScriptHandler(ScriptValidationHandler):
         """
         scripts: list[Script] = []
 
-        if not Settings.SYNC_SCRIPTS:
+        if not self.settings.SYNC_SCRIPTS:
             return []
 
         for file in changed_files:
             if not self.read_validation(file):
                 continue
 
-            script = Script.open(file)
+            script = Script.open(file, self.settings)
 
             if not self.object_validation(script):
                 continue
@@ -104,10 +105,10 @@ class ScriptHandler(ScriptValidationHandler):
                 logger.warning(
                     "User group not found for %s, using default %s. User group will not be synchronized with git",
                     script.unique_name,
-                    Settings.SCRIPT_DEFAULT_USRGRP,
+                    self.settings.SCRIPT_DEFAULT_USRGRP,
                 )
                 script.usrgrpid = self._zabbix.get_user_group(
-                    Settings.SCRIPT_DEFAULT_USRGRP
+                    self.settings.SCRIPT_DEFAULT_USRGRP
                 )["usrgrpid"]
 
             if script.unique_name in [t.unique_name for t in script_objects]:
@@ -135,7 +136,7 @@ class ScriptHandler(ScriptValidationHandler):
 
         # Import the scripts
         for script in scripts:
-            if not Settings.DRY_RUN:
+            if not self.settings.DRY_RUN:
                 try:
                     __import_script(script)
                 except Exception as e:
@@ -174,14 +175,14 @@ class ScriptHandler(ScriptValidationHandler):
         """
         deletion_queue: list[str] = []
 
-        if not Settings.SYNC_SCRIPTS:
+        if not self.settings.SYNC_SCRIPTS:
             return []
 
         for file in deleted_files:
             if not self.read_validation(file):
                 continue
 
-            script = Script.open(file)
+            script = Script.open(file, self.settings)
 
             if not script:
                 logger.warning("Could not open to be deleted file: %s", file)
@@ -209,7 +210,7 @@ class ScriptHandler(ScriptValidationHandler):
 
             logger.info("Deleting %s script(s) from Zabbix", len(script_ids))
 
-            if script_ids and not Settings.DRY_RUN:
+            if script_ids and not self.settings.DRY_RUN:
                 self._zabbix.delete_scripts(script_ids)
 
         return deletion_queue
