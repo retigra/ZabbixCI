@@ -302,3 +302,16 @@ skip_version_check: false
 # Mandatory: no
 # Default: true
 create_template_groups: true
+
+### Option: create_rollback_branch
+# Create a rollback branch before pulling changes into Zabbix.
+# Pulling changes into Zabbix will delete any templates within the root_template_group that are not present in the Git repository. Creating a rollback branch allows to restore the previous state in case of accidental deletions.
+# Mandatory: no
+# Default: true
+create_rollback_branch: true
+
+### Option: push_rollback_branch
+# Push the rollback branch to the remote repository, otherwise the rollback branch is only created locally in the cache directory.
+# Mandatory: no
+# Default: false
+push_rollback_branch: false

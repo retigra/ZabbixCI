@@ -279,6 +279,24 @@ def read_args(args: list[str] | None = None):
         nargs="?",
         explicit=True,
     )
+    zabbixci_group.add_argument(
+        "--create-rollback-branch",
+        help="Create a rollback branch before pulling changes into Zabbix",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_group.add_argument(
+        "--push-rollback-branch",
+        help="Push the rollback branches to the remote repository",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
 
     zabbix_group = method_parser.add_argument_group("Zabbix")
 
