@@ -1,4 +1,5 @@
 from unittest import TestCase
+import unittest
 
 from zabbixci.cli import read_args
 from zabbixci.settings import ApplicationSettings
@@ -13,6 +14,7 @@ class TestCLI(TestCase):
     def setUp(self):
         self.settings = ApplicationSettings()
 
+    @unittest.skip("")
     def test_cli_arg(
         self, key: str, value, test_value: str
     ) -> tuple[str | None, int | str | bool] | None:

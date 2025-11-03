@@ -1,7 +1,7 @@
 import asyncio
 from os import getenv
 
-from test.base_test import BaseTest
+from base_test import BaseTest
 from zabbixci import ZabbixCI
 from zabbixci.cache.cleanup import Cleanup
 
@@ -42,7 +42,7 @@ class BaseTemplates(BaseTest):
             self.settings.REMOTE,
         )
 
-        Cleanup.cleanup_cache(full=True)
+        Cleanup.cleanup_cache(self.settings, full=True)
         self.zci.create_git()
 
         whitelist = self.settings.TEMPLATE_WHITELIST
