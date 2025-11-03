@@ -18,7 +18,7 @@ class BaseTest:
         self.cache = Cache(self.settings.CACHE_PATH)
 
         if os.path.exists(self.settings.CACHE_PATH):
-            Cleanup.cleanup_cache(full=True)
+            Cleanup.cleanup_cache(self.settings, full=True)
 
         logging.basicConfig(
             level=logging.ERROR,
