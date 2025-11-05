@@ -110,7 +110,6 @@ class Git:
         Switch to a branch, if the branch does not exist, create it
         """
         if not self._repository.branches.local.get(branch):
-            logger.debug("Branch %s does not exist, creating", branch)
             self.create_branch(branch)
 
         local_branch = self._repository.branches.local[branch]
