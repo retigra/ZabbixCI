@@ -110,7 +110,6 @@ class Git:
         Switch to a branch, if the branch does not exist, create it
         """
         if not self._repository.branches.local.get(branch):
-            logger.debug("Branch %s does not exist, creating", branch)
             self.create_branch(branch)
 
         local_branch = self._repository.branches.local[branch]
@@ -124,7 +123,25 @@ class Git:
         Create a branch
         """
         try:
-            peel = self._repository.head.peel(None)
+            peel = None
+            try:
+                # Check for remote branch and base the new branch on it
+                remote_branch = self._repository.branches.remote.get(f"origin/{branch}")
+
+                if remote_branch:
+                    logger.debug(
+                        "Found remote branch %s, basing local branch off it", branch
+                    )
+                    peel = remote_branch.peel(None)
+            except GitError:
+                logger.exception("Fetching remote branch %s failed", branch)
+
+            if not peel:
+                peel = self._repository.head.peel(None)
+                logger.debug(
+                    "Remote branch %s does not exist, basing local branch off HEAD",
+                    branch,
+                )
 
             if not isinstance(peel, Commit):
                 raise GitError("Cannot create branch, HEAD is not a commit")

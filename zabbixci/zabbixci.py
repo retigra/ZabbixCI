@@ -107,6 +107,11 @@ class ZabbixCI:
         if not self._git.is_empty:
             # If the repository is empty, new branches can't be created. But it is
             # safe to push to the default branch
+
+            # Switch to the pull branch, as we base our push branch on it
+            self._git.switch_branch(self.settings.PULL_BRANCH)
+
+            # Switch or create the push branch
             self._git.switch_branch(self.settings.PUSH_BRANCH)
 
             # Pull the latest remote state
@@ -117,12 +122,7 @@ class ZabbixCI:
                     "Remote branch does not exist, using state from branch: %s",
                     self.settings.PULL_BRANCH,
                 )
-                # Remote branch does not exist, we pull the default branch and create a new branch
-                self._git.switch_branch(self.settings.PULL_BRANCH)
-                self._git.pull(self.settings.REMOTE)
-
-                # Create a new branch
-                self._git.switch_branch(self.settings.PUSH_BRANCH)
+                self._git.pull(self.settings.REMOTE, branch=self.settings.PULL_BRANCH)
 
         # Reflect current Zabbix state in the cache
         Cleanup.cleanup_cache(self.settings)
