@@ -28,7 +28,12 @@ class Cleanup:
         if not template_handler.read_validation(file):
             return False
 
-        template = Template.open(file, settings)
+        try:
+            template = Template.open(file, settings)
+        except Exception:
+            logger.warning("Tried to open file %s but failed to load template", file)
+            logger.debug("Exception details:", exc_info=True)
+            return False
 
         if not template or not template.is_template:
             logger.warning("Could not open file %s as a template", file)
