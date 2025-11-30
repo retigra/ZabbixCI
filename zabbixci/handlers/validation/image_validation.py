@@ -3,24 +3,23 @@ import logging
 from zabbixci.assets.image import Image
 from zabbixci.cache.filesystem import Filesystem
 from zabbixci.handlers.validation.validation_handler import Handler
-from zabbixci.settings import Settings
 
 logger = logging.getLogger(__name__)
 
 
 class ImageValidationHandler(Handler):
     """
-    Handler for importing images into Zabbix based on changed files. Includes validation steps based on settings.
+    Handler for importing images into Zabbix based on changed files. Includes validation steps based on self.settings.
     """
 
     def get_whitelist(self):
-        return Settings.get_image_whitelist()
+        return self.settings.get_image_whitelist()
 
     def get_blacklist(self):
-        return Settings.get_image_blacklist()
+        return self.settings.get_image_blacklist()
 
     def is_image(self, path):
-        return path.lower().split(".")[-1] in Settings._DYN_IMG_EXT
+        return path.lower().split(".")[-1] in self.settings._DYN_IMG_EXT
 
     def read_validation(self, changed_file: str) -> bool:
         """
@@ -31,7 +30,8 @@ class ImageValidationHandler(Handler):
 
         # Check if file is within the desired path
         if not Filesystem.is_within(
-            changed_file, f"{Settings.CACHE_PATH}/{Settings.IMAGE_PREFIX_PATH}"
+            changed_file,
+            f"{self.settings.CACHE_PATH}/{self.settings.IMAGE_PREFIX_PATH}",
         ):
             logger.debug("Skipping .png file %s outside of prefix path", changed_file)
             return False
@@ -42,11 +42,11 @@ class ImageValidationHandler(Handler):
         if not image:
             return False
 
-        if not Settings.SYNC_BACKGROUNDS and image.type == "background":
+        if not self.settings.SYNC_BACKGROUNDS and image.type == "background":
             logger.debug("Skipping background image: %s", image.name)
             return False
 
-        if not Settings.SYNC_ICONS and image.type == "icon":
+        if not self.settings.SYNC_ICONS and image.type == "icon":
             logger.debug("Skipping icon image: %s", image.name)
             return False
 

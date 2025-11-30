@@ -3,12 +3,17 @@ from abc import ABCMeta, abstractmethod
 
 import regex
 
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 
 logger = logging.getLogger(__name__)
 
 
-class Handler(object, metaclass=ABCMeta):
+class Handler(metaclass=ABCMeta):
+    settings: ApplicationSettings
+
+    def __init__(self, settings: ApplicationSettings):
+        self.settings = settings
+
     @abstractmethod
     def get_whitelist(self) -> list[str] | str:
         raise NotImplementedError()
@@ -18,7 +23,7 @@ class Handler(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def _use_regex(self) -> bool:
-        return Settings.REGEX_MATCHING
+        return self.settings.REGEX_MATCHING
 
     def enforce_whitelist(self, query: str):
         """

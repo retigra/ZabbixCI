@@ -1,4 +1,23 @@
-FROM python:3-slim
+FROM ghcr.io/astral-sh/uv:python3.12-trixie-slim AS builder
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
+ENV UV_PYTHON_DOWNLOADS=0
+
+WORKDIR /app
+
+RUN apt update && apt install -y git && apt-get clean
+
+COPY pyproject.toml /app
+COPY uv.lock /app/uv.lock
+COPY .git /app/.git
+RUN mkdir /app/zabbixci
+
+RUN uv sync --locked --no-install-project --no-dev
+
+COPY . /app
+
+RUN uv sync --locked --no-dev
+
+FROM python:3.12-slim-trixie
 
 LABEL org.opencontainers.image.source=https://github.com/retigra/ZabbixCI
 LABEL org.opencontainers.image.title="ZabbixCI"
@@ -8,18 +27,11 @@ LABEL org.opencontainers.image.licenses=AGPL
 LABEL org.opencontainers.image.vendor="Retigra"
 LABEL org.opencontainers.image.authors="info@retigra.nl"
 
-RUN apt-get update && apt-get install -y git imagemagick && apt-get clean
+RUN apt-get update && apt-get install -y imagemagick git && apt-get clean
 
-# Set the working directory
-WORKDIR /app
+COPY --from=builder --chown=app:app /app/.venv /app/.venv
+COPY --from=builder --chown=app:app /app/zabbixci /app/zabbixci
 
-# Copy the current directory contents into the container at /app
-COPY pyproject.toml /app
-COPY requirements.txt /app
-COPY .git /app/.git
-COPY zabbixci /app/zabbixci
-
-# Install any needed packages specified in requirements.txt
-RUN pip install /app/
+ENV PATH="/app/.venv/bin:$PATH"
 
 ENTRYPOINT [ "zabbixci" ]

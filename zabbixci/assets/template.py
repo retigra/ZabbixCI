@@ -7,7 +7,7 @@ from ruamel.yaml import YAML
 
 from zabbixci.assets.asset import Asset
 from zabbixci.cache import Cache
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 
 yaml = YAML()
 
@@ -24,6 +24,8 @@ class Template(Asset):
 
     new_version = False
     new_vendor = False
+
+    settings: ApplicationSettings
 
     @property
     def is_template(self):
@@ -42,11 +44,24 @@ class Template(Asset):
         return self._template["uuid"]
 
     @property
-    def template_ids(self):
+    def template_ids(self) -> list[str]:
         """
         List of UUIDs that are included in this Zabbix export
         """
         return [template["uuid"] for template in self._export["templates"]]
+
+    @property
+    def groups(self) -> list[list[str]]:
+        """
+        List of all groups in the template as lists split by '/'
+        """
+        group_list: list[list[str]] = []
+
+        for group in self._template["groups"]:
+            split = regex.split(r"\/+", group["name"])
+            group_list.append(split)
+
+        return group_list
 
     @property
     def primary_group(self) -> str:
@@ -60,7 +75,7 @@ class Template(Asset):
         # specifying the lowest child in the hierarchy
         for group in self._template["groups"]:
             name: str = group["name"]
-            if Settings.ROOT_TEMPLATE_GROUP not in name:
+            if self.settings.ROOT_TEMPLATE_GROUP not in name:
                 continue
 
             split = regex.split(r"\/+", name)
@@ -77,7 +92,7 @@ class Template(Asset):
         The primary group of the template, without the root group
         """
         match_group = regex.match(
-            rf"{Settings.ROOT_TEMPLATE_GROUP}\/+(.+)", self.primary_group
+            rf"{self.settings.ROOT_TEMPLATE_GROUP}\/+(.+)", self.primary_group
         )
 
         return match_group.group(1) if match_group else ""
@@ -99,22 +114,14 @@ class Template(Asset):
         if "vendor" not in self._template:
             return ""
 
-        return (
-            self._template["vendor"]["name"]
-            if "name" in self._template["vendor"]
-            else ""
-        )
+        return self._template["vendor"].get("name", "")
 
     @property
     def version(self):
         if "vendor" not in self._template:
             return ""
 
-        return (
-            self._template["vendor"]["version"]
-            if "version" in self._template["vendor"]
-            else ""
-        )
+        return self._template["vendor"].get("version", "")
 
     @property
     def updated_items(self):
@@ -131,8 +138,9 @@ class Template(Asset):
 
         return updates
 
-    def __init__(self, export: dict):
+    def __init__(self, export: dict, settings: ApplicationSettings):
         self._export = export
+        self.settings = settings
 
     def __str__(self):
         return self.name
@@ -189,11 +197,11 @@ class Template(Asset):
         Save the template to the cache
         """
         Cache.makedirs(
-            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}",
+            f"{self.settings.CACHE_PATH}/{self.settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}",
         )
 
         with Cache.open(
-            f"{Settings.CACHE_PATH}/{Settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['template']}.yaml",
+            f"{self.settings.CACHE_PATH}/{self.settings.TEMPLATE_PREFIX_PATH}/{self.truncated_groups}/{self._template['template']}.yaml",
             "w",
         ) as file:
             self._yaml_dump(file)
@@ -219,18 +227,16 @@ class Template(Asset):
         return self._level
 
     @staticmethod
-    def open(path: str):
+    def open(path: str, settings: ApplicationSettings):
         """
         Open a template from the cache
         """
         with Cache.open(path, "r") as file:
-            return Template(yaml.load(file)["zabbix_export"])
+            return Template(yaml.load(file)["zabbix_export"], settings=settings)
 
     @staticmethod
-    def from_zabbix(export: dict):
+    def from_zabbix(export: dict, settings: ApplicationSettings):
         """
         Create an individual template from a bulk Zabbix export
         """
-        # TODO: Prepare dict for export, otherwise remove this method and use the constructor directly
-
-        return Template(export)
+        return Template(export, settings=settings)

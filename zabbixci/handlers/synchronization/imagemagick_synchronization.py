@@ -46,7 +46,8 @@ class ImagemagickHandler:
 
         :param image_path: Path to the image
         """
-        from wand.image import Image  # type: ignore
+        # Local import because of optional dependency
+        from wand.image import Image  # noqa: PLC0415
 
         files: list[str] = []
 

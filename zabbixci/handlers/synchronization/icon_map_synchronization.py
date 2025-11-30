@@ -3,7 +3,7 @@ import logging
 from zabbixci.assets.icon_map import IconMap
 from zabbixci.assets.image import Image
 from zabbixci.handlers.validation.icon_map_validation import IconMapValidationHandler
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 from zabbixci.zabbix.zabbix import Zabbix
 
 logger = logging.getLogger(__name__)
@@ -11,24 +11,25 @@ logger = logging.getLogger(__name__)
 
 class IconMapHandler(IconMapValidationHandler):
     """
-    Handler for importing icon maps into Zabbix based on changed files. Includes validation steps based on settings.
+    Handler for importing icon maps into Zabbix based on changed files. Includes validation steps based on self.settings.
 
     :param zabbix: Zabbix instance
     """
 
     _zabbix: Zabbix
 
-    def __init__(self, zabbix: Zabbix):
+    def __init__(self, zabbix: Zabbix, settings: ApplicationSettings):
+        super().__init__(settings)
         self._zabbix = zabbix
 
     def icon_map_to_cache(self, images: list[Image]) -> list[IconMap]:
         """
         Export Zabbix icon maps to cache.
         """
-        if not Settings.SYNC_ICON_MAPS:
+        if not self.settings.SYNC_ICON_MAPS:
             return []
 
-        if not Settings.SYNC_ICONS:
+        if not self.settings.SYNC_ICONS:
             logger.warning(
                 "SYNC_ICONS is disabled, unable to export icon maps without icons"
             )
@@ -47,7 +48,7 @@ class IconMapHandler(IconMapValidationHandler):
         icon_map_objects = []
 
         for icon_map in icon_maps:
-            icon_map_object = IconMap.from_zabbix(icon_map, images)
+            icon_map_object = IconMap.from_zabbix(icon_map, images, self.settings)
 
             if not self.object_validation(icon_map_object):
                 continue
@@ -74,14 +75,14 @@ class IconMapHandler(IconMapValidationHandler):
         """
         icon_maps: list[IconMap] = []
 
-        if not Settings.SYNC_ICON_MAPS:
+        if not self.settings.SYNC_ICON_MAPS:
             return []
 
         for file in changed_files:
             if not self.read_validation(file):
                 continue
 
-            icon_map = IconMap.open(file, image_objects)
+            icon_map = IconMap.open(file, image_objects, self.settings)
 
             if not self.object_validation(icon_map):
                 continue
@@ -111,7 +112,7 @@ class IconMapHandler(IconMapValidationHandler):
 
         # Import the images
         for icon_map in icon_maps:
-            if not Settings.DRY_RUN:
+            if not self.settings.DRY_RUN:
                 try:
                     __import_icon_map(icon_map)
                 except Exception as e:
@@ -122,7 +123,7 @@ class IconMapHandler(IconMapValidationHandler):
                     logger.debug("Error details: %s", e)
                     failed_icon_maps.append(icon_map)
 
-        if len(failed_icon_maps):
+        if failed_icon_maps:
             for icon_map in failed_icon_maps:
                 try:
                     __import_icon_map(icon_map)
@@ -150,14 +151,14 @@ class IconMapHandler(IconMapValidationHandler):
         """
         deletion_queue: list[str] = []
 
-        if not Settings.SYNC_ICON_MAPS:
+        if not self.settings.SYNC_ICON_MAPS:
             return []
 
         for file in deleted_files:
             if not self.read_validation(file):
                 continue
 
-            icon_map = IconMap.partial_open(file)
+            icon_map = IconMap.partial_open(file, self.settings)
 
             if not icon_map:
                 logger.warning("Could not open to be deleted file: %s", file)
@@ -175,7 +176,7 @@ class IconMapHandler(IconMapValidationHandler):
             deletion_queue.append(icon_map.name)
             logger.info("Added %s to deletion queue", icon_map.name)
 
-        if len(deletion_queue):
+        if deletion_queue:
             icon_map_ids = [
                 t.icon_mapid
                 for t in list(
@@ -185,8 +186,7 @@ class IconMapHandler(IconMapValidationHandler):
 
             logger.info("Deleting %s icon map(s) from Zabbix", len(icon_map_ids))
 
-            if len(icon_map_ids):
-                if not Settings.DRY_RUN:
-                    self._zabbix.delete_icon_maps(icon_map_ids)
+            if icon_map_ids and not self.settings.DRY_RUN:
+                self._zabbix.delete_icon_maps(icon_map_ids)
 
         return deletion_queue

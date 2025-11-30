@@ -5,7 +5,7 @@ from .validation_handler import Handler
 
 __all__ = [
     "Handler",
+    "IconMapValidationHandler",
     "ImageValidationHandler",
     "TemplateValidationHandler",
-    "IconMapValidationHandler",
 ]

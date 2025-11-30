@@ -6,13 +6,16 @@ from urllib.request import Request, urlopen
 import pygit2
 
 from zabbixci.exceptions import GitError
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 
 logger = logging.getLogger(__name__)
 
 
+SSH_AGENT_CALL_TIMEOUT = 10
+
+
 class RemoteCallbacksSecured(pygit2.RemoteCallbacks):
-    _credentials = None
+    _credentials: pygit2.UserPass | pygit2.Keypair | pygit2.KeypairFromAgent
 
     _call_count = 0
     _agent_active: bool = False
@@ -23,7 +26,7 @@ class RemoteCallbacksSecured(pygit2.RemoteCallbacks):
 
     def credentials(self, url, username_from_url, allowed_types):
         self._call_count += 1
-        if self._call_count > 10 and not self._agent_active:
+        if self._call_count > SSH_AGENT_CALL_TIMEOUT and not self._agent_active:
             raise GitError(
                 "SSH agent was unable to provide credentials, is your key added to the agent?"
             )
@@ -42,24 +45,27 @@ class RemoteCallbacksSecured(pygit2.RemoteCallbacks):
         )
         return True
 
-    def certificate_check(self, cert, valid, hostname):
+    def certificate_check(self, certificate, valid, host):
         return valid
 
 
 class GitCredentials:
-    _ssl_context = None
+    _ssl_context: ssl.SSLContext
     _ssl_valid: bool = False
+    settings: ApplicationSettings
 
-    def __init__(self):
-        if Settings.CA_BUNDLE:
+    def __init__(self, settings: ApplicationSettings):
+        self.settings = settings
+
+        if self.settings.CA_BUNDLE:
             self._ssl_context = ssl.create_default_context()
-            self._ssl_context.load_verify_locations(Settings.CA_BUNDLE)
+            self._ssl_context.load_verify_locations(self.settings.CA_BUNDLE)
 
-    def _validate_ssl_cert(self, _cert: None, valid: bool, hostname: bytes):
+    def _validate_ssl_cert(self, certificate: None, valid: bool, host: bytes):
         """
         Callback function for pygit2 RemoteCallbacks object to validate SSL certificates
         """
-        hostname_str = hostname.decode("utf-8")
+        hostname_str = host.decode("utf-8")
 
         if valid:
             # If native SSL validation is successful, we can skip the custom check
@@ -77,7 +83,7 @@ class GitCredentials:
                 f"https://{hostname_str}",
                 method="GET",
             )
-            resp = urlopen(req, context=self._ssl_context)
+            resp = urlopen(req, context=self._ssl_context)  # noqa: S310
 
             logger.debug("Response from %s: %s", hostname_str, resp.status)
 
@@ -92,29 +98,31 @@ class GitCredentials:
         Create a pygit2 RemoteCallbacks object with the appropriate credentials
         Handles both username/password and SSH keypair authentication
         """
-        if Settings.GIT_USERNAME and Settings.GIT_PASSWORD:
+        if self.settings.GIT_USERNAME and self.settings.GIT_PASSWORD:
             logger.debug("Using username and password for Git authentication")
-            credentials = pygit2.UserPass(Settings.GIT_USERNAME, Settings.GIT_PASSWORD)
-        elif Settings.GIT_PUBKEY and Settings.GIT_PRIVKEY:
+            credentials = pygit2.UserPass(
+                self.settings.GIT_USERNAME, self.settings.GIT_PASSWORD
+            )
+        elif self.settings.GIT_PUBKEY and self.settings.GIT_PRIVKEY:
             logger.debug("Using SSH keypair for Git authentication")
             credentials = pygit2.Keypair(
-                Settings.GIT_USERNAME,
-                Settings.GIT_PUBKEY,
-                Settings.GIT_PRIVKEY,
-                Settings.GIT_KEYPASSPHRASE,
+                self.settings.GIT_USERNAME,
+                self.settings.GIT_PUBKEY,
+                self.settings.GIT_PRIVKEY,
+                self.settings.GIT_KEYPASSPHRASE,
             )
         else:
             logger.debug("Using SSH agent for Git authentication")
-            credentials = pygit2.KeypairFromAgent(Settings.GIT_USERNAME)
+            credentials = pygit2.KeypairFromAgent(self.settings.GIT_USERNAME)
 
         git_cb = RemoteCallbacksSecured(
             credentials,
         )
 
-        if Settings.INSECURE_SSL_VERIFY:
+        if self.settings.INSECURE_SSL_VERIFY:
             # Accept all certificates
-            git_cb.certificate_check = lambda cert, valid, hostname: True
-        elif Settings.CA_BUNDLE:
+            git_cb.certificate_check = lambda certificate, valid, host: True
+        elif self.settings.CA_BUNDLE:
             # Validate certificates with the provided CA bundle
             git_cb.certificate_check = self._validate_ssl_cert
 

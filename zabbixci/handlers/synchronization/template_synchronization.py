@@ -7,7 +7,7 @@ from zabbix_utils import APIRequestError, ProcessingError
 
 from zabbixci.assets.template import Template
 from zabbixci.handlers.validation.template_validation import TemplateValidationHandler
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 from zabbixci.zabbix.zabbix import Zabbix
 
 logger = logging.getLogger(__name__)
@@ -16,20 +16,32 @@ yaml = YAML()
 
 class TemplateHandler(TemplateValidationHandler):
     """
-    Handler for importing templates into Zabbix based on changed files. Includes validation steps based on settings.
+    Handler for importing templates into Zabbix based on changed files. Includes validation steps based on self.settings.
 
     :param zabbix: Zabbix instance
     """
 
     _zabbix: Zabbix
+    _existing_template_groups: list[str]
 
-    def __init__(self, zabbix: Zabbix):
+    def __init__(self, zabbix: Zabbix, settings: ApplicationSettings):
+        super().__init__(settings)
+
         self._zabbix = zabbix
+
+        if self.settings.CREATE_TEMPLATE_GROUPS:
+            # Fetch existing template groups from Zabbix
+            self._existing_template_groups = [
+                t["name"]
+                for t in self._zabbix.get_template_group(
+                    [self.settings.ROOT_TEMPLATE_GROUP]
+                )
+            ]
 
     async def zabbix_export(self, templates: list[dict]):
         batches = [
-            templates[i : i + Settings.BATCH_SIZE]
-            for i in range(0, len(templates), Settings.BATCH_SIZE)
+            templates[i : i + self.settings.BATCH_SIZE]
+            for i in range(0, len(templates), self.settings.BATCH_SIZE)
         ]
 
         failed_exports = []
@@ -56,7 +68,9 @@ class TemplateHandler(TemplateValidationHandler):
                     logger.info("No templates found in Zabbix")
                     return
 
-                zabbix_template = Template.from_zabbix(export_yaml["zabbix_export"])
+                zabbix_template = Template.from_zabbix(
+                    export_yaml["zabbix_export"], self.settings
+                )
 
                 if not self.object_validation(zabbix_template):
                     continue
@@ -76,7 +90,7 @@ class TemplateHandler(TemplateValidationHandler):
         """
         Export Zabbix templates to the cache
         """
-        if not Settings.SYNC_TEMPLATES:
+        if not self.settings.SYNC_TEMPLATES:
             return []
 
         search = (
@@ -84,7 +98,9 @@ class TemplateHandler(TemplateValidationHandler):
             if not self._use_regex() and self.get_whitelist()
             else None
         )
-        templates = self._zabbix.get_templates([Settings.ROOT_TEMPLATE_GROUP], search)
+        templates = self._zabbix.get_templates(
+            [self.settings.ROOT_TEMPLATE_GROUP], search
+        )
 
         logger.info("Found %d templates in Zabbix", len(templates))
         logger.debug("Found Zabbix templates: %s", [t["host"] for t in templates])
@@ -96,13 +112,13 @@ class TemplateHandler(TemplateValidationHandler):
         """
         Validation steps to perform on a template before it is imported into Zabbix
         """
-        if not super().object_validation(template):
+        if not super().object_validation(template) or not template:
             return False
 
         zabbix_version = self._zabbix.get_server_version()
 
         if (
-            not Settings.IGNORE_TEMPLATE_VERSION
+            not self.settings.IGNORE_TEMPLATE_VERSION
             and template.zabbix_version.split(".")[0:2]
             != zabbix_version.split(".")[0:2]
         ):
@@ -115,6 +131,31 @@ class TemplateHandler(TemplateValidationHandler):
             return False
 
         return True
+
+    def _import_template(self, template: Template):
+        """
+        Import a single template into Zabbix
+
+        :param template: Template object to import
+        """
+        if self.settings.CREATE_TEMPLATE_GROUPS:
+            # Create all parent template groups if they don't exist
+            for group_path in template.groups:
+                for index, _ in enumerate(group_path):
+                    full_name = group_path[0 : index + 1]
+                    group = "/".join(full_name)
+
+                    if group in self._existing_template_groups:
+                        logger.debug(
+                            "Template group %s already exists, skipping creation", group
+                        )
+                        continue
+
+                    logger.info("Creating template group: %s", group)
+                    self._zabbix.create_template_group(group)
+                    self._existing_template_groups.append(group)
+
+        self._zabbix.import_template(template)
 
     def import_file_changes(
         self, changed_files: list[str]
@@ -129,14 +170,14 @@ class TemplateHandler(TemplateValidationHandler):
         """
         templates: list[Template] = []
 
-        if Settings.SYNC_TEMPLATES is False:
+        if self.settings.SYNC_TEMPLATES is False:
             return ([], [])
 
         for file in changed_files:
             if not self.read_validation(file):
                 continue
 
-            template = Template.open(file)
+            template = Template.open(file, self.settings)
 
             if not template or not template.is_template:
                 logger.warning("Could load file %s as a template", file)
@@ -156,7 +197,7 @@ class TemplateHandler(TemplateValidationHandler):
         failed_templates: list[str] = []
 
         # Import the templates
-        if not Settings.DRY_RUN:
+        if not self.settings.DRY_RUN:
             for template in templates:
                 try:
                     logger.info(
@@ -164,8 +205,7 @@ class TemplateHandler(TemplateValidationHandler):
                         template.name,
                         template.level(templates),
                     )
-                    self._zabbix.import_template(template)
-
+                    self._import_template(template)
                     success_templates.extend(template.template_ids)
                 except (APIRequestError, ProcessingError) as e:
                     logger.warning(
@@ -176,9 +216,9 @@ class TemplateHandler(TemplateValidationHandler):
                     retry_templates.append(template)
         else:
             # Dry-run is enabled, don't import but increment success count
-            success_templates.extend(
-                [t.template_ids for t in templates if t.template_ids]
-            )
+            for t in templates:
+                if t.template_ids:
+                    success_templates.extend(t.template_ids)
 
         if retry_templates:
             for template in retry_templates:
@@ -188,7 +228,7 @@ class TemplateHandler(TemplateValidationHandler):
                         template.name,
                         template.level(templates),
                     )
-                    self._zabbix.import_template(template)
+                    self._import_template(template)
 
                     success_templates.extend(template.template_ids)
                 except (APIRequestError, ProcessingError) as e:
@@ -213,7 +253,7 @@ class TemplateHandler(TemplateValidationHandler):
 
         :return: List of deleted template names
         """
-        if Settings.SYNC_TEMPLATES is False:
+        if self.settings.SYNC_TEMPLATES is False:
             return []
 
         deletion_queue: list[str] = []
@@ -223,7 +263,7 @@ class TemplateHandler(TemplateValidationHandler):
             if not self.read_validation(file):
                 continue
 
-            template = Template.open(file)
+            template = Template.open(file, self.settings)
 
             if not template or not template.is_template:
                 logger.warning("Could not open to be deleted file: %s", file)
@@ -254,8 +294,7 @@ class TemplateHandler(TemplateValidationHandler):
 
             logger.info("Deleting %d templates from Zabbix", len(template_ids))
 
-            if len(template_ids):
-                if not Settings.DRY_RUN:
-                    self._zabbix.delete_templates(template_ids)
+            if template_ids and not self.settings.DRY_RUN:
+                self._zabbix.delete_templates(template_ids)
 
         return deletion_queue

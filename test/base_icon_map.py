@@ -1,68 +1,59 @@
 import asyncio
-import logging
-import os
 from os import getenv
 
+from base_test import BaseTest
+
 from zabbixci import ZabbixCI
-from zabbixci.cache.cache import Cache
 from zabbixci.cache.cleanup import Cleanup
-from zabbixci.settings import Settings
 
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
 DEV_GIT_REMOTE = getenv("REMOTE")
+CACHE_PATH = getenv("CACHE_PATH")
 
 
-class BaseIconMap:
+class BaseIconMap(BaseTest):
     def setUp(self):
-        Settings.CACHE_PATH = "/tmp/zabbixci"
-        self.cache = Cache(Settings.CACHE_PATH)
+        self.prep()
 
-        if os.path.exists(Settings.CACHE_PATH):
-            Cleanup.cleanup_cache(full=True)
+        self.settings.ZABBIX_URL = DEV_ZABBIX_URL
+        self.settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
+        self.settings.REMOTE = DEV_GIT_REMOTE
+        self.settings.REGEX_MATCHING = False
+        self.settings.SKIP_VERSION_CHECK = True
+        self.settings.SET_VERSION = True
 
-        logging.basicConfig(
-            level=logging.ERROR,
-            format="%(asctime)s - %(name)s - %(message)s",
-        )
+        self.settings.SYNC_TEMPLATES = False
+        self.settings.SYNC_ICONS = True
+        self.settings.SYNC_BACKGROUNDS = False
+        self.settings.SYNC_ICON_MAPS = True
+        self.settings.SYNC_SCRIPTS = False
 
-        Settings.ZABBIX_URL = DEV_ZABBIX_URL
-        Settings.ZABBIX_TOKEN = DEV_ZABBIX_TOKEN
-        Settings.REMOTE = DEV_GIT_REMOTE
-        Settings.REGEX_MATCHING = False
-        Settings.SKIP_VERSION_CHECK = True
-        Settings.SET_VERSION = True
+        self.settings.ICON_MAP_BLACKLIST = ""
+        self.settings.ICON_MAP_WHITELIST = ""
 
-        Settings.SYNC_TEMPLATES = False
-        Settings.SYNC_ICONS = True
-        Settings.SYNC_BACKGROUNDS = False
-        Settings.SYNC_ICON_MAPS = True
-
-        Settings.ICON_MAP_BLACKLIST = ""
-        Settings.ICON_MAP_WHITELIST = ""
-
-        self.zci = ZabbixCI()
+        self.zci = ZabbixCI(self.settings)
 
     async def restore_state(self):
         self.zci._git.force_push(
             ["+refs/remotes/origin/test:refs/heads/main"],
-            Settings.REMOTE,
+            self.settings.REMOTE,
         )
 
-        Cleanup.cleanup_cache(full=True)
+        Cleanup.cleanup_cache(self.settings, full=True)
         self.zci.create_git()
 
-        whitelist = Settings.ICON_MAP_WHITELIST
-        blacklist = Settings.ICON_MAP_BLACKLIST
+        whitelist = self.settings.ICON_MAP_WHITELIST
+        blacklist = self.settings.ICON_MAP_BLACKLIST
 
-        Settings.ICON_MAP_WHITELIST = ""
-        Settings.ICON_MAP_BLACKLIST = ""
+        self.settings.ICON_MAP_WHITELIST = ""
+        self.settings.ICON_MAP_BLACKLIST = ""
 
         # Restore the state of Zabbix
         await self.zci.pull()
 
-        Settings.ICON_MAP_WHITELIST = whitelist
-        Settings.ICON_MAP_BLACKLIST = blacklist
+        self.settings.ICON_MAP_WHITELIST = whitelist
+        self.settings.ICON_MAP_BLACKLIST = blacklist
 
     async def asyncSetUp(self):
         self.zci.create_git()
@@ -86,12 +77,12 @@ class BaseIconMap:
         changed = await self.zci.push()
         self.assertTrue(changed, "Icon map deletion from Zabbix not detected")
 
-        Settings.PULL_BRANCH = "test"
+        self.settings.PULL_BRANCH = "test"
 
         changed = await self.zci.pull()
         self.assertTrue(changed, "Icon map was not restored")
 
-        Settings.PULL_BRANCH = "main"
+        self.settings.PULL_BRANCH = "main"
         changed = await self.zci.pull()
         self.assertTrue(changed, "Icon map deletion from Git was not detected")
 

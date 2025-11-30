@@ -1,13 +1,13 @@
 import logging
 import os
 
-from pygit2 import Diff, RemoteCallbacks, Signature, clone_repository
+from pygit2 import Commit, Diff, GitError, RemoteCallbacks, Signature, clone_repository
 from pygit2.enums import CheckoutStrategy, MergeAnalysis
 from pygit2.repository import Repository
 
 from zabbixci.cache.cache import Cache
 from zabbixci.git.credentials import RemoteCallbacksSecured
-from zabbixci.settings import Settings
+from zabbixci.settings import ApplicationSettings
 
 logger = logging.getLogger(__name__)
 
@@ -16,19 +16,29 @@ class Git:
     _repository: Repository
     author: Signature
     _git_cb = None
+    settings: ApplicationSettings
 
-    def __init__(self, path: str, callbacks: RemoteCallbacks, **kwargs):
+    def __init__(
+        self,
+        path: str,
+        callbacks: RemoteCallbacks,
+        settings: ApplicationSettings,
+        **kwargs,
+    ):
         """
         Initialize the git repository
         """
+        self.settings = settings
         self._git_cb = callbacks
-        self.author = Signature(Settings.GIT_AUTHOR_NAME, Settings.GIT_AUTHOR_EMAIL)
+        self.author = Signature(
+            self.settings.GIT_AUTHOR_NAME, self.settings.GIT_AUTHOR_EMAIL
+        )
 
         if not os.path.exists(path):
             Cache.makedirs(path)
 
             self._repository = clone_repository(
-                Settings.REMOTE,
+                self.settings.REMOTE,
                 path,
                 callbacks=self._git_cb,
                 **kwargs,
@@ -100,7 +110,6 @@ class Git:
         Switch to a branch, if the branch does not exist, create it
         """
         if not self._repository.branches.local.get(branch):
-            logger.debug("Branch %s does not exist, creating", branch)
             self.create_branch(branch)
 
         local_branch = self._repository.branches.local[branch]
@@ -114,8 +123,32 @@ class Git:
         Create a branch
         """
         try:
+            peel = None
+            try:
+                # Check for remote branch and base the new branch on it
+                remote_branch = self._repository.branches.remote.get(f"origin/{branch}")
+
+                if remote_branch:
+                    logger.debug(
+                        "Found remote branch %s, basing local branch off it", branch
+                    )
+                    peel = remote_branch.peel(None)
+            except GitError:
+                logger.exception("Fetching remote branch %s failed", branch)
+
+            if not peel:
+                peel = self._repository.head.peel(None)
+                logger.debug(
+                    "Remote branch %s does not exist, basing local branch off HEAD",
+                    branch,
+                )
+
+            if not isinstance(peel, Commit):
+                raise GitError("Cannot create branch, HEAD is not a commit")
+
             self._repository.branches.local.create(
-                branch, self._repository.head.peel(None)
+                branch,
+                peel,
             )
         except Exception as e:
             logger.error("Failed to create branch: %s", e)
@@ -211,6 +244,32 @@ class Git:
         remote.push(specs, callbacks=self._git_cb)
         self._mark_agent_active()
 
+    def merge_ff(self, treeish):
+        self.checkout_tree(treeish)
+
+        try:
+            self._repository.head.set_target(treeish)
+        except Exception as e:
+            logger.error("Failed to fast-forward: %s", e)
+
+    def checkout_tree(self, treeish):
+        """
+        Checkout the given treeish
+        """
+        self._repository.checkout_tree(treeish)
+
+    def get(self, oid):
+        """
+        Get an object from the repository by its OID
+        """
+        return self._repository.get(oid)
+
+    def merge_analysis(self, oid):
+        """
+        Perform a merge analysis with the given OID
+        """
+        return self._repository.merge_analysis(oid)
+
     def pull(self, remote_url: str, branch: str | None = None):
         """
         Pull the changes from the remote repository, merge them with the local repository
@@ -225,23 +284,16 @@ class Git:
 
         remote.fetch(callbacks=self._git_cb)
 
-        remote_id = self._repository.lookup_reference(
-            f"refs/remotes/origin/{branch}"
-        ).target
+        remote_id = self.lookup_reference(f"refs/remotes/origin/{branch}").target
 
-        merge_result, merge_pref = self._repository.merge_analysis(remote_id)
+        merge_result, _merge_pref = self.merge_analysis(remote_id)
 
         if merge_result & MergeAnalysis.UP_TO_DATE:
             logger.debug("Already up to date")
             return
 
         if merge_result & MergeAnalysis.FASTFORWARD:
-            self._repository.checkout_tree(self._repository.get(remote_id))
-
-            try:
-                self._repository.head.set_target(remote_id)
-            except Exception as e:
-                logger.error("Failed to fast-forward: %s", e)
+            self.merge_ff(self.get(remote_id))
 
         if merge_result & MergeAnalysis.NORMAL:
             self._repository.merge(remote_id)
@@ -264,18 +316,12 @@ class Git:
 
             for hunk in patch.hunks:
                 for line in hunk.lines:
-                    if (
-                        line.origin == "+"
-                        and not invert
-                        or line.origin == "-"
-                        and invert
+                    if (line.origin == "+" and not invert) or (
+                        line.origin == "-" and invert
                     ):
                         log_entry += f"\033[92m+{line.content}\033[0m"
-                    elif (
-                        line.origin == "-"
-                        and not invert
-                        or line.origin == "+"
-                        and invert
+                    elif (line.origin == "-" and not invert) or (
+                        line.origin == "+" and invert
                     ):
                         log_entry += f"\033[91m-{line.content}\033[0m"
                     else:

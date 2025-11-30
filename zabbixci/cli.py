@@ -1,18 +1,18 @@
 import argparse
 import asyncio
 import logging
+from collections.abc import Sequence
 from sys import argv, exit, version_info
-from typing import Sequence
+
+from zabbix_utils import APINotSupported
 
 from zabbixci._version import __version__
 from zabbixci.cache.cache import Cache
 from zabbixci.cache.cleanup import Cleanup
 from zabbixci.exceptions import BaseZabbixCIError
 from zabbixci.logging import CustomFormatter, StatusCodeHandler
-from zabbixci.settings import Settings
+from zabbixci.settings import ZabbixCISettings
 from zabbixci.zabbixci import ZabbixCI
-
-from zabbix_utils import APINotSupported
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,11 @@ class CustomArgumentParser(argparse.ArgumentParser):
     Customized ArgumentParser with supporting code to calculate the explicit arguments, and parse them for boolean values when they are set explicitly (key=value)
     """
 
-    explicit_arguments: list[str] = []
+    explicit_arguments: list[str]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.explicit_arguments = []
 
     def parse_args(self, args: Sequence[str] | None = None, namespace=None):
         """
@@ -47,10 +51,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
         """
         argument_list: list[str] = []
 
-        if args is None:
-            argument_list = argv[1:]
-        else:
-            argument_list = list(args)
+        argument_list = argv[1:] if args is None else list(args)
 
         for i, arg in enumerate(argument_list):
             if arg in self.explicit_arguments:
@@ -139,6 +140,10 @@ def read_args(args: list[str] | None = None):
         help="The path in the git repository, used to store the icon maps",
     )
     zabbixci_group.add_argument(
+        "--script-prefix-path",
+        help="The path in the git repository, used to store the scripts",
+    )
+    zabbixci_group.add_argument(
         "--template-whitelist",
         help="Comma separated list of templates to include",
     )
@@ -161,6 +166,28 @@ def read_args(args: list[str] | None = None):
     zabbixci_group.add_argument(
         "--icon-map-blacklist",
         help="Comma separated list of icon maps to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--script-whitelist",
+        help="Comma separated list of scripts to include",
+    )
+    zabbixci_group.add_argument(
+        "--script-blacklist",
+        help="Comma separated list of scripts to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--script-without-usrgrp",
+        help="Comma separated list of scripts to include without user group",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_group.add_argument(
+        "--script-default-usrgrp",
+        help="Default user group for scripts",
+        default=None,
     )
     zabbixci_group.add_argument(
         "--cache-path",
@@ -227,12 +254,48 @@ def read_args(args: list[str] | None = None):
         explicit=True,
     )
     zabbixci_group.add_argument(
+        "--sync-scripts",
+        help="Synchronize scripts between Zabbix and git",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_group.add_argument(
         "--icon-sizes",
         help="Comma separated list of icon sizes to generate",
     )
     zabbixci_group.add_argument(
         "--background-sizes",
         help="Comma separated list of background sizes to generate",
+    )
+    zabbixci_group.add_argument(
+        "--create-template-groups",
+        help="Create template group tree if it does not exist",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_group.add_argument(
+        "--create-rollback-branch",
+        help="Create a rollback branch before pulling changes into Zabbix",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_group.add_argument(
+        "--push-rollback-branch",
+        help="Push the rollback branches to the remote repository",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
     )
 
     zabbix_group = method_parser.add_argument_group("Zabbix")
@@ -394,23 +457,24 @@ def parse_cli(custom_args: list[str] | None = None):
 
     param custom_args: Custom arguments to parse instead of reading from the command line
     """
-    Settings.from_env()
+    settings = ZabbixCISettings()
+    settings.from_env()
 
     args = read_args(custom_args)
     arguments = vars(args)
 
     if args.config:
-        Settings.read_config(args.config)
+        settings.read_config(args.config)
 
     for key, value in arguments.items():
         if value is not None:
-            setattr(Settings, key.upper(), value)
+            setattr(settings, key.upper(), value)
 
     global_level = (
         logging.DEBUG
-        if Settings.DEBUG_ALL
+        if settings.DEBUG_ALL
         else logging.INFO
-        if Settings.VERBOSE
+        if settings.VERBOSE
         else logging.WARN
     )
 
@@ -426,14 +490,14 @@ def parse_cli(custom_args: list[str] | None = None):
     zabbixci_logger = logging.getLogger("zabbixci")
     zabbixci_logger.setLevel(
         logging.DEBUG
-        if Settings.DEBUG or Settings.DEBUG_ALL
+        if settings.DEBUG or settings.DEBUG_ALL
         else logging.INFO
-        if Settings.VERBOSE
+        if settings.VERBOSE
         else logging.WARN
     )
 
     settings_debug = {
-        **Settings.__dict__,
+        **settings.__dict__,
         "ZABBIX_PASSWORD": "********",
         "ZABBIX_TOKEN": "********",
         "REMOTE": "********",
@@ -441,17 +505,16 @@ def parse_cli(custom_args: list[str] | None = None):
 
     logger.debug("Settings: %s", settings_debug)
 
-    Cache(Settings.CACHE_PATH)
+    Cache(settings.CACHE_PATH)
 
     if args.action == "clearcache":
-        Cleanup.cleanup_cache(full=True)
+        Cleanup.cleanup_cache(settings, full=True)
     else:
-        asyncio.run(run_zabbixci(args.action))
+        zabbixci = ZabbixCI(settings)
+        asyncio.run(run_zabbixci(zabbixci, args.action))
 
 
-async def run_zabbixci(action: str):
-    zabbixci = ZabbixCI()
-
+async def run_zabbixci(zabbixci: ZabbixCI, action: str):
     status_handler = StatusCodeHandler()
     logging.getLogger().addHandler(status_handler)
 
@@ -464,7 +527,7 @@ async def run_zabbixci(action: str):
                 await zabbixci.create_zabbix()
             except APINotSupported as e:
                 print(f"Zabbix API version not supported by zabbix_utils: {e}")  # noqa: T201
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
 
             if zabbixci._zabbix:
@@ -503,8 +566,8 @@ async def run_zabbixci(action: str):
     except BaseZabbixCIError as e:
         logger.error(e)
         exit_code = 1
-    except Exception as e:
-        logger.exception("Unexpected error:", e)
+    except Exception:
+        logger.exception("Unexpected error:")
         exit_code = 129
     finally:
         if zabbixci._zabbix:
