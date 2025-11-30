@@ -162,13 +162,13 @@ class ZabbixCI:
                 if (
                     Settings.VENDOR
                     and not template.vendor
-                    and self._zabbix.api_version >= 7.0
+                    and self._zabbix.api_version >= 6.4
                 ):
                     set_vendor = Settings.VENDOR
                     template.set_vendor(set_vendor)
                     self.logger.debug("Setting vendor to: %s", set_vendor)
 
-                if Settings.SET_VERSION and self._zabbix.api_version >= 7.0:
+                if Settings.SET_VERSION and self._zabbix.api_version >= 6.4:
                     new_version = datetime.now(timezone.utc).strftime("%Y.%m.%d %H:%M")
                     template.set_version(new_version)
                     self.logger.debug("Setting version to: %s", new_version)
