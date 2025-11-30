@@ -40,7 +40,7 @@ class Zabbix:
             "searchWildcardsEnabled": True,
         }
 
-        if self.api_version < 7.0:
+        if self.api_version < 6.2:
             return self.zapi.send_sync_request("hostgroup.get", params)["result"]
         else:
             return self.zapi.send_sync_request(
@@ -95,7 +95,7 @@ class Zabbix:
                                 "updateExisting": True,
                             },
                         }
-                        if self.api_version >= 7.0
+                        if self.api_version >= 6.2
                         else {
                             "groups": {
                                 "createMissing": True,
