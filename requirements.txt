@@ -10,7 +10,7 @@ attrs==25.3.0
     # via aiohttp
 cffi==1.17.1
     # via pygit2
-frozenlist==1.7.0
+frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
