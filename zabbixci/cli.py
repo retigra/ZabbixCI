@@ -1,9 +1,11 @@
+# PYTHON_ARGCOMPLETE_OK
 import argparse
 import asyncio
 import logging
 from collections.abc import Sequence
 from sys import argv, exit, version_info
 
+import argcomplete
 from zabbix_utils import APINotSupported
 
 from zabbixci._version import __version__
@@ -447,6 +449,8 @@ def read_args(args: list[str] | None = None):
         nargs="?",
         explicit=True,
     )
+
+    argcomplete.autocomplete(method_parser)
 
     return method_parser.parse_args(args)
 
