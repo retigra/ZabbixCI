@@ -36,6 +36,7 @@ dependencies = [
     "ruamel.yaml>=0.18.13",
     "zabbix_utils>=2.0.3",
     "Wand>=0.6.13",
+    "argcomplete>=3.6.3",
 ]
 license-files = ["LICENSE.txt"]
 
