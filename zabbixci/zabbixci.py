@@ -16,6 +16,9 @@ from zabbixci.handlers.synchronization.script_synchronization import ScriptHandl
 from zabbixci.handlers.synchronization.template_synchronization import TemplateHandler
 from zabbixci.settings import ApplicationSettings
 from zabbixci.zabbix import Zabbix, ZabbixConstants
+from zabbixci.handlers.synchronization.global_macro_synchronization import (
+    GlobalMacroHandler,
+)
 
 
 class ZabbixCI:
@@ -131,11 +134,13 @@ class ZabbixCI:
         image_handler = ImageHandler(self._zabbix, self.settings)
         icon_map_handler = IconMapHandler(self._zabbix, self.settings)
         script_handler = ScriptHandler(self._zabbix, self.settings)
+        macro_handler = GlobalMacroHandler(self._zabbix)
 
         template_objects = await template_handler.templates_to_cache()
         image_objects = image_handler.images_to_cache()
         icon_map_handler.icon_map_to_cache(image_objects)
         script_handler.script_to_cache()
+        macro_handler.global_macros_to_cache()
 
         # Check if there are any changes to commit
         if not self._git.has_changes and not self._git.ahead_of_remote:
@@ -282,11 +287,13 @@ class ZabbixCI:
         image_handler = ImageHandler(self._zabbix, self.settings)
         icon_map_handler = IconMapHandler(self._zabbix, self.settings)
         script_handler = ScriptHandler(self._zabbix, self.settings)
+        macro_handler = GlobalMacroHandler(self._zabbix)
 
         template_objects = await template_handler.templates_to_cache()
         image_objects = image_handler.images_to_cache()
         icon_map_objects = icon_map_handler.icon_map_to_cache(image_objects)
         script_objects = script_handler.script_to_cache()
+        macro_objects = macro_handler.global_macros_to_cache()
 
         # Check if there are any changes to commit
         if self._git.has_changes:
@@ -398,6 +405,12 @@ class ZabbixCI:
         deleted_scripts = script_handler.delete_file_changes(
             deleted_files, imported_scripts, script_objects
         )
+        imported_macros = macro_handler.import_file_changes(
+            changed_files, macro_objects
+        )
+        deleted_macro_names = macro_handler.delete_file_changes(
+            deleted_files, imported_macros, macro_objects
+        )
 
         has_changes = bool(
             imported_template_ids
@@ -408,6 +421,8 @@ class ZabbixCI:
             or deleted_icon_map_names
             or imported_scripts
             or deleted_scripts
+            or imported_macros
+            or deleted_macro_names
         )
 
         # Inform user about the changes
@@ -433,6 +448,11 @@ class ZabbixCI:
                 len(imported_scripts),
                 len(deleted_scripts),
             )
+            self.logger.info(
+                "Would have imported %s global macros, deleted %s global macros",
+                len(imported_macros),
+                len(deleted_macro_names),
+            )
         elif has_changes:
             self.logger.info(
                 "Imported %s templates, deleted %s templates",
@@ -453,6 +473,11 @@ class ZabbixCI:
                 "Imported %s scripts, deleted %s scripts",
                 len(imported_scripts),
                 len(deleted_scripts),
+            )
+            self.logger.info(
+                "Imported %s global macros, deleted %s global macros",
+                len(imported_macros),
+                len(deleted_macro_names),
             )
         else:
             self.logger.info("No changes detected, Zabbix is up to date")

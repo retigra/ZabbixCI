@@ -1,4 +1,0 @@
-name: '{$MYDASHBOARD_EXTERNAL_LINK_2}'
-value: '{"l":"Example","t":"external","v":"https://example.com","tr":"_blank"}'
-description: Custom My Dashboard external link (JSON).
-type: 0

@@ -1,4 +1,0 @@
-name: '{$PAGEINFO:action.list&eventsource=1|70}'
-value: '{"message":"text for Action page - Event source 1 (Discovery)","color":"ECD200","icon":"EA06"}'
-description: ''
-type: 0

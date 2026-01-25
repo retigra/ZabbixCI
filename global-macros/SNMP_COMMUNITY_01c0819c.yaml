@@ -1,4 +1,0 @@
-name: '{$SNMP_COMMUNITY}'
-value: public
-description: ''
-type: 0

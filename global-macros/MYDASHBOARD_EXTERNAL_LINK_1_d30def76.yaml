@@ -1,4 +1,0 @@
-name: '{$MYDASHBOARD_EXTERNAL_LINK_1}'
-value: '{"l":"Permission overview","t":"internal","v":"custom.dashboard","tr":"_self"}'
-description: Custom My Dashboard external link (JSON).
-type: 0
