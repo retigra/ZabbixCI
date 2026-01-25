@@ -1,0 +1,4 @@
+name: '{$PAGEINFO:module.pageinfo.list|8b}'
+value: '{"message":"test","color":"D32F2F","icon":"EA08"}'
+description: ''
+type: 0

@@ -1,0 +1,4 @@
+name: '{$MYDASHBOARD_EXTERNAL_LINK_3}'
+value: '{"l":"Facebook","t":"external","v":"https://facebook.com","tr":"_self"}'
+description: Custom My Dashboard external link (JSON).
+type: 0
