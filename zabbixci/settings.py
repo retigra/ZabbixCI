@@ -49,6 +49,7 @@ class ApplicationSettings:
     SYNC_TEMPLATES: bool
     SYNC_ICON_MAPS: bool
     SYNC_SCRIPTS: bool
+    SYNC_GLOBAL_MACROS: bool = False
     IMAGE_WHITELIST: str
     IMAGE_BLACKLIST: str
     ICON_SIZES: str
@@ -58,6 +59,8 @@ class ApplicationSettings:
     ICON_MAP_BLACKLIST: str
     SCRIPT_WHITELIST: str
     SCRIPT_BLACKLIST: str
+    GLOBAL_MACRO_WHITELIST: str = ""
+    GLOBAL_MACRO_BLACKLIST: str = ""
     SCRIPT_WITHOUT_USRGRP: bool
     SCRIPT_DEFAULT_USRGRP: str
     ZABBIX_KWARGS: dict
@@ -108,6 +111,7 @@ class ApplicationSettings:
         self.SYNC_TEMPLATES = True
         self.SYNC_ICON_MAPS = False
         self.SYNC_SCRIPTS = False
+        self.SYNC_GLOBAL_MACROS = False
         self.IMAGE_WHITELIST = ""
         self.IMAGE_BLACKLIST = ""
         self.ICON_SIZES = "24,48,64,128"
@@ -117,6 +121,8 @@ class ApplicationSettings:
         self.ICON_MAP_BLACKLIST = ""
         self.SCRIPT_WHITELIST = ""
         self.SCRIPT_BLACKLIST = ""
+        self.GLOBAL_MACRO_WHITELIST = ""
+        self.GLOBAL_MACRO_BLACKLIST = ""
         self.SCRIPT_WITHOUT_USRGRP = False
         self.SCRIPT_DEFAULT_USRGRP = "Zabbix administrators"
         self.ZABBIX_KWARGS = {}
@@ -152,6 +158,22 @@ class ApplicationSettings:
 
     def get_icon_sizes(self):
         size_strings = self.ICON_SIZES.split(",") if self.ICON_SIZES else []
+
+    @classmethod
+    def get_global_macro_whitelist(cls):
+        return (
+            cls.GLOBAL_MACRO_WHITELIST.split(",") if cls.GLOBAL_MACRO_WHITELIST else []
+        )
+
+    @classmethod
+    def get_global_macro_blacklist(cls):
+        return (
+            cls.GLOBAL_MACRO_BLACKLIST.split(",") if cls.GLOBAL_MACRO_BLACKLIST else []
+        )
+
+    @classmethod
+    def get_icon_sizes(cls):
+        size_strings = cls.ICON_SIZES.split(",") if cls.ICON_SIZES else []
         return [int(size) for size in size_strings]
 
     def get_background_sizes(self):
