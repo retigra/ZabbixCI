@@ -1,0 +1,19 @@
+import unittest
+from os import getenv
+
+from base_global_macro import BaseGlobalMacro
+
+DEV_ZABBIX_URL = getenv("ZABBIX_URL")
+DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")
+DEV_GIT_REMOTE = getenv("REMOTE")
+
+
+class TestGlobalMacroWhitelistRegex(BaseGlobalMacro, unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        super().setUp()
+        self.settings.REGEX_MATCHING = True
+        self.settings.GLOBAL_MACRO_WHITELIST = r"{\$NON_EXISTENT_.*},{\$ANOTHER_.*}"
+
+
+if __name__ == "__main__":
+    unittest.main()

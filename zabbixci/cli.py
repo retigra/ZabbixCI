@@ -146,6 +146,10 @@ def read_args(args: list[str] | None = None):
         help="The path in the git repository, used to store the scripts",
     )
     zabbixci_group.add_argument(
+        "--global-macro-prefix-path",
+        help="The path in the git repository, used to store the global macros",
+    )
+    zabbixci_group.add_argument(
         "--template-whitelist",
         help="Comma separated list of templates to include",
     )
@@ -176,6 +180,14 @@ def read_args(args: list[str] | None = None):
     zabbixci_group.add_argument(
         "--script-blacklist",
         help="Comma separated list of scripts to exclude",
+    )
+    zabbixci_group.add_argument(
+        "--global-macro-whitelist",
+        help="Comma separated list of global macros to include",
+    )
+    zabbixci_group.add_argument(
+        "--global-macro-blacklist",
+        help="Comma separated list of global macros to exclude",
     )
     zabbixci_group.add_argument(
         "--script-without-usrgrp",
@@ -258,6 +270,15 @@ def read_args(args: list[str] | None = None):
     zabbixci_group.add_argument(
         "--sync-scripts",
         help="Synchronize scripts between Zabbix and git",
+        const=True,
+        default=None,
+        type=str2bool,
+        nargs="?",
+        explicit=True,
+    )
+    zabbixci_group.add_argument(
+        "--sync-global-macros",
+        help="Synchronize global macros between Zabbix and git",
         const=True,
         default=None,
         type=str2bool,

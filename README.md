@@ -41,6 +41,7 @@ ZabbixCI provides the following features:
 - (Optional) Support for private CA servers to verify certificates
 - (Optional) Allow black-/whitelisting of assets (supports regexp)
 - (Optional) Use separate branches for push and pull transactions
+- (Optional) Sync Zabbix global macros
 
 ### Additional template features
 

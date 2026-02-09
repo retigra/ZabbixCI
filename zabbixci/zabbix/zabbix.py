@@ -3,7 +3,7 @@ from ssl import SSLContext
 
 import aiohttp
 from ruamel.yaml import YAML
-from zabbix_utils import AsyncZabbixAPI  # type: ignore
+from zabbix_utils.aioapi import AsyncZabbixAPI
 
 from zabbixci.assets import Template
 
@@ -371,6 +371,43 @@ class Zabbix:
         }
 
         return self.zapi.send_sync_request("usergroup.get", params)["result"][0]
+
+    def get_global_macros(self, search: list[str] | None = None):
+        """
+        Export global macros from Zabbix.
+        """
+        params: dict = {"output": "extend"}
+        if search:
+            params["filter"] = {"macro": search}
+
+        try:
+            return self.zapi.send_sync_request("globalmacro.get", params)["result"]
+        except Exception:
+            # Fallback for versions where globalmacro.* is not available
+            for extra in ({"globalmacro": True}, {"globalmacros": True}):
+                try:
+                    return self.zapi.send_sync_request(
+                        "usermacro.get",
+                        {
+                            **params,
+                            **extra,
+                        },
+                    )["result"]
+                except Exception:
+                    continue
+
+        return []
+
+    def update_global_macro(self, macro: dict):
+        return self.zapi.send_sync_request("usermacro.updateglobal", macro)["result"]
+
+    def create_global_macro(self, macro: dict):
+        return self.zapi.send_sync_request("usermacro.createglobal", macro)["result"]
+
+    def delete_global_macros(self, macro_ids: list[int]):
+        return self.zapi.send_sync_request("usermacro.deleteglobal", macro_ids)[
+            "result"
+        ]
 
     def get_server_version(self):
         return self.zapi.send_sync_request("apiinfo.version", need_auth=False)["result"]

@@ -6,3 +6,4 @@ build
 *.egg-info
 /*.yaml
 _version.py
+.local-remote.git

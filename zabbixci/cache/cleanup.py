@@ -1,10 +1,14 @@
 import logging
 import os
 
+from zabbixci.assets.global_macro import GlobalMacro
 from zabbixci.assets.icon_map import IconMap
 from zabbixci.assets.image import Image
 from zabbixci.assets.script import Script
 from zabbixci.assets.template import Template
+from zabbixci.handlers.validation.global_macro_validation import (
+    GlobalMacroValidationHandler,
+)
 from zabbixci.handlers.validation.icon_map_validation import IconMapValidationHandler
 from zabbixci.handlers.validation.image_validation import ImageValidationHandler
 from zabbixci.handlers.validation.script_validation import ScriptValidationHandler
@@ -101,6 +105,29 @@ class Cleanup:
         return script_handler.object_validation(script)
 
     @classmethod
+    def match_global_macro_cleanup(
+        cls, root: str, name: str, settings: ApplicationSettings
+    ):
+        """
+        Check if a file is a global macro file that should be cleaned up
+        """
+        if not settings.SYNC_GLOBAL_MACROS:
+            return False
+
+        macro_handler = GlobalMacroValidationHandler(settings)
+        file = os.path.join(root, name)
+
+        if not macro_handler.read_validation(file):
+            return False
+
+        macro = GlobalMacro.open(file)
+
+        if not macro:
+            return False
+
+        return macro_handler.object_validation(macro)
+
+    @classmethod
     def cleanup_cache(cls, settings: ApplicationSettings, full: bool = False) -> None:
         """
         Clean all files in the cache directory that match import/export files
@@ -118,6 +145,10 @@ class Cleanup:
                     or cls.match_image_cleanup(root, name, settings)
                     or cls.match_icon_map_cleanup(root, name, settings)
                     or cls.match_script_cleanup(root, name, settings)
+                    or cls.match_template_cleanup(root, name, settings)
+                    or cls.match_image_cleanup(root, name, settings)
+                    or cls.match_icon_map_cleanup(root, name, settings)
+                    or cls.match_global_macro_cleanup(root, name, settings)
                 ):
                     os.remove(os.path.join(root, name))
 

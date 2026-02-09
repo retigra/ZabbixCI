@@ -31,6 +31,12 @@ template_prefix_path: "templates"
 # Default: "images"
 image_prefix_path: "images"
 
+### Option: global_macro_prefix_path
+# The path in the Git repository used to store global macros.
+# Mandatory: no
+# Default: "global-macros"
+global_macro_prefix_path: "global-macros"
+
 ### Option: template_whitelist
 # Comma separated list of template names
 # to synchronize explicitly.
@@ -103,6 +109,12 @@ sync_icons: false
 # Default: false
 sync_backgrounds: false
 
+### Option: sync_global_macros
+# Synchronize Zabbix global macros.
+# Mandatory: no
+# Default: false
+sync_global_macros: false
+
 ### Option: image_whitelist
 # Comma separated list of image names
 # to synchronize explicitly.
@@ -118,6 +130,22 @@ image_whitelist: ""
 # Mandatory: no
 # Default: ""
 image_blacklist: ""
+
+### Option: global_macro_whitelist
+# Comma separated list of global macro names
+# to synchronize explicitly.
+# If set, all other global macros will be ignored.
+# Mandatory: no
+# Default: ""
+global_macro_whitelist: ""
+
+### Option: global_macro_blacklist
+# Comma separated list of global macro names
+# to ignore during synchronization.
+# All other global macros will be synced.
+# Mandatory: no
+# Default: ""
+global_macro_blacklist: ""
 
 ### Option: icon_sizes
 # Comma separated list of icon sizes to generate.
