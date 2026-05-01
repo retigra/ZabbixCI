@@ -99,10 +99,12 @@ information.
 
 Contributions are welcome! Please take a look at the following guidelines:
 
+- It is best to create a issue before submitting a PR, this way we can determine the correct base for a PR, allowing for easier merges and consistency in versions releases.
+- New features will always be added to the next minor update, instead of a patch update. For this, new features should always be based of the develop branch instead of the main branch.
 - Commit messages should follow the [Gitmoji](https://gitmoji.dev/) convention
   or prefix with types (feat:, fix:, style:, etc.).
 - The codebase uses [ruff](https://docs.astral.sh/ruff/) for formatting and
-  linting.
+  linting. As well as [ty](https://docs.astral.sh/ty/) for type checking.
 
 ## Star History
 
