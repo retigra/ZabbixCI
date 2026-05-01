@@ -1,7 +1,7 @@
 import unittest
 from os import getenv
 
-from base_templates import BaseTemplates
+from test.base_templates import BaseTemplates
 
 from zabbixci.settings import Settings
 

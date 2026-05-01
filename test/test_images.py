@@ -1,7 +1,7 @@
 import unittest
 from os import getenv
 
-from base_images import BaseImages
+from test.base_images import BaseImages
 
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")

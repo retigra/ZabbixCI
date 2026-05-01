@@ -7,7 +7,7 @@ from zabbixci.settings import Settings
 IGNORED_KEYS_CLI = ["ZABBIX_KWARGS", "GIT_KWARGS", "ACTION"]
 
 
-def test_cli_arg(
+def check_cli_arg(
     key: str, value, test_value: str
 ) -> tuple[str | None, int | str | bool] | None:
     if not key.isupper() or key.startswith("_") or key in IGNORED_KEYS_CLI:
@@ -59,7 +59,7 @@ class TestCLI(TestCase):
     def test_cli_0(self) -> None:
         items = dict(Settings.__dict__).items()
         for key, value in items:
-            expected_value = test_cli_arg(key, value, "true")
+            expected_value = check_cli_arg(key, value, "true")
 
             if not expected_value:
                 continue
@@ -72,7 +72,7 @@ class TestCLI(TestCase):
     def test_cli_1(self) -> None:
         items = dict(Settings.__dict__).items()
         for key, value in items:
-            expected_value = test_cli_arg(key, value, "false")
+            expected_value = check_cli_arg(key, value, "false")
 
             if not expected_value:
                 continue
