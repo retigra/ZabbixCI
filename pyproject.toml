@@ -49,9 +49,6 @@ Discussions = "https://github.com/retigra/ZabbixCI/discussions"
 [project.scripts]
 zabbixci = "zabbixci.cli:parse_cli"
 
-[project.optional-dependencies]
-dev = ["black>=24.10.0", "isort>=5.13.2", "flake8>=7.1.1"]
-
 [build-system]
 requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
@@ -68,3 +65,10 @@ select = ["E", "F", "B", "ERA001", "S501", "DJ", "G", "T20", "PIE", "N"]
 
 # Ignore line-length
 ignore = ["E501"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "ruff>=0.15.12",
+    "ty>=0.0.33",
+]

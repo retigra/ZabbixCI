@@ -1,7 +1,7 @@
 import unittest
 from os import getenv
 
-from base_templates import BaseTemplates
+from test.base_templates import BaseTemplates
 
 DEV_ZABBIX_URL = getenv("ZABBIX_URL")
 DEV_ZABBIX_TOKEN = getenv("ZABBIX_TOKEN")

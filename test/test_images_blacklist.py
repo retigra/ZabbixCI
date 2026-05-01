@@ -1,7 +1,7 @@
 import unittest
 from os import getenv
 
-from base_images import BaseImages
+from test.base_images import BaseImages
 
 from zabbixci.settings import Settings
 
