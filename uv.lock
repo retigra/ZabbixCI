@@ -452,11 +452,11 @@ wheels = [
 
 [[package]]
 name = "wand"
-version = "0.7.0"
+version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c5/f6/feb40fadb7f3a6c5d45c02840c329725f6ec907eb3581c5de27445700e8a/wand-0.7.0.tar.gz", hash = "sha256:e48f983cc248c23f752e5ba8a6aa1b09370c87d81425d2cc7474f4536c0740f9", size = 11888946, upload-time = "2026-02-23T14:50:34.79Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/aa/67/7080334ae89d82bdc2eb9b10c207b509a84e209dadf6ebaa827f9c74e4ce/wand-0.7.1.tar.gz", hash = "sha256:2325eae60fb21b88e293d5ec8dcdedf2644a0c00eb75024c9b47975e1e902e80", size = 11889653, upload-time = "2026-05-20T14:57:37.45Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/6c/51fe13d260d9e910d8f010494cc513420ab79852662fefdebdecfeaeebd5/wand-0.7.0-py3-none-any.whl", hash = "sha256:197a5011891a68fc14558cac58db5f5aafb66ef1dd28bfb4a2c62c156c41712e", size = 144773, upload-time = "2026-02-23T14:50:46.162Z" },
+    { url = "https://files.pythonhosted.org/packages/66/60/ca84d0e7937d0fa62e338e2ea3b69e99bdb01f337b6e88b561e12cc40dca/wand-0.7.1-py3-none-any.whl", hash = "sha256:2c0d611c76b88c8947ad79b8d1ab994388ae6c8b795e54c0e46af431c84b81e4", size = 144976, upload-time = "2026-05-20T14:57:50.475Z" },
 ]
 
 [[package]]
