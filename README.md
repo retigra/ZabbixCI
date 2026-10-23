@@ -106,6 +106,28 @@ Contributions are welcome! Please take a look at the following guidelines:
 - The codebase uses [ruff](https://docs.astral.sh/ruff/) for formatting and
   linting. As well as [ty](https://docs.astral.sh/ty/) for type checking.
 
+## Running tests
+
+Unit tests run without any external services:
+
+```bash
+uv run pytest -m "not integration"
+```
+
+Integration tests run against a real Zabbix server and git remote. A disposable
+Zabbix stack (6.0, 7.0 or 7.4) and a seeded local git remote can be created with:
+
+```bash
+ZABBIX_VERSION=7.4 docker compose -f docker/test/docker-compose.yml up -d --wait
+uv run python docker/test/seed.py > .env.test
+set -a && . ./.env.test && set +a
+uv run pytest -m integration
+docker compose -f docker/test/docker-compose.yml down -v
+```
+
+Integration tests are skipped when `ZABBIX_URL`, `ZABBIX_TOKEN` and `REMOTE`
+are not set.
+
 ## Star History
 
 > [!NOTE]
