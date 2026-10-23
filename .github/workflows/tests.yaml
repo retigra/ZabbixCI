@@ -1,0 +1,59 @@
+name: Tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Install Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install uv
+          uv sync --frozen
+      - name: Run unit tests
+        run: uv run pytest -m "not integration"
+
+  integration:
+    name: Integration tests (Zabbix ${{ matrix.zabbix-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        zabbix-version: ["6.0", "7.0", "7.4"]
+    env:
+      ZABBIX_VERSION: ${{ matrix.zabbix-version }}
+      COMPOSE_FILE: docker/test/docker-compose.yml
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Install Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install uv
+          uv sync --frozen
+      - name: Start Zabbix ${{ matrix.zabbix-version }}
+        run: docker compose up -d --wait --wait-timeout 300
+      - name: Seed Zabbix and git remote
+        run: uv run python docker/test/seed.py --remote "$RUNNER_TEMP/remote.git" >> "$GITHUB_ENV"
+      - name: Run integration tests
+        run: uv run pytest -m integration -v
+      - name: Zabbix logs
+        if: failure()
+        run: docker compose logs
+      - name: Stop Zabbix
+        if: always()
+        run: docker compose down -v

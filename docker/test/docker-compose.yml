@@ -1,0 +1,47 @@
+# Disposable Zabbix stack for the integration tests, see docker/test/seed.py
+#
+#   ZABBIX_VERSION=7.4 docker compose -f docker/test/docker-compose.yml up -d --wait
+name: zabbixci-test
+
+x-database: &database
+  POSTGRES_USER: zabbix
+  POSTGRES_PASSWORD: zabbix
+  POSTGRES_DB: zabbix
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      <<: *database
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zabbix -d zabbix"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  # The server container creates the database schema on first start
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-${ZABBIX_VERSION:-7.4}-latest
+    environment:
+      <<: *database
+      DB_SERVER_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-${ZABBIX_VERSION:-7.4}-latest
+    environment:
+      <<: *database
+      DB_SERVER_HOST: postgres
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: UTC
+    ports:
+      - "${ZABBIX_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      zabbix-server:
+        condition: service_started
