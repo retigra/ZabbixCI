@@ -60,6 +60,12 @@ exclude = ["zabbixci.tests*"]
 [tool.setuptools_scm]
 version_file = "zabbixci/_version.py"
 
+[tool.pytest.ini_options]
+testpaths = ["test"]
+markers = [
+    "integration: requires a Zabbix server and git remote, see docker/test/seed.py",
+]
+
 [tool.ruff.lint]
 select = ["E", "F", "B", "ERA001", "S501", "DJ", "G", "T20", "PIE", "N"]
 
